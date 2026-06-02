@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:main-auth": "node scripts/verify-main-auth-screen.mjs",
     "start": "next start",
     "lint": "eslint ."
   },
