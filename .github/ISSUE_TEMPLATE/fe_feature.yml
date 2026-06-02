@@ -1,0 +1,50 @@
+name: FE Feature
+description: 프론트엔드 화면, 라우팅, 컴포넌트 기능 추가/수정
+title: "[FE] "
+labels: ["type: feFeature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 사용자가 무엇을 할 수 있어야 하는지 적어주세요.
+      placeholder: |
+        예: 사용자는 로그인 전 메인 화면에서 회원가입 화면으로 이동할 수 있다.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 작업 범위
+      description: 화면, 라우팅, 컴포넌트, 상태 관리, API 연결 준비 범위를 적어주세요.
+      placeholder: |
+        - 회원가입 진입 버튼 추가
+        - 회원가입 페이지 또는 모달 추가
+        - 입력 폼과 기본 validation 추가
+    validations:
+      required: true
+  - type: textarea
+    id: design
+    attributes:
+      label: 화면/UX 참고
+      description: 참고 화면, Figma, 이미지, 원하는 UX 흐름을 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 이 이슈가 완료됐다고 판단할 수 있는 조건을 적어주세요.
+      placeholder: |
+        - 사용자는 회원가입 화면에 접근할 수 있다.
+        - 필수 입력값 검증이 동작한다.
+        - 프론트엔드 빌드가 통과한다.
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: 참고 자료
+      description: 링크, 문서, 제약 조건을 적어주세요.
+    validations:
+      required: false

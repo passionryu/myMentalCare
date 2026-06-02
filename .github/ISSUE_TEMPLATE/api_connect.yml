@@ -1,0 +1,38 @@
+name: API Connect
+description: 프론트엔드와 백엔드 API 연동
+title: "[API] "
+labels: ["type: apiConnect"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 어떤 화면/기능과 어떤 API를 연결할지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: contract
+    attributes:
+      label: API Contract
+      description: endpoint, method, request, response, error 형식을 적어주세요.
+      placeholder: |
+        - method/path:
+        - request:
+        - response:
+        - error:
+    validations:
+      required: true
+  - type: textarea
+    id: frontend
+    attributes:
+      label: 프론트엔드 처리
+      description: 호출 위치, 로딩, 에러, 성공 후 UI 변화를 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 연동 완료를 판단할 조건을 적어주세요.
+    validations:
+      required: true

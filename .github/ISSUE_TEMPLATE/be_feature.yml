@@ -1,0 +1,44 @@
+name: BE Feature
+description: Kotlin/Spring Boot 백엔드 기능 추가/수정
+title: "[BE] "
+labels: ["type: beFeature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 서버에서 제공해야 하는 기능과 비즈니스 목적을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: domain
+    attributes:
+      label: 도메인/UseCase
+      description: 관련 도메인, UseCase, 정책, 트랜잭션 경계를 적어주세요.
+      placeholder: |
+        - domain:
+        - usecase:
+        - transaction boundary:
+    validations:
+      required: true
+  - type: textarea
+    id: api
+    attributes:
+      label: API
+      description: 필요한 endpoint, request, response, error code를 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: db
+    attributes:
+      label: DB 변경
+      description: 필요한 테이블, 컬럼, 인덱스, migration, rollback 고려사항을 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 테스트와 동작 기준을 적어주세요.
+    validations:
+      required: true

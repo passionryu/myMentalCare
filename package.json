@@ -1,0 +1,15 @@
+{
+  "name": "my-mental-care",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --dir apps/web dev",
+    "build:web": "pnpm --dir apps/web build",
+    "lint:web": "pnpm --dir apps/web lint",
+    "dev:server": "apps/server/gradlew -p apps/server :modules:bootstrap:mymentalcare:bootRun",
+    "build:server": "apps/server/gradlew -p apps/server build",
+    "test:server": "apps/server/gradlew -p apps/server test",
+    "infra:up": "docker compose -f apps/server/docker-compose.infra.local.yml up -d",
+    "infra:down": "docker compose -f apps/server/docker-compose.infra.local.yml down"
+  }
+}

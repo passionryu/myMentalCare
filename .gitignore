@@ -1,0 +1,16 @@
+.DS_Store
+.idea/
+.vscode/
+node_modules/
+.next/
+dist/
+build/
+.gradle/
+*.iml
+*.log
+.env
+.env.*
+!/.env.example
+apps/server/modules/**/build/
+apps/web/next-env.d.ts
+apps/web/tsconfig.tsbuildinfo

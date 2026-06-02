@@ -1,0 +1,33 @@
+name: Hotfix
+description: 긴급 수정 및 빠른 배포가 필요한 작업
+title: "[Hotfix] "
+labels: ["type: hotfix"]
+body:
+  - type: textarea
+    id: impact
+    attributes:
+      label: 영향 범위
+      description: 현재 장애/문제가 사용자와 시스템에 미치는 영향을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: cause
+    attributes:
+      label: 원인 가설
+      description: 현재 추정되는 원인과 확인된 사실을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: fix
+    attributes:
+      label: 최소 수정안
+      description: 긴급 대응을 위한 최소 변경 범위를 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: verification
+    attributes:
+      label: 검증/롤백
+      description: 배포 전후 검증 방법과 롤백 방법을 적어주세요.
+    validations:
+      required: true

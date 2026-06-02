@@ -1,0 +1,33 @@
+name: Docs
+description: 문서 작성 및 수정
+title: "[Docs] "
+labels: ["type: docs"]
+body:
+  - type: textarea
+    id: purpose
+    attributes:
+      label: 목적
+      description: 어떤 독자를 위해 어떤 문서를 작성/수정하는지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: scope
+    attributes:
+      label: 문서 범위
+      description: 추가/수정할 문서와 포함해야 하는 내용을 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: references
+    attributes:
+      label: 참고 자료
+      description: 참고할 링크, 기존 문서, 코드 위치를 적어주세요.
+    validations:
+      required: false
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 문서 완료 기준을 적어주세요.
+    validations:
+      required: true

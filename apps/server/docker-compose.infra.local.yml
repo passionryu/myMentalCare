@@ -1,0 +1,25 @@
+services:
+  mariadb:
+    image: mariadb:11
+    environment:
+      MARIADB_DATABASE: mymentalcare
+      MARIADB_ROOT_PASSWORD: mymentalcare-local
+      MARIADB_USER: mymentalcare
+      MARIADB_PASSWORD: mymentalcare-local
+    ports:
+      - "3310:3306"
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      start_period: 10s
+      interval: 10s
+      timeout: 5s
+      retries: 15
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6380:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 10

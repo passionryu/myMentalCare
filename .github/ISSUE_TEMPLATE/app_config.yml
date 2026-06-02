@@ -1,0 +1,38 @@
+name: Config
+description: 설정 파일, 환경 변수, profile, secret 관련 작업
+title: "[Config] "
+labels: ["type: config"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 어떤 설정을 왜 바꾸는지 적어주세요.
+    validations:
+      required: true
+  - type: textarea
+    id: targets
+    attributes:
+      label: 대상 설정
+      description: 변경할 파일, 환경 변수, profile, secret 이름을 적어주세요.
+    validations:
+      required: true
+  - type: dropdown
+    id: environment
+    attributes:
+      label: 적용 환경
+      multiple: true
+      options:
+        - local
+        - dev
+        - staging
+        - production
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 설정 적용과 검증 기준을 적어주세요.
+    validations:
+      required: true

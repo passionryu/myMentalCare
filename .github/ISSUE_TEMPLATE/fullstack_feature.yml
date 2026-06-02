@@ -1,0 +1,86 @@
+name: Full Stack Feature
+description: 화면, 백엔드 API, 프론트-백엔드 연동을 함께 구현
+title: "[FS] "
+labels: ["type: fullstackFeature"]
+body:
+  - type: textarea
+    id: goal
+    attributes:
+      label: 목표
+      description: 사용자가 어떤 기능을 어떤 화면 흐름으로 사용할지 적어주세요.
+      placeholder: |
+        - 사용자는 ...
+        - 이 기능을 통해 ...
+    validations:
+      required: true
+  - type: textarea
+    id: user_experience
+    attributes:
+      label: 사용자 경험
+      description: 화면 진입, 입력, 성공, 실패, 로딩, 모바일 고려사항을 적어주세요.
+      placeholder: |
+        - 화면 진입:
+        - 입력/선택:
+        - 성공 시:
+        - 실패 시:
+        - 모바일:
+    validations:
+      required: true
+  - type: textarea
+    id: api_contract
+    attributes:
+      label: API Contract
+      description: 프론트와 백엔드가 합의해야 하는 endpoint, request, response, error를 적어주세요.
+      placeholder: |
+        - method/path:
+        - request:
+        - response:
+        - error:
+    validations:
+      required: false
+  - type: textarea
+    id: backend
+    attributes:
+      label: 백엔드 구현
+      description: 도메인, UseCase, DB 변경, 인증/인가, 트랜잭션 경계를 적어주세요.
+      placeholder: |
+        - domain:
+        - usecase:
+        - DB/migration:
+        - auth:
+        - transaction:
+    validations:
+      required: false
+  - type: textarea
+    id: frontend
+    attributes:
+      label: 프론트엔드 구현
+      description: route, component, form, validation, API client, 상태 처리를 적어주세요.
+      placeholder: |
+        - route:
+        - component:
+        - validation:
+        - API client:
+        - loading/success/error:
+    validations:
+      required: false
+  - type: textarea
+    id: qa
+    attributes:
+      label: QA 기준
+      description: API 호출 테스트, 화면 테스트, 엣지 케이스, Human QA 확인 항목을 적어주세요.
+      placeholder: |
+        - happy case:
+        - edge cases:
+        - screen checks:
+        - API checks:
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 완료 기준
+      description: 이 기능이 완료되었다고 판단할 수 있는 조건을 적어주세요.
+    validations:
+      required: true
+
