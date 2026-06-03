@@ -4,6 +4,10 @@ server:
 spring:
   application:
     name: my-mental-care
+  data:
+    redis:
+      host: ${MY_MENTAL_CARE_REDIS_HOST:localhost}
+      port: ${MY_MENTAL_CARE_REDIS_PORT:6380}
   profiles:
     include:
       - datasource
@@ -17,3 +21,10 @@ management:
 springdoc:
   swagger-ui:
     path: /swagger-ui/index.html
+
+mymentalcare:
+  security:
+    jwt:
+      secret: ${MY_MENTAL_CARE_JWT_SECRET:local-mymentalcare-jwt-secret-must-be-changed}
+      access-token-expiration: ${MY_MENTAL_CARE_ACCESS_TOKEN_EXPIRATION:1h}
+      refresh-token-expiration: ${MY_MENTAL_CARE_REFRESH_TOKEN_EXPIRATION:7d}
