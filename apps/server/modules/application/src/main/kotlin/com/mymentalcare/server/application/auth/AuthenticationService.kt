@@ -11,6 +11,8 @@ internal class AuthenticationService(
     private val jwtTokenIssuer: JwtTokenIssuer,
     private val refreshTokenStore: RefreshTokenStore,
 ) : AuthenticationInputPort {
+
+    // 로그인
     override fun signIn(request: SignInRequest): SignInResponse {
         val member = loginMemberReader.readMemberByLoginIdentifier(request.identifier)
 
