@@ -2,6 +2,7 @@
 
 import { Bell, Brain, HeartHandshake, MessageCircle, Moon, Sparkles, X } from 'lucide-react'
 import { FormEvent, useState } from 'react'
+import { LoginApiError, loginMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
 
@@ -133,15 +134,33 @@ function AuthModal({
   onModeChange: (mode: AuthMode) => void
 }) {
   const [message, setMessage] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
   const isSignup = mode === 'signup'
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    setMessage(
-      isSignup
-        ? '회원가입 API 연동 전입니다. 입력 흐름만 안전하게 확인했습니다.'
-        : '로그인 API 연동 전입니다. 입력 흐름만 안전하게 확인했습니다.',
-    )
+    setMessage('')
+
+    if (isSignup) {
+      setMessage('회원가입 API 연동 전입니다. 입력 흐름만 안전하게 확인했습니다.')
+      return
+    }
+
+    const formData = new FormData(event.currentTarget)
+    const identifier = String(formData.get('loginId') ?? '').trim()
+    const password = String(formData.get('password') ?? '')
+
+    setIsSubmitting(true)
+    try {
+      const response = await loginMember({ identifier, password })
+      localStorage.setItem('myMentalCare.accessToken', response.accessToken)
+      localStorage.setItem('myMentalCare.refreshToken', response.refreshToken)
+      setMessage('로그인이 완료되었습니다.')
+    } catch (error) {
+      setMessage(error instanceof LoginApiError ? error.message : '로그인 처리 중 문제가 발생했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -203,7 +222,7 @@ function AuthModal({
               취소
             </button>
             <button className="primary-button" type="submit">
-              {isSignup ? '회원가입' : '로그인'}
+              {isSubmitting ? '처리 중...' : isSignup ? '회원가입' : '로그인'}
             </button>
           </div>
         </form>

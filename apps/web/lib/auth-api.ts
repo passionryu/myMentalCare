@@ -1,0 +1,38 @@
+export type LoginRequest = {
+  identifier: string
+  password: string
+}
+
+export type LoginResponse = {
+  accessToken: string
+  refreshToken: string
+  tokenType: string
+  expiresInSeconds: number
+}
+
+export class LoginApiError extends Error {
+  constructor(message: string) {
+    super(message)
+    this.name = 'LoginApiError'
+  }
+}
+
+const apiBaseUrl = process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
+
+export async function loginMember(request: LoginRequest): Promise<LoginResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '로그인 처리 중 문제가 발생했습니다.')
+  }
+
+  return body as LoginResponse
+}
