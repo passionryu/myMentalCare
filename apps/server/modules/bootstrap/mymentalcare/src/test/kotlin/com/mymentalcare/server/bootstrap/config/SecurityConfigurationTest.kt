@@ -40,7 +40,7 @@ class SecurityConfigurationTest {
     @Test
     fun `protected api requires authentication`() {
         mockMvc.perform(get("/api/protected-resource"))
-            .andExpect(status().isUnauthorized)
+            .andExpect(status().isForbidden)
     }
 
     @Test
