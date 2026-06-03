@@ -1,7 +1,7 @@
 package com.mymentalcare.server.bootstrap.auth
 
-import com.mymentalcare.server.application.auth.LoginCommand
-import com.mymentalcare.server.application.auth.LoginUseCase
+import com.mymentalcare.server.application.auth.AuthenticationInputPort
+import com.mymentalcare.server.application.auth.SignInRequest
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.http.ResponseEntity
@@ -13,7 +13,7 @@ import org.springframework.web.bind.annotation.RestController
 @RestController
 @RequestMapping("/api/auth")
 class AuthController(
-    private val loginUseCase: LoginUseCase,
+    private val authenticationInputPort: AuthenticationInputPort,
 ) {
     @Operation(
         summary = "로그인",
@@ -23,8 +23,8 @@ class AuthController(
     fun login(
         @Valid @RequestBody request: LoginRequest,
     ): ResponseEntity<LoginResponse> {
-        val result = loginUseCase.loginMember(
-            LoginCommand(
+        val response = authenticationInputPort.signIn(
+            SignInRequest(
                 identifier = request.identifier,
                 password = request.password,
             )
@@ -32,10 +32,10 @@ class AuthController(
 
         return ResponseEntity.ok(
             LoginResponse(
-                accessToken = result.accessToken,
-                refreshToken = result.refreshToken,
-                tokenType = result.tokenType,
-                expiresInSeconds = result.expiresInSeconds,
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+                tokenType = response.tokenType,
+                expiresInSeconds = response.expiresInSeconds,
             )
         )
     }

@@ -1,6 +1,6 @@
 package com.mymentalcare.server.application.auth
 
-data class LoginCommand(
+data class SignInRequest(
     val identifier: String,
     val password: String,
 )

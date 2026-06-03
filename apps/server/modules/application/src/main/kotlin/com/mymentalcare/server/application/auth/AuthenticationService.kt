@@ -5,23 +5,23 @@ import com.mymentalcare.server.application.port.RefreshTokenStore
 import org.springframework.stereotype.Service
 
 @Service
-class LoginUseCase(
+internal class AuthenticationService(
     private val loginMemberReader: LoginMemberReader,
     private val passwordVerifier: PasswordVerifier,
     private val jwtTokenIssuer: JwtTokenIssuer,
     private val refreshTokenStore: RefreshTokenStore,
-) {
-    fun loginMember(command: LoginCommand): LoginResult {
-        val member = loginMemberReader.readMemberByLoginIdentifier(command.identifier)
+) : AuthenticationInputPort {
+    override fun signIn(request: SignInRequest): SignInResponse {
+        val member = loginMemberReader.readMemberByLoginIdentifier(request.identifier)
 
-        passwordVerifier.verifyPasswordMatches(command.password, member.password)
+        passwordVerifier.verifyPasswordMatches(request.password, member.password)
 
         val accessToken = jwtTokenIssuer.issueAccessToken(member.id)
         val refreshToken = jwtTokenIssuer.issueRefreshToken(member.id)
 
         refreshTokenStore.storeRefreshToken(member.id, refreshToken)
 
-        return LoginResult(
+        return SignInResponse(
             accessToken = accessToken,
             refreshToken = refreshToken,
         )
