@@ -31,6 +31,7 @@ export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
+  const [sessionMessage, setSessionMessage] = useState('')
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -40,8 +41,10 @@ export default function Page() {
     localStorage.removeItem('myMentalCare.accessToken')
     localStorage.removeItem('myMentalCare.refreshToken')
     setIsAuthenticated(false)
+    setAuthMode(null)
     setProfile(null)
     setProfileMessage('')
+    setSessionMessage('로그아웃되었습니다.')
   }
 
   const handleOpenProfile = async () => {
@@ -92,6 +95,12 @@ export default function Page() {
             </div>
           )}
         </nav>
+
+        {sessionMessage && (
+          <p className="session-message" role="status">
+            {sessionMessage}
+          </p>
+        )}
 
         <div className="hero-grid">
           <div className="hero-copy">

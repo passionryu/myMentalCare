@@ -19,6 +19,7 @@ const checks = [
   ['프로필 API 호출 함수 사용', page.includes('await readMyProfile')],
   ['프로필 모달 표시', page.includes('내 프로필') && page.includes('profile-detail')],
   ['로그아웃 시 토큰 제거', page.includes("localStorage.removeItem('myMentalCare.accessToken')")],
+  ['로그아웃 완료 안내 메시지', page.includes('로그아웃되었습니다.') && page.includes('session-message')],
   ['로그인 API endpoint 확인', authApi.includes('/api/auth/login')],
   ['프로필 API endpoint 확인', authApi.includes('/api/members/me')],
   ['로그인 실패 오류 메시지 처리', authApi.includes('LoginApiError')],
