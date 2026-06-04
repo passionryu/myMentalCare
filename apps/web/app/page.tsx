@@ -2,7 +2,7 @@
 
 import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Sparkles, UserRound, X } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
-import { LoginApiError, MyProfileResponse, loginMember, readMyProfile } from '@/lib/auth-api'
+import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
 
@@ -271,7 +271,29 @@ function AuthModal({
     setMessage('')
 
     if (isSignup) {
-      setMessage('회원가입 API 연동 전입니다. 입력 흐름만 안전하게 확인했습니다.')
+      const formData = new FormData(event.currentTarget)
+      const loginId = String(formData.get('loginId') ?? '').trim()
+      const email = String(formData.get('email') ?? '').trim()
+      const password = String(formData.get('password') ?? '')
+      const name = String(formData.get('name') ?? '').trim()
+      const phone = String(formData.get('phone') ?? '').trim()
+
+      setIsSubmitting(true)
+      try {
+        await signupMember({
+          loginId,
+          email: email || undefined,
+          password,
+          name,
+          phone: phone || undefined,
+        })
+        setMessage('회원가입이 완료되었습니다. 이제 로그인해주세요.')
+        setTimeout(() => onModeChange('login'), 700)
+      } catch (error) {
+        setMessage(error instanceof LoginApiError ? error.message : '회원가입 처리 중 문제가 발생했습니다.')
+      } finally {
+        setIsSubmitting(false)
+      }
       return
     }
 
@@ -328,6 +350,12 @@ function AuthModal({
             <label>
               이메일 <span className="optional">(선택)</span>
               <input name="email" type="email" placeholder="예: care@example.com" />
+            </label>
+          )}
+          {isSignup && (
+            <label>
+              전화번호 <span className="optional">(선택)</span>
+              <input name="phone" type="tel" placeholder="예: 01012345678" />
             </label>
           )}
           <label>

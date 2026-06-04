@@ -18,4 +18,12 @@ class MemberPersistenceAdapter(
             .map { it.toDomain() }
             .orElse(null)
     }
+
+    override fun existsByLoginId(loginId: String): Boolean {
+        return jpaMemberRepository.existsByLoginId(loginId)
+    }
+
+    override fun save(member: Member): Member {
+        return jpaMemberRepository.save(member.toEntity()).toDomain()
+    }
 }

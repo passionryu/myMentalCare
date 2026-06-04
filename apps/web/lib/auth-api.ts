@@ -18,6 +18,20 @@ export type MyProfileResponse = {
   phone?: string | null
 }
 
+export type SignupRequest = {
+  loginId: string
+  email?: string
+  password: string
+  name: string
+  phone?: string
+}
+
+export type SignupResponse = {
+  memberId: number
+  loginId: string
+  name: string
+}
+
 export class LoginApiError extends Error {
   constructor(message: string) {
     super(message)
@@ -59,4 +73,22 @@ export async function readMyProfile(accessToken: string): Promise<MyProfileRespo
   }
 
   return body as MyProfileResponse
+}
+
+export async function signupMember(request: SignupRequest): Promise<SignupResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/members/signup`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '회원가입 처리 중 문제가 발생했습니다.')
+  }
+
+  return body as SignupResponse
 }

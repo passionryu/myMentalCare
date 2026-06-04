@@ -6,4 +6,6 @@ interface JpaMemberRepository : JpaRepository<MemberEntity, Long> {
     fun findByLoginId(identifier: String): MemberEntity?
 
     fun findByEmail(identifier: String): MemberEntity?
+
+    fun existsByLoginId(loginId: String): Boolean
 }
