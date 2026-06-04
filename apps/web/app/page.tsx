@@ -2,7 +2,7 @@
 
 import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Sparkles, UserRound, X } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
-import { LoginApiError, loginMember } from '@/lib/auth-api'
+import { LoginApiError, MyProfileResponse, loginMember, readMyProfile } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
 
@@ -29,6 +29,8 @@ const routineItems = ['아침 마음 체크', '점심 호흡 알림', '잠들기
 export default function Page() {
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [profile, setProfile] = useState<MyProfileResponse | null>(null)
+  const [profileMessage, setProfileMessage] = useState('')
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -38,6 +40,24 @@ export default function Page() {
     localStorage.removeItem('myMentalCare.accessToken')
     localStorage.removeItem('myMentalCare.refreshToken')
     setIsAuthenticated(false)
+    setProfile(null)
+    setProfileMessage('')
+  }
+
+  const handleOpenProfile = async () => {
+    const accessToken = localStorage.getItem('myMentalCare.accessToken')
+    if (!accessToken) {
+      setIsAuthenticated(false)
+      setAuthMode('login')
+      return
+    }
+
+    try {
+      setProfileMessage('')
+      setProfile(await readMyProfile(accessToken))
+    } catch (error) {
+      setProfileMessage(error instanceof LoginApiError ? error.message : '프로필 정보를 불러오지 못했습니다.')
+    }
   }
 
   return (
@@ -52,7 +72,7 @@ export default function Page() {
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
-              <button className="soft-button profile-button" type="button" aria-label="내 프로필">
+              <button className="soft-button profile-button" type="button" aria-label="내 프로필" onClick={handleOpenProfile}>
                 <UserRound size={18} aria-hidden="true" />
                 프로필
               </button>
@@ -154,7 +174,71 @@ export default function Page() {
           onModeChange={setAuthMode}
         />
       )}
+      {(profile || profileMessage) && (
+        <ProfileModal
+          profile={profile}
+          message={profileMessage}
+          onClose={() => {
+            setProfile(null)
+            setProfileMessage('')
+          }}
+        />
+      )}
     </main>
+  )
+}
+
+function ProfileModal({
+  profile,
+  message,
+  onClose,
+}: {
+  profile: MyProfileResponse | null
+  message: string
+  onClose: () => void
+}) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="profile-modal-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="모달 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">내 마음 케어 정보</p>
+        <h2 id="profile-modal-title">내 프로필</h2>
+        {message && <p className="form-message">{message}</p>}
+        {profile && (
+          <dl className="profile-detail">
+            <div>
+              <dt>이름</dt>
+              <dd>{profile.name}</dd>
+            </div>
+            <div>
+              <dt>로그인 아이디</dt>
+              <dd>{profile.loginId}</dd>
+            </div>
+            <div>
+              <dt>이메일</dt>
+              <dd>{profile.email || '등록하지 않음'}</dd>
+            </div>
+            <div>
+              <dt>전화번호</dt>
+              <dd>{profile.phone || '등록하지 않음'}</dd>
+            </div>
+          </dl>
+        )}
+        <div className="modal-actions">
+          <button className="primary-button" type="button" onClick={onClose}>
+            확인
+          </button>
+        </div>
+      </section>
+    </div>
   )
 }
 

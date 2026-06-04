@@ -10,6 +10,14 @@ export type LoginResponse = {
   expiresInSeconds: number
 }
 
+export type MyProfileResponse = {
+  memberId: number
+  loginId: string
+  email?: string | null
+  name: string
+  phone?: string | null
+}
+
 export class LoginApiError extends Error {
   constructor(message: string) {
     super(message)
@@ -35,4 +43,20 @@ export async function loginMember(request: LoginRequest): Promise<LoginResponse>
   }
 
   return body as LoginResponse
+}
+
+export async function readMyProfile(accessToken: string): Promise<MyProfileResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/members/me`, {
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+    },
+  })
+
+  const body = await response.json().catch(() => null)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '프로필 정보를 불러오지 못했습니다.')
+  }
+
+  return body as MyProfileResponse
 }

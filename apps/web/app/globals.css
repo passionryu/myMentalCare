@@ -433,6 +433,33 @@ h3 {
   line-height: 1.55;
 }
 
+.profile-detail {
+  display: grid;
+  gap: 12px;
+  margin: 20px 0 0;
+}
+
+.profile-detail div {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  gap: 12px;
+  border-radius: 16px;
+  background: rgba(231, 240, 229, 0.62);
+  padding: 14px;
+}
+
+.profile-detail dt {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.profile-detail dd {
+  margin: 0;
+  color: var(--ink);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
 .switch-mode {
   width: 100%;
   margin-top: 18px;
