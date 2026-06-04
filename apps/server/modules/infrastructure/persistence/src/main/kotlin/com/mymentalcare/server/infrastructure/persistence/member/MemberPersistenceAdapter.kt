@@ -12,4 +12,10 @@ class MemberPersistenceAdapter(
         return jpaMemberRepository.findByLoginId(identifier)?.toDomain()
             ?: jpaMemberRepository.findByEmail(identifier)?.toDomain()
     }
+
+    override fun findById(memberId: Long): Member? {
+        return jpaMemberRepository.findById(memberId)
+            .map { it.toDomain() }
+            .orElse(null)
+    }
 }

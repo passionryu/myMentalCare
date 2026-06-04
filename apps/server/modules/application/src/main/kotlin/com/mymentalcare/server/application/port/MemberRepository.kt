@@ -4,4 +4,6 @@ import com.mymentalcare.server.domain.member.Member
 
 interface MemberRepository {
     fun findByLoginIdOrEmail(identifier: String): Member?
+
+    fun findById(memberId: Long): Member?
 }
