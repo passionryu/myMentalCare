@@ -1,6 +1,7 @@
 package com.mymentalcare.server.bootstrap.auth
 
 import com.mymentalcare.server.application.auth.AuthenticationInputPort
+import com.mymentalcare.server.application.auth.ReissueTokenRequest as ApplicationReissueTokenRequest
 import com.mymentalcare.server.application.auth.SignInRequest
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
@@ -27,6 +28,30 @@ class AuthController(
             SignInRequest(
                 identifier = request.identifier,
                 password = request.password,
+            )
+        )
+
+        return ResponseEntity.ok(
+            LoginResponse(
+                accessToken = response.accessToken,
+                refreshToken = response.refreshToken,
+                tokenType = response.tokenType,
+                expiresInSeconds = response.expiresInSeconds,
+            )
+        )
+    }
+
+    @Operation(
+        summary = "토큰 재발급",
+        description = "유효한 refresh token을 검증하고 새로운 access token과 refresh token을 재발급합니다.",
+    )
+    @PostMapping("/reissue")
+    fun reissue(
+        @Valid @RequestBody request: ReissueTokenRequest,
+    ): ResponseEntity<LoginResponse> {
+        val response = authenticationInputPort.reissue(
+            ApplicationReissueTokenRequest(
+                refreshToken = request.refreshToken,
             )
         )
 

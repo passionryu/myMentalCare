@@ -1,6 +1,7 @@
 package com.mymentalcare.server.bootstrap.auth.adapter
 
 import com.mymentalcare.server.bootstrap.config.JwtProperties
+import io.jsonwebtoken.Claims
 import io.jsonwebtoken.Jwts
 import io.jsonwebtoken.security.Keys
 import jakarta.servlet.FilterChain
@@ -11,6 +12,9 @@ import org.springframework.security.core.context.SecurityContextHolder
 import org.springframework.stereotype.Component
 import org.springframework.web.filter.OncePerRequestFilter
 import java.nio.charset.StandardCharsets
+
+private const val TOKEN_TYPE_CLAIM = "token_type"
+private const val ACCESS_TOKEN_TYPE = "access"
 
 @Component
 class JwtAuthenticationFilter(
@@ -36,6 +40,15 @@ class JwtAuthenticationFilter(
             ?.removePrefix("Bearer ")
             ?: return null
 
+        val claims = parseClaims(token) ?: return null
+        if (claims[TOKEN_TYPE_CLAIM] != ACCESS_TOKEN_TYPE) {
+            return null
+        }
+
+        return claims.subject.toLongOrNull()
+    }
+
+    private fun parseClaims(token: String): Claims? {
         return runCatching {
             val key = Keys.hmacShaKeyFor(jwtProperties.secret.toByteArray(StandardCharsets.UTF_8))
             Jwts.parserBuilder()
@@ -43,8 +56,6 @@ class JwtAuthenticationFilter(
                 .build()
                 .parseClaimsJws(token)
                 .body
-                .subject
-                .toLong()
         }.getOrNull()
     }
 }

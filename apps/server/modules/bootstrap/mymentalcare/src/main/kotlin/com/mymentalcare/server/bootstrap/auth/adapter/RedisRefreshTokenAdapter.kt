@@ -18,4 +18,8 @@ class RedisRefreshTokenAdapter(
             jwtProperties.refreshTokenExpiration,
         )
     }
+
+    override fun readRefreshToken(memberId: Long): String? {
+        return redisTemplate.opsForValue().get("auth:refresh-token:$memberId")
+    }
 }
