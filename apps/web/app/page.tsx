@@ -29,6 +29,7 @@ const routineItems = ['아침 마음 체크', '점심 호흡 알림', '잠들기
 export default function Page() {
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
+  const [sessionMessage, setSessionMessage] = useState('')
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -38,6 +39,8 @@ export default function Page() {
     localStorage.removeItem('myMentalCare.accessToken')
     localStorage.removeItem('myMentalCare.refreshToken')
     setIsAuthenticated(false)
+    setAuthMode(null)
+    setSessionMessage('로그아웃되었습니다.')
   }
 
   return (
@@ -72,6 +75,12 @@ export default function Page() {
             </div>
           )}
         </nav>
+
+        {sessionMessage && (
+          <p className="session-message" role="status">
+            {sessionMessage}
+          </p>
+        )}
 
         <div className="hero-grid">
           <div className="hero-copy">

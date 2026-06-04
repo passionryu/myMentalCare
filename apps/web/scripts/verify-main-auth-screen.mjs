@@ -17,6 +17,7 @@ const checks = [
   ['로그인 성공 후 인증 상태 반영', page.includes('setIsAuthenticated(true)') && page.includes('onLoginSuccess')],
   ['로그인 후 프로필/로그아웃 버튼 표시', page.includes('프로필') && page.includes('로그아웃')],
   ['로그아웃 시 토큰 제거', page.includes("localStorage.removeItem('myMentalCare.accessToken')")],
+  ['로그아웃 완료 안내 메시지', page.includes('로그아웃되었습니다.') && page.includes('session-message')],
   ['로그인 API endpoint 확인', authApi.includes('/api/auth/login')],
   ['로그인 실패 오류 메시지 처리', authApi.includes('LoginApiError')],
   ['정신 건강 서비스 디자인 문구', page.includes('따뜻한 개인 멘탈 케어')],
