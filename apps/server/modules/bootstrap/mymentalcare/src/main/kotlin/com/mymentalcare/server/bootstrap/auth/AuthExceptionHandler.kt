@@ -1,6 +1,7 @@
 package com.mymentalcare.server.bootstrap.auth
 
 import com.mymentalcare.server.application.auth.LoginFailedException
+import com.mymentalcare.server.application.auth.TokenReissueFailedException
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.web.bind.MethodArgumentNotValidException
@@ -14,6 +15,13 @@ class AuthExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.UNAUTHORIZED)
             .body(ApiErrorResponse(code = "AUTH_LOGIN_FAILED", message = exception.message ?: "로그인 정보를 다시 확인해주세요."))
+    }
+
+    @ExceptionHandler(TokenReissueFailedException::class)
+    fun handleTokenReissueFailed(exception: TokenReissueFailedException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity
+            .status(HttpStatus.UNAUTHORIZED)
+            .body(ApiErrorResponse(code = "AUTH_REISSUE_FAILED", message = exception.message ?: "로그인이 만료되었습니다. 다시 로그인해주세요."))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)
