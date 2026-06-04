@@ -1,7 +1,7 @@
 'use client'
 
-import { Bell, Brain, HeartHandshake, MessageCircle, Moon, Sparkles, X } from 'lucide-react'
-import { FormEvent, useState } from 'react'
+import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Sparkles, UserRound, X } from 'lucide-react'
+import { FormEvent, useEffect, useState } from 'react'
 import { LoginApiError, loginMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
@@ -28,6 +28,17 @@ const routineItems = ['아침 마음 체크', '점심 호흡 알림', '잠들기
 
 export default function Page() {
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
+  const [isAuthenticated, setIsAuthenticated] = useState(false)
+
+  useEffect(() => {
+    setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
+  }, [])
+
+  const handleLogout = () => {
+    localStorage.removeItem('myMentalCare.accessToken')
+    localStorage.removeItem('myMentalCare.refreshToken')
+    setIsAuthenticated(false)
+  }
 
   return (
     <main className="page-shell">
@@ -39,14 +50,27 @@ export default function Page() {
             </span>
             <span>myMentalCare</span>
           </div>
-          <div className="nav-actions">
-            <button className="ghost-button" type="button" onClick={() => setAuthMode('login')}>
-              로그인
-            </button>
-            <button className="primary-button" type="button" onClick={() => setAuthMode('signup')}>
-              회원가입
-            </button>
-          </div>
+          {isAuthenticated ? (
+            <div className="nav-actions">
+              <button className="soft-button profile-button" type="button" aria-label="내 프로필">
+                <UserRound size={18} aria-hidden="true" />
+                프로필
+              </button>
+              <button className="ghost-button logout-button" type="button" onClick={handleLogout}>
+                <LogOut size={18} aria-hidden="true" />
+                로그아웃
+              </button>
+            </div>
+          ) : (
+            <div className="nav-actions">
+              <button className="ghost-button" type="button" onClick={() => setAuthMode('login')}>
+                로그인
+              </button>
+              <button className="primary-button" type="button" onClick={() => setAuthMode('signup')}>
+                회원가입
+              </button>
+            </div>
+          )}
         </nav>
 
         <div className="hero-grid">
@@ -119,7 +143,17 @@ export default function Page() {
         </button>
       </section>
 
-      {authMode && <AuthModal mode={authMode} onClose={() => setAuthMode(null)} onModeChange={setAuthMode} />}
+      {authMode && (
+        <AuthModal
+          mode={authMode}
+          onClose={() => setAuthMode(null)}
+          onLoginSuccess={() => {
+            setIsAuthenticated(true)
+            setAuthMode(null)
+          }}
+          onModeChange={setAuthMode}
+        />
+      )}
     </main>
   )
 }
@@ -127,10 +161,12 @@ export default function Page() {
 function AuthModal({
   mode,
   onClose,
+  onLoginSuccess,
   onModeChange,
 }: {
   mode: AuthMode
   onClose: () => void
+  onLoginSuccess: () => void
   onModeChange: (mode: AuthMode) => void
 }) {
   const [message, setMessage] = useState('')
@@ -156,6 +192,7 @@ function AuthModal({
       localStorage.setItem('myMentalCare.accessToken', response.accessToken)
       localStorage.setItem('myMentalCare.refreshToken', response.refreshToken)
       setMessage('로그인이 완료되었습니다.')
+      onLoginSuccess()
     } catch (error) {
       setMessage(error instanceof LoginApiError ? error.message : '로그인 처리 중 문제가 발생했습니다.')
     } finally {

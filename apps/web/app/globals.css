@@ -112,6 +112,15 @@ button {
   gap: 12px;
 }
 
+.profile-button,
+.logout-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  white-space: nowrap;
+}
+
 .primary-button,
 .ghost-button,
 .soft-button,
