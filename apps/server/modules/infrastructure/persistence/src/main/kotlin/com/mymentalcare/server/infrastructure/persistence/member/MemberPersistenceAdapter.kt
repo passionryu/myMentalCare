@@ -12,4 +12,12 @@ class MemberPersistenceAdapter(
         return jpaMemberRepository.findByLoginId(identifier)?.toDomain()
             ?: jpaMemberRepository.findByEmail(identifier)?.toDomain()
     }
+
+    override fun existsByLoginId(loginId: String): Boolean {
+        return jpaMemberRepository.existsByLoginId(loginId)
+    }
+
+    override fun save(member: Member): Member {
+        return jpaMemberRepository.save(member.toEntity()).toDomain()
+    }
 }

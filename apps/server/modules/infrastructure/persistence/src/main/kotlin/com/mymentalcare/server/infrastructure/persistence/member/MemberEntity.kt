@@ -7,6 +7,7 @@ import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
 import jakarta.persistence.Table
+import java.time.LocalDateTime
 
 @Entity
 @Table(name = "members")
@@ -29,6 +30,12 @@ class MemberEntity(
 
     @Column(name = "phone", nullable = true)
     val phone: String?,
+
+    @Column(name = "created_at", nullable = false)
+    val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
     fun toDomain(): Member {
         return Member(
@@ -40,4 +47,15 @@ class MemberEntity(
             phone = phone,
         )
     }
+}
+
+fun Member.toEntity(): MemberEntity {
+    return MemberEntity(
+        id = id,
+        loginId = loginId,
+        email = email,
+        password = password,
+        name = name,
+        phone = phone,
+    )
 }
