@@ -105,7 +105,7 @@ export async function reissueToken(request: ReissueTokenRequest): Promise<LoginR
   return body as LoginResponse
 }
 
-async function requestWithAuth(path: string, init: RequestInit = {}, retryOnUnauthorized = true): Promise<Response> {
+export async function requestWithAuth(path: string, init: RequestInit = {}, retryOnUnauthorized = true): Promise<Response> {
   const accessToken = readStoredAccessToken()
   if (!accessToken) {
     throw new LoginApiError('로그인이 필요합니다.')
