@@ -32,6 +32,10 @@ export type SignupResponse = {
   name: string
 }
 
+export type ReissueTokenRequest = {
+  refreshToken: string
+}
+
 export class LoginApiError extends Error {
   constructor(message: string) {
     super(message)
@@ -40,6 +44,30 @@ export class LoginApiError extends Error {
 }
 
 const apiBaseUrl = process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
+const accessTokenKey = 'myMentalCare.accessToken'
+const refreshTokenKey = 'myMentalCare.refreshToken'
+
+function readStoredAccessToken(): string | null {
+  return localStorage.getItem(accessTokenKey)
+}
+
+function readStoredRefreshToken(): string | null {
+  return localStorage.getItem(refreshTokenKey)
+}
+
+function storeLoginTokens(tokens: LoginResponse) {
+  localStorage.setItem(accessTokenKey, tokens.accessToken)
+  localStorage.setItem(refreshTokenKey, tokens.refreshToken)
+}
+
+function clearLoginTokens() {
+  localStorage.removeItem(accessTokenKey)
+  localStorage.removeItem(refreshTokenKey)
+}
+
+async function readJson(response: Response) {
+  return response.json().catch(() => null)
+}
 
 export async function loginMember(request: LoginRequest): Promise<LoginResponse> {
   const response = await fetch(`${apiBaseUrl}/api/auth/login`, {
@@ -59,16 +87,73 @@ export async function loginMember(request: LoginRequest): Promise<LoginResponse>
   return body as LoginResponse
 }
 
-export async function readMyProfile(accessToken: string): Promise<MyProfileResponse> {
-  const response = await fetch(`${apiBaseUrl}/api/members/me`, {
+export async function reissueToken(request: ReissueTokenRequest): Promise<LoginResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/reissue`, {
+    method: 'POST',
     headers: {
-      Authorization: `Bearer ${accessToken}`,
+      'Content-Type': 'application/json',
     },
+    body: JSON.stringify(request),
   })
 
-  const body = await response.json().catch(() => null)
+  const body = await readJson(response)
 
   if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '로그인 상태를 다시 확인해주세요.')
+  }
+
+  return body as LoginResponse
+}
+
+async function requestWithAuth(path: string, init: RequestInit = {}, retryOnUnauthorized = true): Promise<Response> {
+  const accessToken = readStoredAccessToken()
+  if (!accessToken) {
+    throw new LoginApiError('로그인이 필요합니다.')
+  }
+
+  const headers = new Headers(init.headers)
+  headers.set('Authorization', `Bearer ${accessToken}`)
+
+  const response = await fetch(`${apiBaseUrl}${path}`, {
+    ...init,
+    headers,
+  })
+
+  if (response.status !== 401 || !retryOnUnauthorized) {
+    return response
+  }
+
+  const refreshToken = readStoredRefreshToken()
+  if (!refreshToken) {
+    clearLoginTokens()
+    throw new LoginApiError('로그인 시간이 만료되었습니다. 다시 로그인해주세요.')
+  }
+
+  try {
+    storeLoginTokens(await reissueToken({ refreshToken }))
+  } catch (error) {
+    clearLoginTokens()
+    if (error instanceof LoginApiError) {
+      throw error
+    }
+    throw new LoginApiError('로그인 시간이 만료되었습니다. 다시 로그인해주세요.')
+  }
+
+  return requestWithAuth(path, init, false)
+}
+
+export async function readMyProfile(accessToken?: string): Promise<MyProfileResponse> {
+  if (accessToken && !readStoredAccessToken()) {
+    localStorage.setItem(accessTokenKey, accessToken)
+  }
+
+  const response = await requestWithAuth('/api/members/me')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
     throw new LoginApiError(body?.message ?? '프로필 정보를 불러오지 못했습니다.')
   }
 
