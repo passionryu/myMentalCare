@@ -1,10 +1,12 @@
 'use client'
 
-import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Sparkles, UserRound, X } from 'lucide-react'
+import { Bell, Brain, Eye, EyeOff, HeartHandshake, LogOut, MessageCircle, Moon, Settings, Sparkles, UserRound, X } from 'lucide-react'
 import { FormEvent, useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
+type ThemeTone = 'sunset' | 'cream' | 'rose'
 
 const careFeatures = [
   {
@@ -31,7 +33,11 @@ export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
-  const [sessionMessage, setSessionMessage] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const [serviceGuideOpen, setServiceGuideOpen] = useState(false)
+  const [accountGuideOpen, setAccountGuideOpen] = useState(false)
+  const [notificationEnabled, setNotificationEnabled] = useState(false)
+  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -44,7 +50,6 @@ export default function Page() {
     setAuthMode(null)
     setProfile(null)
     setProfileMessage('')
-    setSessionMessage('로그아웃되었습니다.')
   }
 
   const handleOpenProfile = async () => {
@@ -83,9 +88,11 @@ export default function Page() {
                 <LogOut size={18} aria-hidden="true" />
                 로그아웃
               </button>
+              <SettingsButton onClick={() => setSettingsOpen(true)} />
             </div>
           ) : (
             <div className="nav-actions">
+              <SettingsButton onClick={() => setSettingsOpen(true)} />
               <button className="ghost-button" type="button" onClick={() => setAuthMode('login')}>
                 로그인
               </button>
@@ -96,12 +103,6 @@ export default function Page() {
           )}
         </nav>
 
-        {sessionMessage && (
-          <p className="session-message" role="status">
-            {sessionMessage}
-          </p>
-        )}
-
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">따뜻한 개인 멘탈 케어</p>
@@ -110,14 +111,6 @@ export default function Page() {
               myMentalCare는 감정 기록, AI 대화, 리마인드 알림을 통해 하루의 마음을 차분히 살피는
               서비스를 목표로 합니다. 먼저 편안한 첫 화면과 인증 흐름부터 준비합니다.
             </p>
-            <div className="hero-actions">
-              <button className="primary-button large" type="button" onClick={() => setAuthMode('signup')}>
-                마음 기록 시작하기
-              </button>
-              <button className="soft-button large" type="button" onClick={() => setAuthMode('login')}>
-                이미 계정이 있어요
-              </button>
-            </div>
           </div>
 
           <aside className="care-panel" aria-label="오늘의 마음 케어 미리보기">
@@ -161,17 +154,6 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="cta-band" aria-label="회원가입 안내">
-        <div>
-          <p className="eyebrow">첫 번째 단계</p>
-          <h2>아직은 화면 구현 단계입니다.</h2>
-          <p>회원가입과 로그인은 API 연동 전까지 안전한 안내 메시지만 보여줍니다.</p>
-        </div>
-        <button className="primary-button large" type="button" onClick={() => setAuthMode('signup')}>
-          회원가입 모달 열기
-        </button>
-      </section>
-
       {authMode && (
         <AuthModal
           mode={authMode}
@@ -193,7 +175,190 @@ export default function Page() {
           }}
         />
       )}
+      {settingsOpen && (
+        <SettingsModal
+          notificationEnabled={notificationEnabled}
+          themeTone={themeTone}
+          onClose={() => setSettingsOpen(false)}
+          onNotificationChange={setNotificationEnabled}
+          onThemeChange={setThemeTone}
+          onOpenAccountGuide={() => setAccountGuideOpen(true)}
+          onOpenServiceGuide={() => setServiceGuideOpen(true)}
+        />
+      )}
+      {accountGuideOpen && <AccountGuideModal onClose={() => setAccountGuideOpen(false)} />}
+      {serviceGuideOpen && <ServiceGuideModal onClose={() => setServiceGuideOpen(false)} />}
     </main>
+  )
+}
+
+function SettingsButton({ onClick }: { onClick: () => void }) {
+  return (
+    <button className="settings-button" type="button" aria-label="설정 열기" onClick={onClick}>
+      <Settings size={19} aria-hidden="true" />
+    </button>
+  )
+}
+
+function SettingsModal({
+  notificationEnabled,
+  themeTone,
+  onClose,
+  onNotificationChange,
+  onThemeChange,
+  onOpenAccountGuide,
+  onOpenServiceGuide,
+}: {
+  notificationEnabled: boolean
+  themeTone: ThemeTone
+  onClose: () => void
+  onNotificationChange: (enabled: boolean) => void
+  onThemeChange: (theme: ThemeTone) => void
+  onOpenAccountGuide: () => void
+  onOpenServiceGuide: () => void
+}) {
+  const themes: Array<{ value: ThemeTone; label: string; description: string }> = [
+    { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
+    { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
+    { value: 'rose', label: '장밋빛', description: '부드러운 로즈와 베이지 톤' },
+  ]
+
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal settings-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="settings-modal-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="설정 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">내 공간 설정</p>
+        <h2 id="settings-modal-title">설정</h2>
+        <p className="modal-description">나에게 편안한 방식으로 알림과 화면 분위기를 조정합니다.</p>
+
+        <div className="settings-list">
+          <div className="settings-row">
+            <div className="settings-control-text">
+              <strong>알림 설정</strong>
+              <span>오늘의 마음 체크 알림을 받을지 선택합니다.</span>
+            </div>
+            <button
+              className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
+              type="button"
+              role="switch"
+              aria-checked={notificationEnabled}
+              onClick={() => onNotificationChange(!notificationEnabled)}
+            >
+              <span />
+            </button>
+          </div>
+
+          <div className="settings-group">
+            <div className="settings-control-text">
+              <strong>화면 색상</strong>
+              <span>노을빛, 크림빛, 장밋빛 중 하나를 선택합니다. 선택값은 아직 화면 색감에 반영하지 않습니다.</span>
+            </div>
+            <div className="theme-options">
+              {themes.map((theme) => (
+                <button
+                  className={`theme-option theme-option-${theme.value} ${themeTone === theme.value ? 'is-selected' : ''}`}
+                  type="button"
+                  key={theme.value}
+                  aria-pressed={themeTone === theme.value}
+                  onClick={() => onThemeChange(theme.value)}
+                >
+                  <span className="theme-swatch" aria-hidden="true" />
+                  <span>
+                    <strong>{theme.label}</strong>
+                    <small>{theme.description}</small>
+                  </span>
+                </button>
+              ))}
+            </div>
+          </div>
+
+          <button className="settings-action" type="button" onClick={onOpenAccountGuide}>
+            <strong>계정</strong>
+            <span>회원 정보 수정과 탈퇴 프로세스를 확인합니다.</span>
+          </button>
+
+          <button className="settings-action" type="button" onClick={onOpenServiceGuide}>
+            <strong>서비스 안내</strong>
+            <span>myMentalCare가 제공하는 도움의 범위를 확인합니다.</span>
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function AccountGuideModal({ onClose }: { onClose: () => void }) {
+  return (
+    <GuideModal title="계정 관리 안내" eyebrow="계정" onClose={onClose}>
+      <p>회원 정보 수정과 탈퇴는 안전한 본인 확인 과정을 거쳐 제공될 예정입니다.</p>
+      <div className="account-action-grid">
+        <button className="settings-action" type="button">
+          <strong>회원 정보 수정</strong>
+          <span>이름, 이메일, 전화번호를 수정하는 화면으로 연결됩니다.</span>
+        </button>
+        <button className="settings-action danger" type="button">
+          <strong>회원 탈퇴</strong>
+          <span>데이터 보관 안내와 비밀번호 재확인 후 탈퇴를 진행합니다.</span>
+        </button>
+      </div>
+    </GuideModal>
+  )
+}
+
+function ServiceGuideModal({ onClose }: { onClose: () => void }) {
+  return (
+    <GuideModal title="서비스 안내" eyebrow="안내" onClose={onClose}>
+      <p>myMentalCare는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
+      <ul className="guide-list">
+        <li>AI 대화는 감정 정리를 돕는 보조 도구입니다.</li>
+        <li>위기 상황이나 치료가 필요한 경우 전문 기관의 도움을 받아야 합니다.</li>
+        <li>알림과 기록은 사용자가 스스로를 돌볼 수 있게 돕는 방향으로 제공됩니다.</li>
+      </ul>
+    </GuideModal>
+  )
+}
+
+function GuideModal({
+  title,
+  eyebrow,
+  children,
+  onClose,
+}: {
+  title: string
+  eyebrow: string
+  children: ReactNode
+  onClose: () => void
+}) {
+  return (
+    <div className="modal-backdrop stacked" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal guide-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="guide-modal-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="안내 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">{eyebrow}</p>
+        <h2 id="guide-modal-title">{title}</h2>
+        <div className="guide-content">{children}</div>
+        <div className="modal-actions">
+          <button className="primary-button" type="button" onClick={onClose}>
+            확인
+          </button>
+        </div>
+      </section>
+    </div>
   )
 }
 
@@ -264,6 +429,8 @@ function AuthModal({
 }) {
   const [message, setMessage] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showPasswordConfirm, setShowPasswordConfirm] = useState(false)
   const isSignup = mode === 'signup'
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -275,8 +442,14 @@ function AuthModal({
       const loginId = String(formData.get('loginId') ?? '').trim()
       const email = String(formData.get('email') ?? '').trim()
       const password = String(formData.get('password') ?? '')
+      const passwordConfirm = String(formData.get('passwordConfirm') ?? '')
       const name = String(formData.get('name') ?? '').trim()
       const phone = String(formData.get('phone') ?? '').trim()
+
+      if (password !== passwordConfirm) {
+        setMessage('비밀번호가 서로 다릅니다. 다시 확인해주세요.')
+        return
+      }
 
       setIsSubmitting(true)
       try {
@@ -358,10 +531,22 @@ function AuthModal({
               <input name="phone" type="tel" placeholder="예: 01012345678" />
             </label>
           )}
-          <label>
-            비밀번호
-            <input name="password" type="password" placeholder="비밀번호를 입력하세요" required />
-          </label>
+          <PasswordField
+            name="password"
+            label="비밀번호"
+            placeholder="비밀번호를 입력하세요"
+            visible={showPassword}
+            onVisibleChange={setShowPassword}
+          />
+          {isSignup && (
+            <PasswordField
+              name="passwordConfirm"
+              label="비밀번호 확인"
+              placeholder="비밀번호를 한 번 더 입력하세요"
+              visible={showPasswordConfirm}
+              onVisibleChange={setShowPasswordConfirm}
+            />
+          )}
           {isSignup && (
             <label>
               관심 케어 주제
@@ -390,5 +575,36 @@ function AuthModal({
         </button>
       </section>
     </div>
+  )
+}
+
+function PasswordField({
+  name,
+  label,
+  placeholder,
+  visible,
+  onVisibleChange,
+}: {
+  name: string
+  label: string
+  placeholder: string
+  visible: boolean
+  onVisibleChange: (visible: boolean) => void
+}) {
+  return (
+    <label>
+      {label}
+      <span className="password-field">
+        <input name={name} type={visible ? 'text' : 'password'} placeholder={placeholder} required />
+        <button
+          className="password-toggle"
+          type="button"
+          aria-label={visible ? `${label} 숨기기` : `${label} 보기`}
+          onClick={() => onVisibleChange(!visible)}
+        >
+          {visible ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}
+        </button>
+      </span>
+    </label>
   )
 }
