@@ -15,7 +15,8 @@ const checks = [
   ['설정 모달 MVP 항목 표시', page.includes('알림 설정') && page.includes('화면 분위기') && page.includes('서비스 안내')],
   ['알림 설정 토글 제공', page.includes('role="switch"') && page.includes('notificationEnabled')],
   ['따뜻한 화면 분위기 3종 제공', page.includes("'sunset'") && page.includes("'cream'") && page.includes("'rose'")],
-  ['계정 관리 안내 모달 제공', page.includes('AccountGuideModal') && page.includes('회원 정보 수정과 탈퇴')],
+  ['화면 색상 선택값은 아직 화면 색감에 미반영', !page.includes('theme-${themeTone}') && page.includes('선택값은 아직 화면 색감에 반영하지 않습니다')],
+  ['계정 관리 안내 모달 제공', page.includes('AccountGuideModal') && page.includes('회원 정보 수정') && page.includes('회원 탈퇴')],
   ['서비스 안내 모달 제공', page.includes('ServiceGuideModal') && page.includes('진단이나 치료를 대신하지 않고')],
   ['회원가입 모달 진입 버튼', page.includes("setAuthMode('signup')")],
   ['로그인 모달 진입 버튼', page.includes("setAuthMode('login')")],
@@ -45,7 +46,7 @@ const checks = [
   ['모달 backdrop 스타일', styles.includes('.modal-backdrop')],
   ['메인 카드 hover 스타일', styles.includes('.feature-card:hover') && styles.includes('.care-panel:hover')],
   ['설정 모달 스타일', styles.includes('.settings-modal') && styles.includes('.toggle-button') && styles.includes('.theme-options')],
-  ['비밀번호 보기 스타일', styles.includes('.password-field') && styles.includes('.password-toggle')],
+  ['비밀번호 보기 스타일', styles.includes('.password-field') && styles.includes('.password-toggle') && styles.includes('translateY(-50%)')],
   ['모바일 반응형 스타일', styles.includes('@media (max-width: 860px)')],
 ]
 

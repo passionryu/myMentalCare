@@ -69,7 +69,7 @@ export default function Page() {
   }
 
   return (
-    <main className={`page-shell theme-${themeTone}`}>
+    <main className="page-shell">
       <section className="hero-section" aria-labelledby="main-heading">
         <nav className="top-nav" aria-label="주요 메뉴">
           <div className="brand-mark">
@@ -241,7 +241,7 @@ function SettingsModal({
 
         <div className="settings-list">
           <div className="settings-row">
-            <div>
+            <div className="settings-control-text">
               <strong>알림 설정</strong>
               <span>오늘의 마음 체크 알림을 받을지 선택합니다.</span>
             </div>
@@ -257,8 +257,10 @@ function SettingsModal({
           </div>
 
           <div className="settings-group">
-            <strong>화면 분위기</strong>
-            <span>모두 따뜻한 색감 안에서 원하는 톤을 고릅니다.</span>
+            <div className="settings-control-text">
+              <strong>화면 색상</strong>
+              <span>노을빛, 크림빛, 장밋빛 중 하나를 선택합니다. 선택값은 아직 화면 색감에 반영하지 않습니다.</span>
+            </div>
             <div className="theme-options">
               {themes.map((theme) => (
                 <button
@@ -297,11 +299,16 @@ function AccountGuideModal({ onClose }: { onClose: () => void }) {
   return (
     <GuideModal title="계정 관리 안내" eyebrow="계정" onClose={onClose}>
       <p>회원 정보 수정과 탈퇴는 안전한 본인 확인 과정을 거쳐 제공될 예정입니다.</p>
-      <ul className="guide-list">
-        <li>회원 정보 수정: 이름, 이메일, 전화번호 변경</li>
-        <li>탈퇴 프로세스: 데이터 보관 기간 안내 후 최종 확인</li>
-        <li>민감한 계정 변경은 비밀번호 재확인을 요구합니다.</li>
-      </ul>
+      <div className="account-action-grid">
+        <button className="settings-action" type="button">
+          <strong>회원 정보 수정</strong>
+          <span>이름, 이메일, 전화번호를 수정하는 화면으로 연결됩니다.</span>
+        </button>
+        <button className="settings-action danger" type="button">
+          <strong>회원 탈퇴</strong>
+          <span>데이터 보관 안내와 비밀번호 재확인 후 탈퇴를 진행합니다.</span>
+        </button>
+      </div>
     </GuideModal>
   )
 }
