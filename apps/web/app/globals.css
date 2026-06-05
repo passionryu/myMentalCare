@@ -113,7 +113,8 @@ button {
 }
 
 .profile-button,
-.logout-button {
+.logout-button,
+.settings-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -136,6 +137,7 @@ button {
 .primary-button,
 .ghost-button,
 .soft-button,
+.settings-button,
 .icon-button,
 .switch-mode {
   border: 0;
@@ -171,6 +173,51 @@ button {
   padding: 12px 14px;
 }
 
+.settings-shell {
+  position: relative;
+}
+
+.settings-button {
+  width: 46px;
+  height: 46px;
+  background: rgba(255, 250, 241, 0.86);
+  border: 1px solid rgba(83, 111, 90, 0.24);
+  color: var(--sage-dark);
+}
+
+.settings-menu {
+  position: absolute;
+  top: calc(100% + 12px);
+  right: 0;
+  z-index: 10;
+  display: grid;
+  gap: 12px;
+  width: min(320px, calc(100vw - 40px));
+  border: 1px solid rgba(83, 111, 90, 0.22);
+  border-radius: 20px;
+  background: rgba(255, 250, 241, 0.98);
+  box-shadow: 0 22px 60px rgba(56, 43, 28, 0.16);
+  padding: 18px;
+}
+
+.settings-menu div {
+  display: grid;
+  gap: 4px;
+  border-radius: 14px;
+  padding: 10px;
+}
+
+.settings-menu strong {
+  color: var(--sage-dark);
+  font-size: 14px;
+}
+
+.settings-menu span {
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.5;
+}
+
 .large {
   min-height: 50px;
   padding-inline: 22px;
@@ -179,6 +226,7 @@ button {
 .primary-button:hover,
 .soft-button:hover,
 .ghost-button:hover,
+.settings-button:hover,
 .switch-mode:hover {
   transform: translateY(-1px);
 }
@@ -258,6 +306,17 @@ h3 {
   gap: 20px;
   border-radius: 28px;
   padding: 28px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
+}
+
+.care-panel:hover,
+.feature-card:hover {
+  border-color: rgba(83, 111, 90, 0.36);
+  box-shadow: 0 28px 80px rgba(56, 43, 28, 0.14);
+  transform: translateY(-3px);
 }
 
 .panel-header {
@@ -279,6 +338,11 @@ h3 {
   background: var(--sage-dark);
   color: #fffdf7;
   padding: 26px;
+  transition: transform 180ms ease;
+}
+
+.mood-card:hover {
+  transform: translateY(-2px);
 }
 
 .mood-card p {
@@ -307,6 +371,14 @@ h3 {
   color: #32463b;
   padding: 14px 16px;
   font-weight: 800;
+  transition:
+    background 180ms ease,
+    transform 180ms ease;
+}
+
+.routine-list li:hover {
+  background: rgba(220, 235, 240, 0.82);
+  transform: translateX(2px);
 }
 
 .feature-section {
@@ -330,6 +402,10 @@ h3 {
 .feature-card {
   border-radius: 24px;
   padding: 26px;
+  transition:
+    border-color 180ms ease,
+    box-shadow 180ms ease,
+    transform 180ms ease;
 }
 
 .feature-card p {
@@ -502,6 +578,16 @@ h3 {
     width: 100%;
     flex-direction: column;
     align-items: stretch;
+  }
+
+  .settings-shell,
+  .settings-button {
+    width: 100%;
+  }
+
+  .settings-menu {
+    left: 0;
+    right: auto;
   }
 
   .hero-grid,

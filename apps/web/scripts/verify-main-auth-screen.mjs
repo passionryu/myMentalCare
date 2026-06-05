@@ -7,6 +7,13 @@ const authApi = readFileSync(resolve('lib/auth-api.ts'), 'utf8')
 
 const checks = [
   ['메인 서비스 이름 표시', page.includes('myMentalCare')],
+  ['메인 CTA 버튼 제거', !page.includes('마음 기록 시작하기')],
+  ['기존 로그인 CTA 문구 제거', !page.includes('이미 계정이 있어요')],
+  ['임시 구현 단계 안내 제거', !page.includes('아직은 화면 구현 단계입니다.')],
+  ['설정 메뉴 상태 관리', page.includes('settingsOpen') && page.includes('setSettingsOpen')],
+  ['설정 버튼 아이콘 사용', page.includes('Settings') && page.includes('설정 메뉴 열기')],
+  ['설정 메뉴 MVP 항목 표시', page.includes('알림 설정') && page.includes('화면 분위기') && page.includes('서비스 안내')],
+  ['설정 메뉴 닫기 방식', page.includes("event.key === 'Escape'") && page.includes('closeSettingsFromOutside')],
   ['회원가입 모달 진입 버튼', page.includes("setAuthMode('signup')")],
   ['로그인 모달 진입 버튼', page.includes("setAuthMode('login')")],
   ['회원가입 폼 제목', page.includes('회원가입')],
@@ -31,6 +38,8 @@ const checks = [
   ['로그인 실패 오류 메시지 처리', authApi.includes('LoginApiError')],
   ['정신 건강 서비스 디자인 문구', page.includes('따뜻한 개인 멘탈 케어')],
   ['모달 backdrop 스타일', styles.includes('.modal-backdrop')],
+  ['메인 카드 hover 스타일', styles.includes('.feature-card:hover') && styles.includes('.care-panel:hover')],
+  ['설정 메뉴 스타일', styles.includes('.settings-menu') && styles.includes('.settings-button')],
   ['모바일 반응형 스타일', styles.includes('@media (max-width: 860px)')],
 ]
 

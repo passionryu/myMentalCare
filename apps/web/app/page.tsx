@@ -1,7 +1,8 @@
 'use client'
 
-import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Sparkles, UserRound, X } from 'lucide-react'
-import { FormEvent, useEffect, useState } from 'react'
+import { Bell, Brain, HeartHandshake, LogOut, MessageCircle, Moon, Settings, Sparkles, UserRound, X } from 'lucide-react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
+import type { RefObject } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
@@ -32,9 +33,31 @@ export default function Page() {
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
   const [sessionMessage, setSessionMessage] = useState('')
+  const [settingsOpen, setSettingsOpen] = useState(false)
+  const settingsRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
+  }, [])
+
+  useEffect(() => {
+    const closeSettingsWithKeyboard = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        setSettingsOpen(false)
+      }
+    }
+    const closeSettingsFromOutside = (event: MouseEvent) => {
+      if (!settingsRef.current?.contains(event.target as Node)) {
+        setSettingsOpen(false)
+      }
+    }
+
+    document.addEventListener('keydown', closeSettingsWithKeyboard)
+    document.addEventListener('mousedown', closeSettingsFromOutside)
+    return () => {
+      document.removeEventListener('keydown', closeSettingsWithKeyboard)
+      document.removeEventListener('mousedown', closeSettingsFromOutside)
+    }
   }, [])
 
   const handleLogout = () => {
@@ -83,9 +106,11 @@ export default function Page() {
                 <LogOut size={18} aria-hidden="true" />
                 로그아웃
               </button>
+              <SettingsMenuButton settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsRef={settingsRef} />
             </div>
           ) : (
             <div className="nav-actions">
+              <SettingsMenuButton settingsOpen={settingsOpen} setSettingsOpen={setSettingsOpen} settingsRef={settingsRef} />
               <button className="ghost-button" type="button" onClick={() => setAuthMode('login')}>
                 로그인
               </button>
@@ -110,14 +135,6 @@ export default function Page() {
               myMentalCare는 감정 기록, AI 대화, 리마인드 알림을 통해 하루의 마음을 차분히 살피는
               서비스를 목표로 합니다. 먼저 편안한 첫 화면과 인증 흐름부터 준비합니다.
             </p>
-            <div className="hero-actions">
-              <button className="primary-button large" type="button" onClick={() => setAuthMode('signup')}>
-                마음 기록 시작하기
-              </button>
-              <button className="soft-button large" type="button" onClick={() => setAuthMode('login')}>
-                이미 계정이 있어요
-              </button>
-            </div>
           </div>
 
           <aside className="care-panel" aria-label="오늘의 마음 케어 미리보기">
@@ -161,17 +178,6 @@ export default function Page() {
         </div>
       </section>
 
-      <section className="cta-band" aria-label="회원가입 안내">
-        <div>
-          <p className="eyebrow">첫 번째 단계</p>
-          <h2>아직은 화면 구현 단계입니다.</h2>
-          <p>회원가입과 로그인은 API 연동 전까지 안전한 안내 메시지만 보여줍니다.</p>
-        </div>
-        <button className="primary-button large" type="button" onClick={() => setAuthMode('signup')}>
-          회원가입 모달 열기
-        </button>
-      </section>
-
       {authMode && (
         <AuthModal
           mode={authMode}
@@ -194,6 +200,50 @@ export default function Page() {
         />
       )}
     </main>
+  )
+}
+
+function SettingsMenuButton({
+  settingsOpen,
+  setSettingsOpen,
+  settingsRef,
+}: {
+  settingsOpen: boolean
+  setSettingsOpen: (open: boolean) => void
+  settingsRef: RefObject<HTMLDivElement | null>
+}) {
+  return (
+    <div className="settings-shell" ref={settingsRef}>
+      <button
+        className="settings-button"
+        type="button"
+        aria-label="설정 메뉴 열기"
+        aria-expanded={settingsOpen}
+        onClick={() => setSettingsOpen(!settingsOpen)}
+      >
+        <Settings size={19} aria-hidden="true" />
+      </button>
+      {settingsOpen && (
+        <div className="settings-menu" role="menu" aria-label="설정 메뉴">
+          <div>
+            <strong>알림 설정</strong>
+            <span>오늘의 마음 체크 알림을 준비 중입니다.</span>
+          </div>
+          <div>
+            <strong>화면 분위기</strong>
+            <span>따뜻한 기본 테마를 유지합니다.</span>
+          </div>
+          <div>
+            <strong>계정</strong>
+            <span>프로필과 로그아웃은 로그인 후 사용할 수 있습니다.</span>
+          </div>
+          <div>
+            <strong>서비스 안내</strong>
+            <span>이 서비스는 진단이 아닌 자기 돌봄을 돕습니다.</span>
+          </div>
+        </div>
+      )}
+    </div>
   )
 }
 
