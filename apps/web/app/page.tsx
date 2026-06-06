@@ -1,6 +1,7 @@
 'use client'
 
 import { Bell, Brain, Eye, EyeOff, HeartHandshake, LogOut, MessageCircle, Moon, Settings, Sparkles, UserRound, X } from 'lucide-react'
+import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
@@ -29,6 +30,7 @@ const careFeatures = [
 const routineItems = ['아침 마음 체크', '점심 호흡 알림', '잠들기 전 회고']
 
 export default function Page() {
+  const router = useRouter()
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
@@ -66,6 +68,15 @@ export default function Page() {
     } catch (error) {
       setProfileMessage(error instanceof LoginApiError ? error.message : '프로필 정보를 불러오지 못했습니다.')
     }
+  }
+
+  const handleOpenAiChat = () => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    router.push('/chat')
   }
 
   return (
@@ -142,15 +153,24 @@ export default function Page() {
           <h2 id="feature-heading">기록하고, 대화하고, 다시 나를 챙깁니다.</h2>
         </div>
         <div className="feature-grid">
-          {careFeatures.map(({ title, description, icon: Icon }) => (
-            <article className="feature-card" key={title}>
-              <span className="feature-icon">
-                <Icon size={22} aria-hidden="true" />
-              </span>
-              <h3>{title}</h3>
-              <p>{description}</p>
-            </article>
-          ))}
+          {careFeatures.map(({ title, description, icon: Icon }) => {
+            const isAiChat = title === 'AI 마음 대화'
+
+            return (
+              <article className={`feature-card ${isAiChat ? 'feature-card-action' : ''}`} key={title}>
+                <span className="feature-icon">
+                  <Icon size={22} aria-hidden="true" />
+                </span>
+                <h3>{title}</h3>
+                <p>{description}</p>
+                {isAiChat && (
+                  <button className="feature-link-button" type="button" onClick={handleOpenAiChat}>
+                    오늘의 대화 시작
+                  </button>
+                )}
+              </article>
+            )
+          })}
         </div>
       </section>
 

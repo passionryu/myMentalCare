@@ -5,6 +5,7 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
+    "test:ai-chat": "node scripts/verify-ai-chat-screen.mjs",
     "test:main-auth": "node scripts/verify-main-auth-screen.mjs",
     "start": "next start",
     "lint": "eslint ."
