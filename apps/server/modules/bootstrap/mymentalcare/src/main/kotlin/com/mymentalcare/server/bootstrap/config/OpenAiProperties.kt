@@ -7,5 +7,5 @@ import java.time.Duration
 data class OpenAiProperties(
     val apiKey: String = "",
     val model: String = "gpt-5-nano",
-    val timeout: Duration = Duration.ofSeconds(5),
+    val timeout: Duration = Duration.ofSeconds(20),
 )

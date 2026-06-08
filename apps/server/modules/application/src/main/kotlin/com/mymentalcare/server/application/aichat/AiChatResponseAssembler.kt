@@ -20,6 +20,7 @@ internal class AiChatResponseAssembler(
         userMessage: ChatMessage,
         assistantMessage: ChatMessage,
         detection: CrisisKeywordDetectionResult,
+        aiReplyFailed: Boolean,
     ): SendAiChatMessageResponse {
         return SendAiChatMessageResponse(
             room = toTodayRoomResponse(room),
@@ -27,6 +28,8 @@ internal class AiChatResponseAssembler(
             assistantMessage = assistantMessage.toResponse(),
             crisisDetected = detection.detected,
             crisisGuideMessage = if (detection.detected) SAFETY_GUIDE_MESSAGE else null,
+            aiReplyFailed = aiReplyFailed,
+            aiReplyErrorMessage = if (aiReplyFailed) OPEN_AI_REPLY_ERROR_MESSAGE else null,
         )
     }
 

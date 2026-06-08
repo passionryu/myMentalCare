@@ -31,7 +31,10 @@ class OpenAiReplyProvider(
                     "reason=apiKeyMissing"
             }
             notifyFailure(request, OpenAiReplyFailureType.API_KEY_MISSING)
-            return AiReplyResponse(OPEN_AI_REPLY_ERROR_MESSAGE)
+            return AiReplyResponse(
+                content = OPEN_AI_REPLY_ERROR_MESSAGE,
+                failed = true,
+            )
         }
 
         return try {
@@ -45,7 +48,10 @@ class OpenAiReplyProvider(
                     "reason=${e.failureType.name}"
             }
             notifyFailure(request, e.failureType)
-            AiReplyResponse(OPEN_AI_REPLY_ERROR_MESSAGE)
+            AiReplyResponse(
+                content = OPEN_AI_REPLY_ERROR_MESSAGE,
+                failed = true,
+            )
         }
     }
 
@@ -59,7 +65,7 @@ class OpenAiReplyProvider(
                 roomId = request.roomId,
                 messageId = request.messageId,
                 failureType = failureType.name.lowercase(),
-                fallbackUsed = false,
+                fallbackUsed = true,
             )
         )
     }

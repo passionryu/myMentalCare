@@ -12,6 +12,7 @@ import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
+import java.net.SocketTimeoutException
 
 private const val OPEN_AI_BASE_URL = "https://api.openai.com"
 private const val OPEN_AI_RESPONSES_PATH = "/v1/responses"
@@ -53,7 +54,7 @@ class OpenAiChatClient(
         } catch (e: HttpStatusCodeException) {
             throw OpenAiReplyGenerationFailedException(classifyHttpFailure(e), "OpenAI 응답 생성 HTTP 오류가 발생했습니다.", e)
         } catch (e: RestClientException) {
-            throw OpenAiReplyGenerationFailedException(OpenAiReplyFailureType.UNKNOWN, "OpenAI 응답 생성 요청이 실패했습니다.", e)
+            throw OpenAiReplyGenerationFailedException(classifyRestClientFailure(e), "OpenAI 응답 생성 요청이 실패했습니다.", e)
         }
     }
 
@@ -80,11 +81,9 @@ class OpenAiChatClient(
 
         val text = response
             ?.path("output")
-            ?.firstOrNull()
-            ?.path("content")
-            ?.firstOrNull()
-            ?.path("text")
-            ?.asText(null)
+            ?.firstNotNullOfOrNull { output ->
+                findOutputText(output.path("content"))
+            }
 
         if (!text.isNullOrBlank()) {
             return text.trim()
@@ -100,6 +99,24 @@ class OpenAiChatClient(
         throw OpenAiReplyGenerationFailedException(OpenAiReplyFailureType.UNKNOWN, "OpenAI 응답 본문에서 답변을 찾지 못했습니다.")
     }
 
+    // OpenAI output content 목록에서 실제 사용자에게 보여줄 답변 텍스트를 찾는다.
+    private fun findOutputText(content: JsonNode?): String? {
+        if (content == null || content.isMissingNode || content.isNull) {
+            return null
+        }
+
+        if (content.isArray) {
+            return content.firstNotNullOfOrNull { findOutputText(it) }
+        }
+
+        if (content.path("type").asText(null) == "output_text") {
+            return content.path("text").asText(null)?.takeIf { it.isNotBlank() }
+        }
+
+        return content.path("text").asText(null)?.takeIf { it.isNotBlank() }
+    }
+
+    // OpenAI HTTP 상태 코드를 운영자가 이해할 수 있는 실패 유형으로 분류한다.
     private fun classifyHttpFailure(e: HttpStatusCodeException): OpenAiReplyFailureType {
         return when (e.statusCode.value()) {
             401, 403 -> OpenAiReplyFailureType.UNAUTHORIZED
@@ -107,5 +124,26 @@ class OpenAiChatClient(
             in 500..599 -> OpenAiReplyFailureType.SERVER_ERROR
             else -> OpenAiReplyFailureType.UNKNOWN
         }
+    }
+
+    // RestClient 계층의 실패 원인 중 timeout 여부를 구분한다.
+    private fun classifyRestClientFailure(e: RestClientException): OpenAiReplyFailureType {
+        return if (e.containsCause<SocketTimeoutException>()) {
+            OpenAiReplyFailureType.TIMEOUT
+        } else {
+            OpenAiReplyFailureType.UNKNOWN
+        }
+    }
+
+    // 예외 체인을 따라가며 특정 원인 예외가 포함되어 있는지 확인한다.
+    private inline fun <reified T : Throwable> Throwable.containsCause(): Boolean {
+        var current: Throwable? = this
+        while (current != null) {
+            if (current is T) {
+                return true
+            }
+            current = current.cause
+        }
+        return false
     }
 }

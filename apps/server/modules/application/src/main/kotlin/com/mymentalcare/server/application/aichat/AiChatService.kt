@@ -41,8 +41,8 @@ internal class AiChatService(
                 detection)
         }
 
-        val assistantContent = if (detection.detected) {
-            SAFETY_GUIDE_MESSAGE
+        val aiReply = if (detection.detected) {
+            AiReplyResponse(SAFETY_GUIDE_MESSAGE)
         } else {
             aiReplyProvider.generateReply(
                 AiReplyRequest(
@@ -51,18 +51,19 @@ internal class AiChatService(
                     messageId = userMessage.id,
                     recentMessages = aiReplyContextReader.readRecentMessagesForReply(room),
                 )
-            ).content
+            )
         }
 
         val assistantMessage = aiChatMessageAppender.appendAssistantMessage(
             room,
-            assistantContent,
+            aiReply.content,
             detection.detected)
 
         return aiChatResponseAssembler.toSendMessageResponse(
             room,
             userMessage,
             assistantMessage,
-            detection)
+            detection,
+            aiReply.failed)
     }
 }

@@ -21,6 +21,7 @@ class OpenAiReplyProviderTest {
         val response = provider.generateReply(aiReplyRequest())
 
         assertEquals("오늘 마음이 많이 무거웠겠어요.", response.content)
+        assertEquals(false, response.failed)
     }
 
     @Test
@@ -34,8 +35,9 @@ class OpenAiReplyProviderTest {
         val response = provider.generateReply(aiReplyRequest())
 
         assertEquals(OPEN_AI_REPLY_ERROR_MESSAGE, response.content)
+        assertEquals(true, response.failed)
         assertEquals("api_key_missing", notificationPort.notifications.single().failureType)
-        assertEquals(false, notificationPort.notifications.single().fallbackUsed)
+        assertEquals(true, notificationPort.notifications.single().fallbackUsed)
     }
 
     @Test
@@ -49,10 +51,12 @@ class OpenAiReplyProviderTest {
         val response = provider.generateReply(aiReplyRequest())
 
         assertEquals(OPEN_AI_REPLY_ERROR_MESSAGE, response.content)
+        assertEquals(true, response.failed)
         assertEquals("rate_limit", notificationPort.notifications.single().failureType)
         assertEquals(1L, notificationPort.notifications.single().memberId)
         assertEquals(10L, notificationPort.notifications.single().roomId)
         assertEquals(20L, notificationPort.notifications.single().messageId)
+        assertEquals(true, notificationPort.notifications.single().fallbackUsed)
     }
 
     private fun openAiReplyProvider(

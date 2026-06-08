@@ -101,6 +101,22 @@ class AiChatServiceTest {
         assertEquals(0, aiReplyProvider.callCount)
     }
 
+    @Test
+    fun `AI 답변 생성에 실패하면 실패 여부와 사용자 안내 메시지를 함께 반환한다`() {
+        val service = aiChatService(
+            aiReplyProvider = FakeAiReplyProvider(
+                reply = OPEN_AI_REPLY_ERROR_MESSAGE,
+                failed = true,
+            )
+        )
+
+        val response = service.sendMessage(1L, SendAiChatMessageRequest(content = "오늘은 조금 불안해"))
+
+        assertEquals(true, response.aiReplyFailed)
+        assertEquals(OPEN_AI_REPLY_ERROR_MESSAGE, response.aiReplyErrorMessage)
+        assertEquals(OPEN_AI_REPLY_ERROR_MESSAGE, response.assistantMessage.content)
+    }
+
     private fun aiChatService(
         roomRepository: FakeAiChatRoomRepository = FakeAiChatRoomRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
@@ -166,6 +182,7 @@ class AiChatServiceTest {
 
     private class FakeAiReplyProvider(
         private val reply: String,
+        private val failed: Boolean = false,
     ) : AiReplyProvider {
         var callCount = 0
         var lastRequest: AiReplyRequest? = null
@@ -173,7 +190,7 @@ class AiChatServiceTest {
         override fun generateReply(request: AiReplyRequest): AiReplyResponse {
             callCount += 1
             lastRequest = request
-            return AiReplyResponse(reply)
+            return AiReplyResponse(reply, failed)
         }
     }
 }

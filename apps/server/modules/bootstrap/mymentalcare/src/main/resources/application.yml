@@ -32,6 +32,6 @@ mymentalcare:
     openai:
       api-key: ${OPENAI_API_KEY:}
       model: ${OPENAI_MODEL:gpt-5-nano}
-      timeout: ${OPENAI_TIMEOUT:5s}
+      timeout: ${OPENAI_TIMEOUT:20s}
   notification:
     discord-webhook-url: ${DISCORD_WEBHOOK_URL:}

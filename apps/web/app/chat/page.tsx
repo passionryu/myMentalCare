@@ -42,6 +42,9 @@ export default function AiChatPage() {
       const response = await sendAiChatMessage(content)
       setRoom(response.room)
       setMessage('')
+      if (response.aiReplyFailed) {
+        setErrorMessage(response.aiReplyErrorMessage ?? '마음이의 답변을 준비하지 못했습니다. 잠시 후 다시 시도해주세요.')
+      }
       if (response.crisisDetected && response.crisisGuideMessage) {
         setCrisisGuideMessage(response.crisisGuideMessage)
       }
