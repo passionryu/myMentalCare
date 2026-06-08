@@ -22,6 +22,8 @@ fun ApplicationSendAiChatMessageResponse.toBootstrapResponse(): SendAiChatMessag
         assistantMessage = assistantMessage.toBootstrapResponse(),
         crisisDetected = crisisDetected,
         crisisGuideMessage = crisisGuideMessage,
+        aiReplyFailed = aiReplyFailed,
+        aiReplyErrorMessage = aiReplyErrorMessage,
     )
 }
 

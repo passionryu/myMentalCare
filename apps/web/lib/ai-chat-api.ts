@@ -24,6 +24,8 @@ export type SendAiChatMessageResponse = {
   assistantMessage: AiChatMessage
   crisisDetected: boolean
   crisisGuideMessage?: string | null
+  aiReplyFailed: boolean
+  aiReplyErrorMessage?: string | null
 }
 
 async function readJson(response: Response) {
@@ -50,6 +52,10 @@ export async function sendAiChatMessage(content: string): Promise<SendAiChatMess
     body: JSON.stringify({ content }),
   })
   const body = await readJson(response)
+
+  if (!response.ok && body?.aiReplyFailed && body?.room) {
+    return body as SendAiChatMessageResponse
+  }
 
   if (!response.ok) {
     throw new LoginApiError(body?.message ?? '마음 대화 메시지를 전송하지 못했습니다.')

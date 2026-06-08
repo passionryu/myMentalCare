@@ -4,6 +4,7 @@ import com.mymentalcare.server.application.aichat.AiChatInputPort
 import com.mymentalcare.server.application.aichat.SendAiChatMessageRequest
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
+import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
@@ -44,6 +45,9 @@ class AiChatController(
             request = SendAiChatMessageRequest(content = request.content),
         )
 
-        return ResponseEntity.ok(response.toBootstrapResponse())
+        val bootstrapResponse = response.toBootstrapResponse()
+        val status = if (response.aiReplyFailed) HttpStatus.SERVICE_UNAVAILABLE else HttpStatus.OK
+
+        return ResponseEntity.status(status).body(bootstrapResponse)
     }
 }

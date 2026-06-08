@@ -28,3 +28,10 @@ mymentalcare:
       secret: ${MY_MENTAL_CARE_JWT_SECRET:local-mymentalcare-jwt-secret-must-be-changed}
       access-token-expiration: ${MY_MENTAL_CARE_ACCESS_TOKEN_EXPIRATION:1h}
       refresh-token-expiration: ${MY_MENTAL_CARE_REFRESH_TOKEN_EXPIRATION:7d}
+  ai:
+    openai:
+      api-key: ${OPENAI_API_KEY:}
+      model: ${OPENAI_MODEL:gpt-5-nano}
+      timeout: ${OPENAI_TIMEOUT:20s}
+  notification:
+    discord-webhook-url: ${DISCORD_WEBHOOK_URL:}
