@@ -3,7 +3,12 @@ package com.mymentalcare.server.application.aichat
 import org.springframework.stereotype.Component
 
 @Component
-class DefaultEmpathyReplyProvider {
+class DefaultEmpathyReplyProvider : AiReplyProvider {
+    // OpenAI 연동을 사용하지 않는 환경에서 기본 공감형 응답을 생성한다.
+    override fun generateReply(request: AiReplyRequest): AiReplyResponse {
+        return AiReplyResponse(replyFor(request.messageId.toInt(), crisisDetected = false))
+    }
+
     // 메시지 순서를 기준으로 기본 공감형 응답을 순환 제공한다.
     fun replyFor(messageOrder: Int, crisisDetected: Boolean): String {
         if (crisisDetected) {

@@ -23,7 +23,7 @@ internal class AiChatService(
     private val chatMessageRepository: ChatMessageRepository,
     private val crisisDetectionEventRepository: CrisisDetectionEventRepository,
     private val crisisKeywordDetector: CrisisKeywordDetector,
-    private val defaultEmpathyReplyProvider: DefaultEmpathyReplyProvider,
+    private val aiReplyProvider: AiReplyProvider,
 ) : AiChatInputPort {
     // 오늘의 AI 마음 대화방을 조회하거나 없으면 생성한다.
     @Transactional
@@ -34,7 +34,7 @@ internal class AiChatService(
         return room.toResponse(messages)
     }
 
-    // 사용자 메시지를 저장하고 기본 공감형 챗봇 응답을 함께 저장한다.
+    // 사용자 메시지를 저장하고 위기 감지 또는 AI 응답 생성 결과를 함께 저장한다.
     @Transactional
     override fun sendMessage(memberId: Long, request: SendAiChatMessageRequest): SendAiChatMessageResponse {
         val room = readOrCreateTodayRoom(memberId)
@@ -66,12 +66,34 @@ internal class AiChatService(
             )
         }
 
+        val assistantContent = if (detection.detected) {
+            SAFETY_GUIDE_MESSAGE
+        } else {
+            val recentMessages = chatMessageRepository.findByRoomId(room.id)
+                .takeLast(AI_REPLY_RECENT_MESSAGE_LIMIT)
+                .map {
+                    AiReplyMessage(
+                        senderType = it.senderType,
+                        content = it.content,
+                    )
+                }
+
+            aiReplyProvider.generateReply(
+                AiReplyRequest(
+                    memberId = memberId,
+                    roomId = room.id,
+                    messageId = userMessage.id,
+                    recentMessages = recentMessages,
+                )
+            ).content
+        }
+
         val assistantMessage = chatMessageRepository.save(
             ChatMessage(
                 id = 0,
                 roomId = room.id,
                 senderType = ChatMessageSenderType.ASSISTANT,
-                content = defaultEmpathyReplyProvider.replyFor(nextOrder, detection.detected),
+                content = assistantContent,
                 messageOrder = nextOrder + 1,
                 isCrisisDetected = detection.detected,
             )
@@ -100,6 +122,8 @@ internal class AiChatService(
             )
     }
 }
+
+private const val AI_REPLY_RECENT_MESSAGE_LIMIT = 6
 
 private fun AiChatRoom.toResponse(messages: List<ChatMessage>): TodayAiChatRoomResponse {
     return TodayAiChatRoomResponse(
