@@ -108,9 +108,11 @@ class AiChatServiceTest {
         aiReplyProvider: AiReplyProvider = FakeAiReplyProvider(reply = "마음이 기본 응답입니다."),
     ): AiChatService {
         return AiChatService(
-            aiChatRoomRepository = roomRepository,
-            chatMessageRepository = messageRepository,
-            crisisDetectionEventRepository = eventRepository,
+            todayAiChatRoomReader = TodayAiChatRoomReader(roomRepository),
+            aiChatMessageAppender = AiChatMessageAppender(messageRepository),
+            aiReplyContextReader = AiReplyContextReader(messageRepository),
+            crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
+            aiChatResponseAssembler = AiChatResponseAssembler(messageRepository),
             crisisKeywordDetector = CrisisKeywordDetector(),
             aiReplyProvider = aiReplyProvider,
         )

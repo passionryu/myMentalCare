@@ -1,148 +1,68 @@
 package com.mymentalcare.server.application.aichat
 
-import com.mymentalcare.server.application.port.AiChatRoomRepository
-import com.mymentalcare.server.application.port.ChatMessageRepository
-import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
-import com.mymentalcare.server.domain.aichat.AiChatRoom
-import com.mymentalcare.server.domain.aichat.AiChatRoomStatus
-import com.mymentalcare.server.domain.aichat.ChatMessage
-import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
-import com.mymentalcare.server.domain.aichat.CrisisDetectionEvent
-import com.mymentalcare.server.domain.aichat.CrisisHandledAction
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
-import java.time.LocalDate
-import java.time.ZoneId
-
-private const val DEFAULT_EMPATHY_CHATBOT_CODE = "DEFAULT_EMPATHY"
-private val KOREA_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
 
 @Service
 internal class AiChatService(
-    private val aiChatRoomRepository: AiChatRoomRepository,
-    private val chatMessageRepository: ChatMessageRepository,
-    private val crisisDetectionEventRepository: CrisisDetectionEventRepository,
+    private val todayAiChatRoomReader: TodayAiChatRoomReader,
+    private val aiChatMessageAppender: AiChatMessageAppender,
+    private val aiReplyContextReader: AiReplyContextReader,
+    private val crisisDetectionRecorder: CrisisDetectionRecorder,
+    private val aiChatResponseAssembler: AiChatResponseAssembler,
     private val crisisKeywordDetector: CrisisKeywordDetector,
     private val aiReplyProvider: AiReplyProvider,
 ) : AiChatInputPort {
     // 오늘의 AI 마음 대화방을 조회하거나 없으면 생성한다.
     @Transactional
     override fun readTodayRoom(memberId: Long): TodayAiChatRoomResponse {
-        val room = readOrCreateTodayRoom(memberId)
-        val messages = chatMessageRepository.findByRoomId(room.id)
+        val room = todayAiChatRoomReader.readOrCreateTodayRoom(memberId)
 
-        return room.toResponse(messages)
+        return aiChatResponseAssembler.toTodayRoomResponse(room)
     }
 
     // 사용자 메시지를 저장하고 위기 감지 또는 AI 응답 생성 결과를 함께 저장한다.
     @Transactional
     override fun sendMessage(memberId: Long, request: SendAiChatMessageRequest): SendAiChatMessageResponse {
-        val room = readOrCreateTodayRoom(memberId)
-        val nextOrder = chatMessageRepository.countByRoomId(room.id) + 1
+        val room = todayAiChatRoomReader.readOrCreateTodayRoom(memberId)
+
         val detection = crisisKeywordDetector.detectCrisisKeywords(request.content)
 
-        val userMessage = chatMessageRepository.save(
-            ChatMessage(
-                id = 0,
-                roomId = room.id,
-                senderType = ChatMessageSenderType.USER,
-                content = request.content.trim(),
-                messageOrder = nextOrder,
-                isCrisisDetected = detection.detected,
-            )
-        )
+        val userMessage = aiChatMessageAppender.appendUserMessage(
+            room,
+            request.content,
+            detection.detected)
 
         if (detection.detected) {
-            crisisDetectionEventRepository.save(
-                CrisisDetectionEvent(
-                    id = 0,
-                    memberId = memberId,
-                    roomId = room.id,
-                    messageId = userMessage.id,
-                    detectedKeywords = detection.keywords,
-                    riskLevel = detection.riskLevel,
-                    handledAction = CrisisHandledAction.SAFETY_MODAL_SHOWN,
-                )
-            )
+            crisisDetectionRecorder.recordSafetyModalShown(
+                memberId,
+                room,
+                userMessage,
+                detection)
         }
 
         val assistantContent = if (detection.detected) {
             SAFETY_GUIDE_MESSAGE
         } else {
-            val recentMessages = chatMessageRepository.findByRoomId(room.id)
-                .takeLast(AI_REPLY_RECENT_MESSAGE_LIMIT)
-                .map {
-                    AiReplyMessage(
-                        senderType = it.senderType,
-                        content = it.content,
-                    )
-                }
-
             aiReplyProvider.generateReply(
                 AiReplyRequest(
                     memberId = memberId,
                     roomId = room.id,
                     messageId = userMessage.id,
-                    recentMessages = recentMessages,
+                    recentMessages = aiReplyContextReader.readRecentMessagesForReply(room),
                 )
             ).content
         }
 
-        val assistantMessage = chatMessageRepository.save(
-            ChatMessage(
-                id = 0,
-                roomId = room.id,
-                senderType = ChatMessageSenderType.ASSISTANT,
-                content = assistantContent,
-                messageOrder = nextOrder + 1,
-                isCrisisDetected = detection.detected,
-            )
-        )
+        val assistantMessage = aiChatMessageAppender.appendAssistantMessage(
+            room,
+            assistantContent,
+            detection.detected)
 
-        return SendAiChatMessageResponse(
-            room = room.toResponse(chatMessageRepository.findByRoomId(room.id)),
-            userMessage = userMessage.toResponse(),
-            assistantMessage = assistantMessage.toResponse(),
-            crisisDetected = detection.detected,
-            crisisGuideMessage = if (detection.detected) SAFETY_GUIDE_MESSAGE else null,
-        )
+        return aiChatResponseAssembler.toSendMessageResponse(
+            room,
+            userMessage,
+            assistantMessage,
+            detection)
     }
-
-    private fun readOrCreateTodayRoom(memberId: Long): AiChatRoom {
-        val today = LocalDate.now(KOREA_ZONE_ID)
-        return aiChatRoomRepository.findTodayRoom(memberId, DEFAULT_EMPATHY_CHATBOT_CODE, today)
-            ?: aiChatRoomRepository.save(
-                AiChatRoom(
-                    id = 0,
-                    memberId = memberId,
-                    chatbotCode = DEFAULT_EMPATHY_CHATBOT_CODE,
-                    conversationDate = today,
-                    status = AiChatRoomStatus.ACTIVE,
-                )
-            )
-    }
-}
-
-private const val AI_REPLY_RECENT_MESSAGE_LIMIT = 6
-
-private fun AiChatRoom.toResponse(messages: List<ChatMessage>): TodayAiChatRoomResponse {
-    return TodayAiChatRoomResponse(
-        roomId = id,
-        chatbotCode = chatbotCode,
-        chatbotName = "마음이",
-        conversationDate = conversationDate,
-        status = status.name,
-        messages = messages.map { it.toResponse() },
-    )
-}
-
-private fun ChatMessage.toResponse(): AiChatMessageResponse {
-    return AiChatMessageResponse(
-        messageId = id,
-        senderType = senderType.name,
-        content = content,
-        messageOrder = messageOrder,
-        isCrisisDetected = isCrisisDetected,
-        createdAt = createdAt,
-    )
 }
