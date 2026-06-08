@@ -1,8 +1,5 @@
 package com.mymentalcare.server.application.aichat
 
-import org.springframework.stereotype.Component
-
-@Component
 class DefaultEmpathyReplyProvider : AiReplyProvider {
     // OpenAI 연동을 사용하지 않는 환경에서 기본 공감형 응답을 생성한다.
     override fun generateReply(request: AiReplyRequest): AiReplyResponse {
