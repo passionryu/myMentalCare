@@ -7,7 +7,8 @@ import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
-type ThemeTone = 'sunset' | 'cream' | 'rose'
+type ThemeTone = 'sunset' | 'cream' | 'wood'
+const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const careFeatures = [
   {
@@ -43,7 +44,21 @@ export default function Page() {
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
+    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
+    if (savedThemeTone === 'rose') {
+      setThemeTone('wood')
+      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
+      return
+    }
+    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
+      setThemeTone(savedThemeTone)
+    }
   }, [])
+
+  const handleThemeChange = (nextThemeTone: ThemeTone) => {
+    setThemeTone(nextThemeTone)
+    localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('myMentalCare.accessToken')
@@ -80,7 +95,7 @@ export default function Page() {
   }
 
   return (
-    <main className="page-shell">
+    <main className="page-shell" data-theme-tone={themeTone}>
       <section className="hero-section" aria-labelledby="main-heading">
         <nav className="top-nav" aria-label="주요 메뉴">
           <div className="brand-mark">
@@ -201,7 +216,7 @@ export default function Page() {
           themeTone={themeTone}
           onClose={() => setSettingsOpen(false)}
           onNotificationChange={setNotificationEnabled}
-          onThemeChange={setThemeTone}
+          onThemeChange={handleThemeChange}
           onOpenAccountGuide={() => setAccountGuideOpen(true)}
           onOpenServiceGuide={() => setServiceGuideOpen(true)}
         />
@@ -240,7 +255,7 @@ function SettingsModal({
   const themes: Array<{ value: ThemeTone; label: string; description: string }> = [
     { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
     { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
-    { value: 'rose', label: '장밋빛', description: '부드러운 로즈와 베이지 톤' },
+    { value: 'wood', label: '우드빛', description: '내추럴 우드와 아이보리 톤' },
   ]
 
   return (
@@ -279,7 +294,7 @@ function SettingsModal({
           <div className="settings-group">
             <div className="settings-control-text">
               <strong>화면 색상</strong>
-              <span>노을빛, 크림빛, 장밋빛 중 하나를 선택합니다. 선택값은 아직 화면 색감에 반영하지 않습니다.</span>
+              <span>노을빛, 크림빛, 우드빛 중 나에게 편안한 화면 분위기를 선택합니다.</span>
             </div>
             <div className="theme-options">
               {themes.map((theme) => (
