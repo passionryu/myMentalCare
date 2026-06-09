@@ -7,6 +7,7 @@ import org.springframework.transaction.annotation.Transactional
 internal class AiChatService(
     private val todayAiChatRoomReader: TodayAiChatRoomReader,
     private val aiChatMessageAppender: AiChatMessageAppender,
+    private val aiChatSummaryRefreshProcessor: AiChatSummaryRefreshProcessor,
     private val aiReplyContextReader: AiReplyContextReader,
     private val crisisDetectionRecorder: CrisisDetectionRecorder,
     private val aiChatResponseAssembler: AiChatResponseAssembler,
@@ -44,11 +45,14 @@ internal class AiChatService(
         val aiReply = if (detection.detected) {
             AiReplyResponse(SAFETY_GUIDE_MESSAGE)
         } else {
+            aiChatSummaryRefreshProcessor.refreshTodaySummaryIfNeeded(room)
+
             aiReplyProvider.generateReply(
                 AiReplyRequest(
                     memberId = memberId,
                     roomId = room.id,
                     messageId = userMessage.id,
+                    summaryContext = aiReplyContextReader.readTodaySummaryContext(room),
                     recentMessages = aiReplyContextReader.readRecentMessagesForReply(room),
                 )
             )

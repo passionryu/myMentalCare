@@ -6,6 +6,7 @@ data class AiReplyRequest(
     val memberId: Long,
     val roomId: Long,
     val messageId: Long,
+    val summaryContext: AiChatSummaryContext?,
     val recentMessages: List<AiReplyMessage>,
 )
 

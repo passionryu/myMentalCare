@@ -1,9 +1,11 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.port.AiChatRoomSummaryRepository
 import com.mymentalcare.server.application.port.ChatMessageRepository
 import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
 import com.mymentalcare.server.domain.aichat.AiChatRoom
+import com.mymentalcare.server.domain.aichat.AiChatRoomSummary
 import com.mymentalcare.server.domain.aichat.AiChatRoomStatus
 import com.mymentalcare.server.domain.aichat.ChatMessage
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
@@ -92,6 +94,71 @@ class AiChatServiceTest {
     }
 
     @Test
+    fun `미요약 메시지가 6개 이상이면 오늘 대화 요약을 갱신하고 AI 요청에 반영한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val summaryRepository = FakeAiChatRoomSummaryRepository()
+        val aiReplyProvider = FakeAiReplyProvider(reply = "오늘 대화 흐름을 기억한 응답입니다.")
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            summaryRepository = summaryRepository,
+            aiReplyProvider = aiReplyProvider,
+        )
+
+        repeat(5) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = 1L,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "오전 대화 ${index + 1}: 회사 일 때문에 불안해",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        service.sendMessage(1L, SendAiChatMessageRequest(content = "오후에도 같은 일이 계속 생각나"))
+
+        val savedSummary = summaryRepository.summaries.single()
+        assertEquals(6L, savedSummary.lastSummarizedMessageId)
+        assertTrue(savedSummary.summary.contains("회사 일 때문에 불안해"))
+        assertEquals("불안과 걱정", savedSummary.emotionalState)
+        assertEquals(savedSummary.summary, aiReplyProvider.lastRequest!!.summaryContext!!.summary)
+    }
+
+    @Test
+    fun `요약 갱신이 실패해도 메시지 전송과 AI 응답 생성은 계속 진행한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val summaryRepository = FakeAiChatRoomSummaryRepository()
+        val aiReplyProvider = FakeAiReplyProvider(reply = "최근 메시지만 보고 응답합니다.")
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            summaryRepository = summaryRepository,
+            aiChatSummaryGenerator = FailingAiChatSummaryGenerator(),
+            aiReplyProvider = aiReplyProvider,
+        )
+
+        repeat(5) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = 1L,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "요약 실패 테스트 메시지 ${index + 1}",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        val response = service.sendMessage(1L, SendAiChatMessageRequest(content = "요약이 실패해도 대화는 이어져야 해"))
+
+        assertEquals("최근 메시지만 보고 응답합니다.", response.assistantMessage.content)
+        assertEquals(emptyList<AiChatRoomSummary>(), summaryRepository.summaries)
+        assertEquals(null, aiReplyProvider.lastRequest!!.summaryContext)
+    }
+
+    @Test
     fun `위기 키워드가 포함되면 AI 응답 생성기를 호출하지 않는다`() {
         val aiReplyProvider = FakeAiReplyProvider(reply = "호출되면 안 되는 응답입니다.")
         val service = aiChatService(aiReplyProvider = aiReplyProvider)
@@ -120,13 +187,21 @@ class AiChatServiceTest {
     private fun aiChatService(
         roomRepository: FakeAiChatRoomRepository = FakeAiChatRoomRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
+        summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
+        aiChatSummaryGenerator: AiChatSummaryGenerator = DefaultAiChatSummaryGenerator(),
         aiReplyProvider: AiReplyProvider = FakeAiReplyProvider(reply = "마음이 기본 응답입니다."),
     ): AiChatService {
         return AiChatService(
             todayAiChatRoomReader = TodayAiChatRoomReader(roomRepository),
             aiChatMessageAppender = AiChatMessageAppender(messageRepository),
-            aiReplyContextReader = AiReplyContextReader(messageRepository),
+            aiChatSummaryRefreshProcessor = AiChatSummaryRefreshProcessor(
+                summaryRepository,
+                messageRepository,
+                AiChatSummaryRefreshDecider(),
+                aiChatSummaryGenerator,
+            ),
+            aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository),
             crisisKeywordDetector = CrisisKeywordDetector(),
@@ -149,6 +224,21 @@ class AiChatServiceTest {
             val savedRoom = room.copy(id = (rooms.size + 1).toLong(), status = AiChatRoomStatus.ACTIVE)
             rooms.add(savedRoom)
             return savedRoom
+        }
+    }
+
+    private class FakeAiChatRoomSummaryRepository : AiChatRoomSummaryRepository {
+        val summaries = mutableListOf<AiChatRoomSummary>()
+
+        override fun findByRoomId(roomId: Long): AiChatRoomSummary? {
+            return summaries.firstOrNull { it.roomId == roomId }
+        }
+
+        override fun save(summary: AiChatRoomSummary): AiChatRoomSummary {
+            val savedSummary = summary.copy(id = summary.id.takeIf { it > 0 } ?: (summaries.size + 1).toLong())
+            summaries.removeIf { it.roomId == savedSummary.roomId }
+            summaries.add(savedSummary)
+            return savedSummary
         }
     }
 
@@ -177,6 +267,15 @@ class AiChatServiceTest {
             val savedEvent = event.copy(id = (events.size + 1).toLong())
             events.add(savedEvent)
             return savedEvent
+        }
+    }
+
+    private class FailingAiChatSummaryGenerator : AiChatSummaryGenerator {
+        override fun generateTodaySummary(
+            existingSummary: AiChatRoomSummary?,
+            unsummarizedMessages: List<ChatMessage>,
+        ): AiChatSummaryGenerationResult {
+            throw IllegalStateException("요약 생성 실패")
         }
     }
 
