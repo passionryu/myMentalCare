@@ -53,6 +53,31 @@ class OpenAiChatClientTest {
         assertEquals("내가 지금 뭘 먼저 해야 할까?", input.last().getValue("content"))
     }
 
+    @Test
+    fun `마음이 페르소나와 안전 응답 경계를 OpenAI 입력에 포함한다`() {
+        val client = OpenAiChatClient(
+            restClientBuilder = RestClient.builder(),
+            openAiProperties = OpenAiProperties(apiKey = "test-api-key"),
+        )
+
+        val input = client.buildOpenAiInput(
+            AiReplyRequest(
+                memberId = 1L,
+                roomId = 10L,
+                messageId = 20L,
+                summaryContext = null,
+                recentMessages = listOf(userMessage("마음이가 어떤 역할을 해줄 수 있어?")),
+            )
+        )
+
+        val basePolicy = input.first().getValue("content")
+
+        assertTrue(basePolicy.contains("상담사, 의사, 진단자, 치료자가 아니라"))
+        assertTrue(basePolicy.contains("의료 전문가나 상담 전문가처럼 소개하지 않는다."))
+        assertTrue(basePolicy.contains("진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다."))
+        assertTrue(basePolicy.contains("위기 표현이 감지된 상황에서는 일반 대화보다 앱의 고정 안전 안내 정책이 우선한다."))
+    }
+
     // 사용자 메시지 테스트 데이터를 만든다.
     private fun userMessage(content: String): AiReplyMessage {
         return AiReplyMessage(
