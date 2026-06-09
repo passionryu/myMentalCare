@@ -8,6 +8,7 @@ import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMem
 
 type AuthMode = 'signup' | 'login'
 type ThemeTone = 'sunset' | 'cream' | 'rose'
+const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const careFeatures = [
   {
@@ -43,7 +44,16 @@ export default function Page() {
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
+    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
+    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'rose') {
+      setThemeTone(savedThemeTone)
+    }
   }, [])
+
+  const handleThemeChange = (nextThemeTone: ThemeTone) => {
+    setThemeTone(nextThemeTone)
+    localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
+  }
 
   const handleLogout = () => {
     localStorage.removeItem('myMentalCare.accessToken')
@@ -80,7 +90,7 @@ export default function Page() {
   }
 
   return (
-    <main className="page-shell">
+    <main className="page-shell" data-theme-tone={themeTone}>
       <section className="hero-section" aria-labelledby="main-heading">
         <nav className="top-nav" aria-label="주요 메뉴">
           <div className="brand-mark">
@@ -201,7 +211,7 @@ export default function Page() {
           themeTone={themeTone}
           onClose={() => setSettingsOpen(false)}
           onNotificationChange={setNotificationEnabled}
-          onThemeChange={setThemeTone}
+          onThemeChange={handleThemeChange}
           onOpenAccountGuide={() => setAccountGuideOpen(true)}
           onOpenServiceGuide={() => setServiceGuideOpen(true)}
         />
@@ -279,7 +289,7 @@ function SettingsModal({
           <div className="settings-group">
             <div className="settings-control-text">
               <strong>화면 색상</strong>
-              <span>노을빛, 크림빛, 장밋빛 중 하나를 선택합니다. 선택값은 아직 화면 색감에 반영하지 않습니다.</span>
+              <span>노을빛, 크림빛, 장밋빛 중 나에게 편안한 화면 분위기를 선택합니다.</span>
             </div>
             <div className="theme-options">
               {themes.map((theme) => (

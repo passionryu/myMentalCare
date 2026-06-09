@@ -44,12 +44,62 @@ button {
 }
 
 .page-shell {
+  --theme-background-layer: linear-gradient(135deg, rgba(220, 235, 240, 0.92), rgba(246, 241, 232, 0.96) 42%, rgba(240, 227, 207, 0.88));
+  --theme-primary: var(--sage-dark);
+  --theme-primary-soft: rgba(231, 240, 229, 0.82);
+  --theme-primary-shadow: 0 10px 24px rgba(53, 84, 61, 0.22);
+  --theme-panel: rgba(255, 250, 241, 0.78);
+  --theme-panel-solid: rgba(255, 253, 247, 0.78);
+  --theme-surface: rgba(255, 250, 241, 0.86);
+  --theme-soft-surface: rgba(220, 235, 240, 0.58);
+  --theme-soft-surface-hover: rgba(255, 236, 211, 0.9);
+  --theme-border: rgba(83, 111, 90, 0.18);
+  --theme-border-strong: rgba(83, 111, 90, 0.24);
+  --theme-accent: var(--clay);
+  --theme-accent-border: rgba(184, 111, 84, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(184, 111, 84, 0.2);
+  --theme-selected-shadow: 0 0 0 3px rgba(184, 111, 84, 0.16);
   min-height: 100vh;
   overflow-x: hidden;
-  background:
-    linear-gradient(135deg, rgba(220, 235, 240, 0.92), rgba(246, 241, 232, 0.96) 42%, rgba(240, 227, 207, 0.88)),
-    var(--background);
+  background: var(--theme-background-layer), var(--background);
   padding: 28px;
+  transition: background 180ms ease;
+}
+
+.page-shell[data-theme-tone='cream'] {
+  --theme-background-layer: linear-gradient(135deg, rgba(255, 247, 220, 0.94), rgba(255, 252, 242, 0.96) 44%, rgba(232, 223, 201, 0.84));
+  --theme-primary: #6f6441;
+  --theme-primary-soft: rgba(255, 241, 201, 0.76);
+  --theme-primary-shadow: 0 10px 24px rgba(111, 100, 65, 0.2);
+  --theme-panel: rgba(255, 253, 244, 0.82);
+  --theme-panel-solid: rgba(255, 253, 244, 0.88);
+  --theme-surface: rgba(255, 251, 235, 0.9);
+  --theme-soft-surface: rgba(255, 241, 201, 0.66);
+  --theme-soft-surface-hover: rgba(245, 226, 186, 0.9);
+  --theme-border: rgba(111, 100, 65, 0.2);
+  --theme-border-strong: rgba(111, 100, 65, 0.28);
+  --theme-accent: #b9893c;
+  --theme-accent-border: rgba(185, 137, 60, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(185, 137, 60, 0.18);
+  --theme-selected-shadow: 0 0 0 3px rgba(185, 137, 60, 0.16);
+}
+
+.page-shell[data-theme-tone='rose'] {
+  --theme-background-layer: linear-gradient(135deg, rgba(247, 220, 214, 0.92), rgba(255, 246, 241, 0.96) 44%, rgba(232, 211, 202, 0.86));
+  --theme-primary: #6f4d4f;
+  --theme-primary-soft: rgba(247, 220, 214, 0.78);
+  --theme-primary-shadow: 0 10px 24px rgba(111, 77, 79, 0.2);
+  --theme-panel: rgba(255, 248, 245, 0.82);
+  --theme-panel-solid: rgba(255, 248, 245, 0.88);
+  --theme-surface: rgba(255, 248, 245, 0.9);
+  --theme-soft-surface: rgba(247, 220, 214, 0.66);
+  --theme-soft-surface-hover: rgba(246, 208, 199, 0.88);
+  --theme-border: rgba(111, 77, 79, 0.2);
+  --theme-border-strong: rgba(111, 77, 79, 0.28);
+  --theme-accent: #c87576;
+  --theme-accent-border: rgba(200, 117, 118, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(200, 117, 118, 0.18);
+  --theme-selected-shadow: 0 0 0 3px rgba(200, 117, 118, 0.16);
 }
 
 .hero-section,
@@ -85,7 +135,7 @@ button {
 
 .brand-mark {
   gap: 10px;
-  color: var(--sage-dark);
+  color: var(--theme-primary);
   font-size: 18px;
   font-weight: 800;
 }
@@ -102,8 +152,8 @@ button {
 .brand-icon {
   width: 38px;
   height: 38px;
-  background: #e7f0e5;
-  color: var(--sage-dark);
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
 }
 
 .nav-actions,
@@ -137,22 +187,22 @@ button {
 }
 
 .primary-button {
-  background: var(--sage-dark);
+  background: var(--theme-primary);
   color: #fffdf7;
   padding: 12px 18px;
   font-weight: 800;
-  box-shadow: 0 10px 24px rgba(53, 84, 61, 0.22);
+  box-shadow: var(--theme-primary-shadow);
 }
 
 .soft-button,
 .ghost-button {
-  color: var(--sage-dark);
+  color: var(--theme-primary);
   font-weight: 800;
 }
 
 .soft-button {
-  background: rgba(255, 250, 241, 0.82);
-  border: 1px solid rgba(83, 111, 90, 0.22);
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border-strong);
   padding: 12px 18px;
 }
 
@@ -168,9 +218,9 @@ button {
 .settings-button {
   width: 46px;
   height: 46px;
-  background: rgba(255, 250, 241, 0.86);
-  border: 1px solid rgba(83, 111, 90, 0.24);
-  color: var(--sage-dark);
+  background: var(--theme-surface);
+  border: 1px solid var(--theme-border-strong);
+  color: var(--theme-primary);
 }
 
 .large {
@@ -201,7 +251,7 @@ button {
 
 .eyebrow {
   margin: 0;
-  color: var(--clay);
+  color: var(--theme-accent);
   font-size: 13px;
   font-weight: 900;
   letter-spacing: 0;
@@ -250,8 +300,8 @@ h3 {
 .feature-card,
 .cta-band,
 .auth-modal {
-  border: 1px solid rgba(83, 111, 90, 0.18);
-  background: rgba(255, 250, 241, 0.78);
+  border: 1px solid var(--theme-border);
+  background: var(--theme-panel);
   box-shadow: 0 24px 70px rgba(56, 43, 28, 0.1);
   backdrop-filter: blur(12px);
 }
@@ -269,14 +319,14 @@ h3 {
 
 .care-panel:hover,
 .feature-card:hover {
-  border-color: rgba(184, 111, 84, 0.52);
-  box-shadow: 0 32px 86px rgba(184, 111, 84, 0.2);
+  border-color: var(--theme-accent-border);
+  box-shadow: var(--theme-accent-shadow);
   transform: translateY(-6px);
 }
 
 .panel-header {
   gap: 10px;
-  color: var(--sage-dark);
+  color: var(--theme-primary);
   font-weight: 900;
 }
 
@@ -284,13 +334,13 @@ h3 {
 .feature-icon {
   width: 42px;
   height: 42px;
-  background: #e7f0e5;
-  color: var(--sage-dark);
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
 }
 
 .mood-card {
   border-radius: 22px;
-  background: var(--sage-dark);
+  background: var(--theme-primary);
   color: #fffdf7;
   padding: 26px;
   transition: transform 180ms ease;
@@ -322,7 +372,7 @@ h3 {
 .routine-list li {
   gap: 10px;
   border-radius: 16px;
-  background: rgba(220, 235, 240, 0.58);
+  background: var(--theme-soft-surface);
   color: #32463b;
   padding: 14px 16px;
   font-weight: 800;
@@ -332,7 +382,7 @@ h3 {
 }
 
 .routine-list li:hover {
-  background: rgba(255, 236, 211, 0.9);
+  background: var(--theme-soft-surface-hover);
   transform: translateX(5px);
 }
 
@@ -377,8 +427,8 @@ h3 {
   width: fit-content;
   border: 0;
   border-radius: 999px;
-  background: rgba(83, 111, 90, 0.12);
-  color: var(--sage-dark);
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
   padding: 10px 14px;
   font-weight: 900;
 }
@@ -450,8 +500,8 @@ h3 {
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: rgba(220, 235, 240, 0.72);
-  color: var(--sage-dark);
+  background: var(--theme-soft-surface);
+  color: var(--theme-primary);
 }
 
 .auth-form {
@@ -501,11 +551,11 @@ h3 {
   border: 0;
   border-radius: 999px;
   background: transparent;
-  color: var(--sage-dark);
+  color: var(--theme-primary);
 }
 
 .password-toggle:hover {
-  background: rgba(231, 240, 229, 0.72);
+  background: var(--theme-primary-soft);
 }
 
 .auth-form input:focus,
@@ -522,8 +572,8 @@ h3 {
 .form-message {
   margin: 0;
   border-radius: 14px;
-  background: #e7f0e5;
-  color: var(--sage-dark);
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
   padding: 12px 14px;
   line-height: 1.55;
 }
@@ -538,9 +588,9 @@ h3 {
 .settings-row,
 .settings-action,
 .theme-option {
-  border: 1px solid rgba(83, 111, 90, 0.18);
+  border: 1px solid var(--theme-border);
   border-radius: 18px;
-  background: rgba(255, 253, 247, 0.78);
+  background: var(--theme-panel-solid);
 }
 
 .settings-row {
@@ -562,7 +612,7 @@ h3 {
 .settings-action strong,
 .settings-control-text strong,
 .theme-option strong {
-  color: var(--sage-dark);
+  color: var(--theme-primary);
 }
 
 .settings-row span,
@@ -597,7 +647,7 @@ h3 {
 }
 
 .toggle-button.is-on {
-  background: var(--sage-dark);
+  background: var(--theme-primary);
 }
 
 .toggle-button.is-on span {
@@ -624,14 +674,14 @@ h3 {
 
 .theme-option:hover,
 .settings-action:hover {
-  border-color: rgba(184, 111, 84, 0.42);
-  box-shadow: 0 10px 26px rgba(184, 111, 84, 0.12);
+  border-color: var(--theme-accent-border);
+  box-shadow: var(--theme-accent-shadow);
   transform: translateY(-1px);
 }
 
 .theme-option.is-selected {
-  border-color: var(--clay);
-  box-shadow: 0 0 0 3px rgba(184, 111, 84, 0.16);
+  border-color: var(--theme-accent);
+  box-shadow: var(--theme-selected-shadow);
 }
 
 .theme-swatch {
