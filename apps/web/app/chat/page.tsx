@@ -153,11 +153,30 @@ export default function AiChatPage() {
 
 function ChatBubble({ message }: { message: AiChatMessage }) {
   const isUser = message.senderType === 'USER'
+  const createdTime = formatChatMessageTime(message.createdAt)
 
   return (
-    <article className={`chat-bubble ${isUser ? 'is-user' : 'is-assistant'} ${message.isCrisisDetected ? 'is-crisis' : ''}`}>
-      <span>{isUser ? '나' : '마음이'}</span>
-      <p>{message.content}</p>
+    <article className={`chat-message-row ${isUser ? 'is-user' : 'is-assistant'} ${message.isCrisisDetected ? 'is-crisis' : ''}`}>
+      {!isUser && <img className="chat-avatar" src="/maeumi-avatar.svg" alt="마음이 프로필" />}
+      <div className="chat-message-body">
+        {isUser && createdTime && <time dateTime={message.createdAt ?? undefined}>{createdTime}</time>}
+        <div className="chat-bubble">
+          <p>{message.content}</p>
+        </div>
+        {!isUser && createdTime && <time dateTime={message.createdAt ?? undefined}>{createdTime}</time>}
+      </div>
     </article>
   )
+}
+
+function formatChatMessageTime(createdAt?: string | null) {
+  if (!createdAt) {
+    return ''
+  }
+
+  return new Intl.DateTimeFormat('ko-KR', {
+    hour: 'numeric',
+    minute: '2-digit',
+    hour12: true,
+  }).format(new Date(createdAt))
 }
