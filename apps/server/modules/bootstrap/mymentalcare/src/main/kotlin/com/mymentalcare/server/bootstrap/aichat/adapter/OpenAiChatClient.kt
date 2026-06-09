@@ -63,6 +63,12 @@ class OpenAiChatClient(
             "role" to "system",
             "content" to "너는 myMentalCare의 기본 챗봇 \"마음이\"다. 상담사/의사처럼 진단하지 말고, 감정을 정리하도록 돕는 따뜻한 대화 파트너로 답한다. 한국어로 2~4문장만 답하고, 먼저 감정을 인정한 뒤 작은 다음 행동이나 부담 없는 질문을 제안한다. 치료, 약물, 법률, 확정적 판단은 하지 않는다. 위기 상황은 앱의 고정 안전 안내 정책이 우선한다.",
         )
+        val summaryMemory = request.summaryContext?.let {
+            mapOf(
+                "role" to "system",
+                "content" to buildSummaryMemoryContent(it),
+            )
+        }
         val recentMessages = request.recentMessages.map {
             mapOf(
                 "role" to if (it.senderType.name == "ASSISTANT") "assistant" else "user",
@@ -70,7 +76,18 @@ class OpenAiChatClient(
             )
         }
 
-        return listOf(systemMessage) + recentMessages
+        return listOfNotNull(systemMessage, summaryMemory) + recentMessages
+    }
+
+    // 오늘 대화 요약 메모리를 OpenAI가 참고할 수 있는 짧은 시스템 컨텍스트로 변환한다.
+    private fun buildSummaryMemoryContent(summaryContext: com.mymentalcare.server.application.aichat.AiChatSummaryContext): String {
+        return listOfNotNull(
+            "오늘 대화 요약: ${summaryContext.summary}",
+            summaryContext.emotionalState?.let { "현재 감정 상태: $it" },
+            summaryContext.activeTopics?.let { "이어지는 주제: $it" },
+            summaryContext.unresolvedQuestions?.let { "아직 열린 질문: $it" },
+            summaryContext.userPreferences?.let { "사용자 선호: $it" },
+        ).joinToString("\n")
     }
 
     private fun extractReplyText(response: JsonNode?): String {

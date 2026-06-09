@@ -77,6 +77,7 @@ class OpenAiReplyProviderTest {
             memberId = 1L,
             roomId = 10L,
             messageId = 20L,
+            summaryContext = null,
             recentMessages = listOf(
                 AiReplyMessage(
                     senderType = ChatMessageSenderType.USER,
