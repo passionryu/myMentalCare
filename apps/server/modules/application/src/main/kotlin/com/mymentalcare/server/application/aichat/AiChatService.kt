@@ -53,7 +53,7 @@ internal class AiChatService(
                     roomId = room.id,
                     messageId = userMessage.id,
                     summaryContext = aiReplyContextReader.readTodaySummaryContext(room),
-                    recentMessages = aiReplyContextReader.readRecentMessagesForReply(room),
+                    recentMessages = aiReplyContextReader.readRecentMessagesForReply(room, userMessage),
                 )
             )
         }
@@ -62,6 +62,8 @@ internal class AiChatService(
             room,
             aiReply.content,
             detection.detected)
+        val messagesToCache = if (detection.detected) listOf(userMessage, assistantMessage) else listOf(assistantMessage)
+        aiReplyContextReader.appendMessagesToRecentCache(room, messagesToCache)
 
         return aiChatResponseAssembler.toSendMessageResponse(
             room,

@@ -1,6 +1,7 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.port.AiChatRecentMessageCache
 import com.mymentalcare.server.application.port.AiChatRoomSummaryRepository
 import com.mymentalcare.server.application.port.ChatMessageRepository
 import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
@@ -188,6 +189,7 @@ class AiChatServiceTest {
         roomRepository: FakeAiChatRoomRepository = FakeAiChatRoomRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
         summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
+        recentMessageCache: FakeAiChatRecentMessageCache = FakeAiChatRecentMessageCache(),
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
         aiChatSummaryGenerator: AiChatSummaryGenerator = DefaultAiChatSummaryGenerator(),
         aiReplyProvider: AiReplyProvider = FakeAiReplyProvider(reply = "마음이 기본 응답입니다."),
@@ -201,7 +203,7 @@ class AiChatServiceTest {
                 AiChatSummaryRefreshDecider(),
                 aiChatSummaryGenerator,
             ),
-            aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository),
+            aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository, recentMessageCache),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository),
             crisisKeywordDetector = CrisisKeywordDetector(),
@@ -249,6 +251,10 @@ class AiChatServiceTest {
             return messages.filter { it.roomId == roomId }.sortedBy { it.messageOrder }
         }
 
+        override fun findRecentByRoomId(roomId: Long, limit: Int): List<ChatMessage> {
+            return findByRoomId(roomId).takeLast(limit)
+        }
+
         override fun countByRoomId(roomId: Long): Int {
             return messages.count { it.roomId == roomId }
         }
@@ -257,6 +263,25 @@ class AiChatServiceTest {
             val savedMessage = message.copy(id = (messages.size + 1).toLong())
             messages.add(savedMessage)
             return savedMessage
+        }
+    }
+
+    private class FakeAiChatRecentMessageCache : AiChatRecentMessageCache {
+        private val cachedMessages = mutableListOf<AiReplyMessage>()
+
+        override fun readRecentMessages(roomId: Long): List<AiReplyMessage> {
+            return cachedMessages.toList()
+        }
+
+        override fun replaceRecentMessages(roomId: Long, messages: List<AiReplyMessage>) {
+            cachedMessages.clear()
+            cachedMessages.addAll(messages)
+        }
+
+        override fun appendRecentMessages(roomId: Long, messages: List<AiReplyMessage>, limit: Int) {
+            val mergedMessages = (cachedMessages + messages).takeLast(limit)
+            cachedMessages.clear()
+            cachedMessages.addAll(mergedMessages)
         }
     }
 
