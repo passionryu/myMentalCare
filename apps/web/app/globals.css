@@ -798,7 +798,7 @@ h3 {
 .chat-messages {
   display: grid;
   align-content: start;
-  gap: 12px;
+  gap: 24px;
   min-height: 420px;
   max-height: 56vh;
   overflow-y: auto;
@@ -821,17 +821,53 @@ h3 {
   gap: 10px;
 }
 
-.chat-bubble {
-  max-width: min(72%, 620px);
-  border-radius: 20px;
-  padding: 14px 16px;
+.chat-message-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
 }
 
-.chat-bubble span {
-  display: block;
-  margin-bottom: 6px;
-  font-size: 12px;
-  font-weight: 900;
+.chat-message-row.is-user {
+  justify-content: flex-end;
+}
+
+.chat-avatar {
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  border-radius: 16px;
+  border: 1px solid rgba(83, 111, 90, 0.16);
+  background: #e7f0e5;
+  object-fit: cover;
+}
+
+.chat-message-body {
+  display: flex;
+  align-items: flex-end;
+  gap: 8px;
+  max-width: min(78%, 680px);
+}
+
+.chat-message-row.is-user .chat-message-body {
+  flex-direction: row;
+}
+
+.chat-message-row.is-assistant .chat-message-body {
+  max-width: min(76%, 660px);
+}
+
+.chat-message-body time {
+  flex: 0 0 auto;
+  color: rgba(82, 91, 80, 0.78);
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.2;
+  white-space: nowrap;
+}
+
+.chat-bubble {
+  border-radius: 20px;
+  padding: 14px 16px;
 }
 
 .chat-bubble p {
@@ -840,19 +876,19 @@ h3 {
   white-space: pre-wrap;
 }
 
-.chat-bubble.is-user {
-  justify-self: end;
+.chat-message-row.is-user .chat-bubble {
   background: var(--sage-dark);
   color: #fffdf7;
+  border-top-right-radius: 8px;
 }
 
-.chat-bubble.is-assistant {
-  justify-self: start;
+.chat-message-row.is-assistant .chat-bubble {
   background: #e7f0e5;
   color: var(--foreground);
+  border-top-left-radius: 8px;
 }
 
-.chat-bubble.is-crisis {
+.chat-message-row.is-crisis .chat-bubble {
   border: 1px solid rgba(184, 84, 84, 0.36);
 }
 
@@ -954,8 +990,20 @@ h3 {
     padding: 18px;
   }
 
-  .chat-bubble {
-    max-width: 92%;
+  .chat-message-body,
+  .chat-message-row.is-assistant .chat-message-body {
+    max-width: 100%;
+  }
+
+  .chat-avatar {
+    width: 36px;
+    height: 36px;
+    flex-basis: 36px;
+    border-radius: 14px;
+  }
+
+  .chat-message-body time {
+    font-size: 12px;
   }
 
   .chat-input-row {

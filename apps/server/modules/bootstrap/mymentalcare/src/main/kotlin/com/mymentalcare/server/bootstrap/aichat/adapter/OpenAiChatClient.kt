@@ -8,16 +8,18 @@ import com.mymentalcare.server.bootstrap.config.OpenAiProperties
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
-import org.springframework.http.client.SimpleClientHttpRequestFactory
+import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.HttpStatusCodeException
 import org.springframework.web.client.ResourceAccessException
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import java.net.SocketTimeoutException
+import java.net.http.HttpClient
 
 private const val OPEN_AI_BASE_URL = "https://api.openai.com"
 private const val OPEN_AI_RESPONSES_PATH = "/v1/responses"
+private const val MAX_OUTPUT_TOKENS = 900
 
 @Component
 class OpenAiChatClient(
@@ -27,8 +29,11 @@ class OpenAiChatClient(
     private val restClient: RestClient = restClientBuilder
         .baseUrl(OPEN_AI_BASE_URL)
         .requestFactory(
-            SimpleClientHttpRequestFactory().apply {
-                setConnectTimeout(openAiProperties.timeout)
+            JdkClientHttpRequestFactory(
+                HttpClient.newBuilder()
+                    .connectTimeout(openAiProperties.timeout)
+                    .build()
+            ).apply {
                 setReadTimeout(openAiProperties.timeout)
             }
         )
@@ -38,6 +43,9 @@ class OpenAiChatClient(
     override fun requestMindReply(request: AiReplyRequest): String {
         val payload = mapOf(
             "model" to openAiProperties.model,
+            "reasoning" to mapOf("effort" to "minimal"),
+            "text" to mapOf("verbosity" to "low"),
+            "max_output_tokens" to MAX_OUTPUT_TOKENS,
             "input" to buildOpenAiInput(request),
         )
 
@@ -46,6 +54,7 @@ class OpenAiChatClient(
                 .uri(OPEN_AI_RESPONSES_PATH)
                 .header(HttpHeaders.AUTHORIZATION, "Bearer ${openAiProperties.apiKey}")
                 .contentType(MediaType.APPLICATION_JSON)
+                .accept(MediaType.APPLICATION_JSON)
                 .body(payload)
                 .retrieve()
                 .body(JsonNode::class.java)
