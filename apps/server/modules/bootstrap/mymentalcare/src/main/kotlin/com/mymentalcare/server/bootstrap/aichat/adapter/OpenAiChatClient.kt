@@ -1,9 +1,11 @@
 package com.mymentalcare.server.bootstrap.aichat.adapter
 
 import com.fasterxml.jackson.databind.JsonNode
+import com.mymentalcare.server.application.aichat.AiReplyMessage
 import com.mymentalcare.server.application.aichat.AiReplyRequest
 import com.mymentalcare.server.application.common.extension.logError
 import com.mymentalcare.server.bootstrap.config.OpenAiProperties
+import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
 import org.springframework.http.HttpHeaders
 import org.springframework.http.MediaType
 import org.springframework.http.client.SimpleClientHttpRequestFactory
@@ -16,6 +18,18 @@ import java.net.SocketTimeoutException
 
 private const val OPEN_AI_BASE_URL = "https://api.openai.com"
 private const val OPEN_AI_RESPONSES_PATH = "/v1/responses"
+private const val RECENT_ASSISTANT_REPLY_LIMIT = 3
+private val MIND_CHAT_SYSTEM_PROMPT = """
+    너는 myMentalCare의 기본 챗봇 "마음이"다.
+    너는 상담사나 의사가 아니라, 사용자가 감정을 정리하도록 돕는 따뜻한 대화 파트너다.
+    사용자가 질문을 하면 감정 공감보다 질문에 대한 답을 먼저 한다.
+    감정 인정은 필요할 때 1문장 이내로 짧게 한다.
+    행동 제안은 매번 하지 말고, 현재 대화에 정말 도움이 될 때만 선택적으로 제안한다.
+    최근 마음이 답변에서 이미 제안한 행동을 반복하지 않는다.
+    한국어로 2~4문장만 답한다.
+    진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다.
+    위기 상황은 앱의 고정 안전 안내 정책이 우선한다.
+""".trimIndent()
 
 @Component
 class OpenAiChatClient(
@@ -58,10 +72,11 @@ class OpenAiChatClient(
         }
     }
 
-    private fun buildOpenAiInput(request: AiReplyRequest): List<Map<String, String>> {
+    // 마음이의 응답 정책과 대화 맥락을 OpenAI 입력 메시지로 구성한다.
+    internal fun buildOpenAiInput(request: AiReplyRequest): List<Map<String, String>> {
         val systemMessage = mapOf(
             "role" to "system",
-            "content" to "너는 myMentalCare의 기본 챗봇 \"마음이\"다. 상담사/의사처럼 진단하지 말고, 감정을 정리하도록 돕는 따뜻한 대화 파트너로 답한다. 한국어로 2~4문장만 답하고, 먼저 감정을 인정한 뒤 작은 다음 행동이나 부담 없는 질문을 제안한다. 치료, 약물, 법률, 확정적 판단은 하지 않는다. 위기 상황은 앱의 고정 안전 안내 정책이 우선한다.",
+            "content" to MIND_CHAT_SYSTEM_PROMPT,
         )
         val summaryMemory = request.summaryContext?.let {
             mapOf(
@@ -69,14 +84,20 @@ class OpenAiChatClient(
                 "content" to buildSummaryMemoryContent(it),
             )
         }
+        val repetitionGuard = buildRepetitionGuardContent(request.recentMessages)?.let {
+            mapOf(
+                "role" to "system",
+                "content" to it,
+            )
+        }
         val recentMessages = request.recentMessages.map {
             mapOf(
-                "role" to if (it.senderType.name == "ASSISTANT") "assistant" else "user",
+                "role" to if (it.senderType == ChatMessageSenderType.ASSISTANT) "assistant" else "user",
                 "content" to it.content,
             )
         }
 
-        return listOfNotNull(systemMessage, summaryMemory) + recentMessages
+        return listOfNotNull(systemMessage, summaryMemory, repetitionGuard) + recentMessages
     }
 
     // 오늘 대화 요약 메모리를 OpenAI가 참고할 수 있는 짧은 시스템 컨텍스트로 변환한다.
@@ -87,6 +108,25 @@ class OpenAiChatClient(
             summaryContext.activeTopics?.let { "이어지는 주제: $it" },
             summaryContext.unresolvedQuestions?.let { "아직 열린 질문: $it" },
             summaryContext.userPreferences?.let { "사용자 선호: $it" },
+        ).joinToString("\n")
+    }
+
+    // 최근 마음이 답변을 기준으로 같은 행동 제안이 반복되지 않게 안내한다.
+    private fun buildRepetitionGuardContent(recentMessages: List<AiReplyMessage>): String? {
+        val recentAssistantReplies = recentMessages
+            .filter { it.senderType == ChatMessageSenderType.ASSISTANT }
+            .takeLast(RECENT_ASSISTANT_REPLY_LIMIT)
+            .mapIndexed { index, message -> "${index + 1}. ${message.content}" }
+
+        if (recentAssistantReplies.isEmpty()) {
+            return null
+        }
+
+        return listOf(
+            "최근 마음이 답변 ${recentAssistantReplies.size}개를 참고해 같은 행동 제안을 반복하지 않는다.",
+            "이미 제안한 행동이 있다면 다른 관점의 질문, 짧은 정리, 또는 사용자의 직접 질문에 대한 답변을 우선한다.",
+            "최근 마음이 답변:",
+            *recentAssistantReplies.toTypedArray(),
         ).joinToString("\n")
     }
 
