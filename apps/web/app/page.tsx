@@ -7,7 +7,7 @@ import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
 type AuthMode = 'signup' | 'login'
-type ThemeTone = 'sunset' | 'cream' | 'rose'
+type ThemeTone = 'sunset' | 'cream' | 'wood'
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const careFeatures = [
@@ -45,7 +45,12 @@ export default function Page() {
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
     const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'rose') {
+    if (savedThemeTone === 'rose') {
+      setThemeTone('wood')
+      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
+      return
+    }
+    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
       setThemeTone(savedThemeTone)
     }
   }, [])
@@ -250,7 +255,7 @@ function SettingsModal({
   const themes: Array<{ value: ThemeTone; label: string; description: string }> = [
     { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
     { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
-    { value: 'rose', label: '장밋빛', description: '부드러운 로즈와 베이지 톤' },
+    { value: 'wood', label: '우드빛', description: '내추럴 우드와 아이보리 톤' },
   ]
 
   return (
@@ -289,7 +294,7 @@ function SettingsModal({
           <div className="settings-group">
             <div className="settings-control-text">
               <strong>화면 색상</strong>
-              <span>노을빛, 크림빛, 장밋빛 중 나에게 편안한 화면 분위기를 선택합니다.</span>
+              <span>노을빛, 크림빛, 우드빛 중 나에게 편안한 화면 분위기를 선택합니다.</span>
             </div>
             <div className="theme-options">
               {themes.map((theme) => (

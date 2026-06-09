@@ -84,22 +84,22 @@ button {
   --theme-selected-shadow: 0 0 0 3px rgba(185, 137, 60, 0.16);
 }
 
-.page-shell[data-theme-tone='rose'] {
-  --theme-background-layer: linear-gradient(135deg, rgba(247, 220, 214, 0.92), rgba(255, 246, 241, 0.96) 44%, rgba(232, 211, 202, 0.86));
-  --theme-primary: #6f4d4f;
-  --theme-primary-soft: rgba(247, 220, 214, 0.78);
-  --theme-primary-shadow: 0 10px 24px rgba(111, 77, 79, 0.2);
-  --theme-panel: rgba(255, 248, 245, 0.82);
-  --theme-panel-solid: rgba(255, 248, 245, 0.88);
-  --theme-surface: rgba(255, 248, 245, 0.9);
-  --theme-soft-surface: rgba(247, 220, 214, 0.66);
-  --theme-soft-surface-hover: rgba(246, 208, 199, 0.88);
-  --theme-border: rgba(111, 77, 79, 0.2);
-  --theme-border-strong: rgba(111, 77, 79, 0.28);
-  --theme-accent: #c87576;
-  --theme-accent-border: rgba(200, 117, 118, 0.52);
-  --theme-accent-shadow: 0 32px 86px rgba(200, 117, 118, 0.18);
-  --theme-selected-shadow: 0 0 0 3px rgba(200, 117, 118, 0.16);
+.page-shell[data-theme-tone='wood'] {
+  --theme-background-layer: linear-gradient(135deg, rgba(239, 229, 214, 0.94), rgba(255, 248, 239, 0.96) 44%, rgba(230, 216, 200, 0.86));
+  --theme-primary: #5b4634;
+  --theme-primary-soft: rgba(239, 229, 214, 0.78);
+  --theme-primary-shadow: 0 10px 24px rgba(91, 70, 52, 0.2);
+  --theme-panel: rgba(255, 250, 244, 0.82);
+  --theme-panel-solid: rgba(255, 250, 244, 0.9);
+  --theme-surface: rgba(255, 250, 244, 0.92);
+  --theme-soft-surface: rgba(239, 229, 214, 0.72);
+  --theme-soft-surface-hover: rgba(229, 213, 195, 0.9);
+  --theme-border: rgba(91, 70, 52, 0.18);
+  --theme-border-strong: rgba(91, 70, 52, 0.26);
+  --theme-accent: #a66e4a;
+  --theme-accent-border: rgba(166, 110, 74, 0.5);
+  --theme-accent-shadow: 0 32px 86px rgba(166, 110, 74, 0.16);
+  --theme-selected-shadow: 0 0 0 3px rgba(166, 110, 74, 0.14);
 }
 
 .hero-section,
@@ -698,8 +698,8 @@ h3 {
   background: linear-gradient(135deg, #fff1c9, #d8caba);
 }
 
-.theme-option-rose .theme-swatch {
-  background: linear-gradient(135deg, #f4c8bd, #c98b76);
+.theme-option-wood .theme-swatch {
+  background: linear-gradient(135deg, #efe5d6, #a66e4a);
 }
 
 .settings-action {
