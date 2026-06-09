@@ -1,0 +1,116 @@
+apiVersion: 1
+
+contactPoints:
+  - orgId: 1
+    name: mymentalcare-discord
+    receivers:
+      - uid: mymentalcare-discord-webhook
+        type: discord
+        settings:
+          url: ${GRAFANA_DISCORD_WEBHOOK_URL}
+          title: "[myMentalCare 로그 알림] {{ template \"default.title\" . }}"
+          message: |
+            Grafana가 myMentalCare 백엔드 로그 이상 징후를 감지했습니다.
+            Grafana 대시보드에서 세부 로그를 확인하세요.
+
+policies:
+  - orgId: 1
+    receiver: mymentalcare-discord
+    group_by:
+      - grafana_folder
+      - alertname
+
+groups:
+  - orgId: 1
+    name: mymentalcare-log-alerts
+    folder: myMentalCare Observability
+    interval: 1m
+    rules:
+      - uid: mymentalcare-error-log-detected
+        title: myMentalCare ERROR 로그 감지
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Error
+        annotations:
+          summary: myMentalCare 백엔드 ERROR 로그가 감지되었습니다.
+          description: 최근 5분 동안 myMentalCare API 로그에서 ERROR 문자열이 감지되었습니다.
+        labels:
+          service: mymentalcare-api
+          severity: warning
+        data:
+          - refId: A
+            datasourceUid: mymentalcare-loki
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: sum(count_over_time({service="mymentalcare-api"} |= "ERROR" [5m]))
+              queryType: instant
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    type: last
+                  type: query
+      - uid: mymentalcare-openai-failure-detected
+        title: myMentalCare OpenAI 호출 실패 감지
+        condition: C
+        for: 0m
+        noDataState: OK
+        execErrState: Error
+        annotations:
+          summary: myMentalCare OpenAI 호출 실패 로그가 감지되었습니다.
+          description: 최근 5분 동안 AI 마음 대화 또는 OpenAI 실패 로그가 감지되었습니다.
+        labels:
+          service: mymentalcare-api
+          severity: warning
+        data:
+          - refId: A
+            datasourceUid: mymentalcare-loki
+            relativeTimeRange:
+              from: 300
+              to: 0
+            model:
+              refId: A
+              expr: sum(count_over_time({service="mymentalcare-api"} |~ "OpenAI|AI 마음 대화" |~ "실패|ERROR|Exception" [5m]))
+              queryType: instant
+          - refId: C
+            datasourceUid: __expr__
+            relativeTimeRange:
+              from: 0
+              to: 0
+            model:
+              refId: C
+              type: threshold
+              expression: A
+              conditions:
+                - evaluator:
+                    params:
+                      - 0
+                    type: gt
+                  operator:
+                    type: and
+                  query:
+                    params:
+                      - C
+                  reducer:
+                    type: last
+                  type: query

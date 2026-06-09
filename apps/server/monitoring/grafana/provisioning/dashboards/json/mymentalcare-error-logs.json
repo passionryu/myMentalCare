@@ -1,0 +1,111 @@
+{
+  "uid": "mymentalcare-error-logs",
+  "title": "myMentalCare 에러 로그 모니터링",
+  "tags": ["myMentalCare", "logs", "local"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "time": {
+    "from": "now-1h",
+    "to": "now"
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "logs",
+      "title": "전체 백엔드 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 0},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"}",
+          "queryType": "range"
+        }
+      ],
+      "options": {
+        "showTime": true,
+        "showLabels": false,
+        "wrapLogMessage": true,
+        "dedupStrategy": "none",
+        "sortOrder": "Descending"
+      }
+    },
+    {
+      "id": 2,
+      "type": "logs",
+      "title": "ERROR / Exception 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"} |~ \"ERROR|Exception\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
+    },
+    {
+      "id": 3,
+      "type": "logs",
+      "title": "로그인 실패 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"} |= \"[로그인]\" |= \"실패\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
+    },
+    {
+      "id": 4,
+      "type": "logs",
+      "title": "OpenAI 호출 실패 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"} |~ \"OpenAI|AI 마음 대화\" |~ \"실패|ERROR|Exception\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
+    },
+    {
+      "id": 5,
+      "type": "logs",
+      "title": "Redis / DB 연결 실패 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 16},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"} |~ \"Redis|Hikari|MariaDB|JDBC|database|Connection\" |~ \"ERROR|Exception|failed|실패\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
+    },
+    {
+      "id": 6,
+      "type": "logs",
+      "title": "위기 감지 운영 로그",
+      "datasource": {"type": "loki", "uid": "mymentalcare-loki"},
+      "gridPos": {"h": 8, "w": 24, "x": 0, "y": 24},
+      "targets": [
+        {
+          "refId": "A",
+          "expr": "{service=\"mymentalcare-api\"} |~ \"위기|crisis|Crisis\"",
+          "queryType": "range"
+        }
+      ],
+      "options": {"showTime": true, "showLabels": false, "wrapLogMessage": true, "sortOrder": "Descending"}
+    }
+  ]
+}
