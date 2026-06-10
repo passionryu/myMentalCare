@@ -12,6 +12,7 @@ internal object MindChatResponsePolicy {
         - 사용자가 질문을 하면 질문에 먼저 답하고, 필요한 경우에만 짧게 감정을 인정한다.
         - 사용자가 가벼운 인사나 일상 이야기를 하면 자연스럽게 받아주고 상담 질문으로 급하게 전환하지 않는다.
         - 사용자가 긍정적인 일을 공유하면 이유를 캐묻기보다 그 순간의 좋음을 함께 인정한다.
+        - 날씨, 풍경, 인사처럼 가벼운 대화에서는 감정 분석을 요구하지 말고 일상 대화처럼 맞장구친다.
         - 사용자가 이미 이유를 설명했으면 같은 이유를 다시 묻지 않는다.
         - 사용자가 말하지 않은 분노, 답답함, 불안 같은 부정 감정을 추론하지 않는다.
         - 행동 제안은 매번 하지 말고, 현재 대화에 정말 도움이 될 때만 선택적으로 제안한다.
@@ -34,10 +35,59 @@ internal object MindChatResponsePolicy {
         나쁜 답변 기준:
         - "왜 그렇게 느꼈나요?"처럼 이미 말한 이유를 다시 묻지 않는다.
         - "분노/답답함과의 관계를 말해줘"처럼 사용자가 말하지 않은 감정을 붙이지 않는다.
-        - 매 답변마다 숨 고르기, 메모, 산책 같은 행동 제안을 반복하지 않는다.
+        - 일상 대화에서 호흡, 메모, 산책 같은 행동 제안을 반복하지 않는다.
 
         감정 인정은 필요할 때 1문장 이내로 짧게 한다.
         진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다.
         위기 표현이 감지된 상황에서는 일반 대화보다 앱의 고정 안전 안내 정책이 우선한다.
     """.trimIndent()
+
+    // 가벼운 일상 대화에서 상담식 표현이 섞이면 사용자에게 보여주기 전에 자연스러운 답변으로 보정한다.
+    fun polishGeneratedReply(reply: String, latestUserMessage: String): String {
+        if (!containsCounselingPattern(reply)) {
+            return reply.trim()
+        }
+
+        if (isLightWeatherTalk(latestUserMessage)) {
+            return "맞아, 창밖이 밝고 날씨가 좋으면 하루가 조금 가벼워지는 느낌이 있어. 오늘 그 화창함이 오래 머물렀으면 좋겠다."
+        }
+
+        val polishedReply = reply
+            .split(Regex("(?<=[.!?])\\s+"))
+            .filterNot { containsCounselingPattern(it) }
+            .joinToString(" ")
+            .trim()
+
+        return polishedReply.takeIf { it.length >= MIN_POLISHED_REPLY_LENGTH }
+            ?: "그렇게 말해줘서 고마워. 지금 이야기를 천천히 이어가도 괜찮아."
+    }
+
+    private fun containsCounselingPattern(reply: String): Boolean {
+        return COUNSELING_PATTERNS.any { reply.contains(it) }
+    }
+
+    private fun isLightWeatherTalk(message: String): Boolean {
+        return LIGHT_WEATHER_TALK_KEYWORDS.any { message.contains(it) }
+    }
 }
+
+private const val MIN_POLISHED_REPLY_LENGTH = 10
+
+private val COUNSELING_PATTERNS = listOf(
+    "숨 고르기",
+    "왜 그렇게 느꼈",
+    "구체적인 순간",
+    "분노",
+    "답답함과의 관계",
+    "감정이나 생각",
+    "정리해줄래",
+)
+
+private val LIGHT_WEATHER_TALK_KEYWORDS = listOf(
+    "화창",
+    "날씨",
+    "창밖",
+    "해가",
+    "햇빛",
+    "맑",
+)

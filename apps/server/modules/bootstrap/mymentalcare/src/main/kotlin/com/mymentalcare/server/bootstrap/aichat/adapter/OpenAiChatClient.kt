@@ -59,7 +59,10 @@ class OpenAiChatClient(
                 .retrieve()
                 .body(JsonNode::class.java)
 
-            return extractReplyText(response)
+            return MindChatResponsePolicy.polishGeneratedReply(
+                reply = extractReplyText(response),
+                latestUserMessage = request.recentMessages.lastOrNull()?.content.orEmpty(),
+            )
         } catch (e: ResourceAccessException) {
             throw OpenAiReplyGenerationFailedException(OpenAiReplyFailureType.TIMEOUT, "OpenAI 응답 생성 요청 시간이 초과되었습니다.", e)
         } catch (e: HttpStatusCodeException) {

@@ -107,6 +107,29 @@ class OpenAiChatClientTest {
         assertTrue(basePolicy.contains("나쁜 답변 기준"))
     }
 
+    @Test
+    fun `일상 날씨 대화 응답에 상담식 표현이 섞이면 자연스러운 맞장구로 보정한다`() {
+        val reply = MindChatResponsePolicy.polishGeneratedReply(
+            reply = "안녕! 오늘 하루가 화창한데, 지금 느끼는 감정이나 생각을 한두 가지로 정리해줄래요? 필요하면 짧은 숨 고르기 질문도 도와줄게요.",
+            latestUserMessage = "안녕! 오늘 하루는 화창하네!",
+        )
+
+        assertEquals(
+            "맞아, 창밖이 밝고 날씨가 좋으면 하루가 조금 가벼워지는 느낌이 있어. 오늘 그 화창함이 오래 머물렀으면 좋겠다.",
+            reply,
+        )
+    }
+
+    @Test
+    fun `일반 응답에 상담식 반복 표현이 없으면 그대로 사용한다`() {
+        val reply = MindChatResponsePolicy.polishGeneratedReply(
+            reply = "그 말 들으니 오늘 하루가 조금 밝게 느껴진다. 그런 순간을 같이 나눠줘서 고마워.",
+            latestUserMessage = "오늘 기분이 조금 좋아.",
+        )
+
+        assertEquals("그 말 들으니 오늘 하루가 조금 밝게 느껴진다. 그런 순간을 같이 나눠줘서 고마워.", reply)
+    }
+
     // 사용자 메시지 테스트 데이터를 만든다.
     private fun userMessage(content: String): AiReplyMessage {
         return AiReplyMessage(
