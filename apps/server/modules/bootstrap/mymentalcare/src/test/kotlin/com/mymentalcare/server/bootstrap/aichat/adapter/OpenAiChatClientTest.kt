@@ -46,6 +46,7 @@ class OpenAiChatClientTest {
         assertTrue(basePolicy.contains("앱의 고정 안전 안내 정책이 우선한다."))
         assertTrue(basePolicy.contains("명시적 조언 요청"))
         assertTrue(repetitionPolicy.contains("같은 행동 제안을 반복하지 않는다."))
+        assertTrue(repetitionPolicy.contains("질문 없이 짧은 반응이나 맞장구로 끝낸다."))
         assertFalse(repetitionPolicy.contains("오래된 답변"))
         assertFalse(repetitionPolicy.contains("첫 번째 답변"))
         assertTrue(repetitionPolicy.contains("두 번째 답변"))
@@ -74,6 +75,7 @@ class OpenAiChatClientTest {
         val basePolicy = input.first().getValue("content")
 
         assertTrue(basePolicy.contains("상담사, 의사, 진단자, 치료자가 아니라"))
+        assertTrue(basePolicy.contains("친구처럼 가볍게 맞장구치되"))
         assertTrue(basePolicy.contains("의료 전문가나 상담 전문가처럼 소개하지 않는다."))
         assertTrue(basePolicy.contains("진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다."))
         assertTrue(basePolicy.contains("위기 표현이 감지된 상황에서는 일반 대화보다 앱의 고정 안전 안내 정책이 우선한다."))
@@ -99,6 +101,8 @@ class OpenAiChatClientTest {
         val basePolicy = input.first().getValue("content")
 
         assertTrue(basePolicy.contains("일상 이야기를 하면 자연스럽게 받아주고 상담 질문으로 급하게 전환하지 않는다."))
+        assertTrue(basePolicy.contains("특별한 목적 없는 수다도 정상적인 대화로 본다."))
+        assertTrue(basePolicy.contains("모든 답변을 질문으로 끝내지 않는다."))
         assertTrue(basePolicy.contains("긍정적인 일을 공유하면 이유를 캐묻기보다 그 순간의 좋음을 함께 인정한다."))
         assertTrue(basePolicy.contains("사용자가 이미 이유를 설명했으면 같은 이유를 다시 묻지 않는다."))
         assertTrue(basePolicy.contains("사용자가 말하지 않은 분노, 답답함, 불안 같은 부정 감정을 추론하지 않는다."))
@@ -118,6 +122,32 @@ class OpenAiChatClientTest {
             "맞아, 창밖이 밝고 날씨가 좋으면 하루가 조금 가벼워지는 느낌이 있어. 오늘 그 화창함이 오래 머물렀으면 좋겠다.",
             reply,
         )
+    }
+
+    @Test
+    fun `친구나 식사 이야기에 면접식 질문이 섞이면 자연스러운 수다로 보정한다`() {
+        val reply = MindChatResponsePolicy.polishGeneratedReply(
+            reply = "좋다, 오늘 저녁 치킨 기대되네. 편하게 즐겨도 돼. 지금 이 분위기에서 더 나누고 싶은 이야기 있어?",
+            latestUserMessage = "오늘은 저녁에 친한 형들이랑 치킨을 먹기로 했어!",
+        )
+
+        assertEquals(
+            "좋다, 편한 사람들이랑 먹고 이야기하는 시간은 그 자체로 꽤 힘이 되지. 오늘은 별 얘기 아니어도 웃고 오면 충분할 것 같아.",
+            reply,
+        )
+        assertFalse(reply.contains("있었니"))
+    }
+
+    @Test
+    fun `짧은 모호한 답변에 추가 질문이 섞이면 더 캐묻지 않는 답변으로 보정한다`() {
+        val reply = MindChatResponsePolicy.polishGeneratedReply(
+            reply = "괜찮아. 지금은 어차피 그런 느낌일 수 있어. 필요하면 천천히 이야기해줘.",
+            latestUserMessage = "몰라",
+        )
+
+        assertEquals("그럴 수 있지. 지금은 굳이 정하지 않아도 괜찮아.", reply)
+        assertFalse(reply.contains("?"))
+        assertFalse(reply.contains("어차피"))
     }
 
     @Test
