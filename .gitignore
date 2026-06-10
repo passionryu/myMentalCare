@@ -12,6 +12,7 @@ build/
 .env.*
 !/.env.example
 !/.env.local.example
+apps/server/modules/bootstrap/mymentalcare/src/main/resources/application-local.yml
 apps/server/modules/**/build/
 apps/web/next-env.d.ts
 apps/web/tsconfig.tsbuildinfo
