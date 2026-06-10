@@ -41,9 +41,10 @@ class OpenAiChatClientTest {
         val basePolicy = systemMessages.first()
         val repetitionPolicy = systemMessages.single { it.contains("최근 마음이 답변 3개") }
 
-        assertTrue(basePolicy.contains("사용자가 질문을 하면 감정 공감보다 질문에 대한 답을 먼저 한다."))
+        assertTrue(basePolicy.contains("사용자가 질문을 하면 질문에 먼저 답하고"))
         assertTrue(basePolicy.contains("행동 제안은 매번 하지 말고"))
         assertTrue(basePolicy.contains("앱의 고정 안전 안내 정책이 우선한다."))
+        assertTrue(basePolicy.contains("명시적 조언 요청"))
         assertTrue(repetitionPolicy.contains("같은 행동 제안을 반복하지 않는다."))
         assertFalse(repetitionPolicy.contains("오래된 답변"))
         assertFalse(repetitionPolicy.contains("첫 번째 답변"))
@@ -76,6 +77,34 @@ class OpenAiChatClientTest {
         assertTrue(basePolicy.contains("의료 전문가나 상담 전문가처럼 소개하지 않는다."))
         assertTrue(basePolicy.contains("진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다."))
         assertTrue(basePolicy.contains("위기 표현이 감지된 상황에서는 일반 대화보다 앱의 고정 안전 안내 정책이 우선한다."))
+    }
+
+    @Test
+    fun `일상 대화와 긍정 공유는 상담 질문으로 전환하지 않도록 안내한다`() {
+        val client = OpenAiChatClient(
+            restClientBuilder = RestClient.builder(),
+            openAiProperties = OpenAiProperties(apiKey = "test-api-key"),
+        )
+
+        val input = client.buildOpenAiInput(
+            AiReplyRequest(
+                memberId = 1L,
+                roomId = 10L,
+                messageId = 20L,
+                summaryContext = null,
+                recentMessages = listOf(userMessage("해가 쨍쨍하고, 날씨도 좋잖아")),
+            )
+        )
+
+        val basePolicy = input.first().getValue("content")
+
+        assertTrue(basePolicy.contains("일상 이야기를 하면 자연스럽게 받아주고 상담 질문으로 급하게 전환하지 않는다."))
+        assertTrue(basePolicy.contains("긍정적인 일을 공유하면 이유를 캐묻기보다 그 순간의 좋음을 함께 인정한다."))
+        assertTrue(basePolicy.contains("사용자가 이미 이유를 설명했으면 같은 이유를 다시 묻지 않는다."))
+        assertTrue(basePolicy.contains("사용자가 말하지 않은 분노, 답답함, 불안 같은 부정 감정을 추론하지 않는다."))
+        assertTrue(basePolicy.contains("오늘 하루는 화창하네"))
+        assertTrue(basePolicy.contains("창밖을 봐 화창하잖아"))
+        assertTrue(basePolicy.contains("나쁜 답변 기준"))
     }
 
     // 사용자 메시지 테스트 데이터를 만든다.
