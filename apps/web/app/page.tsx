@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowRight, CheckCircle2, Eye, EyeOff, HeartHandshake, LogOut, MessageCircle, Settings, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
+import { ArrowRight, CheckCircle2, Eye, EyeOff, HeartHandshake, LogOut, Settings, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
@@ -141,17 +141,6 @@ export default function Page() {
             </div>
           </div>
 
-          <aside className="conversation-preview" aria-label="AI 마음대화 미리보기">
-            <div className="panel-header">
-              <span className="panel-icon">
-                <MessageCircle size={18} aria-hidden="true" />
-              </span>
-              <span>오늘의 첫 대화</span>
-            </div>
-            <div className="preview-bubble is-ai">오늘은 어떤 이야기를 먼저 꺼내보고 싶나요?</div>
-            <div className="preview-bubble is-user">요즘 계속 피곤한데, 이유를 잘 모르겠어요.</div>
-            <div className="preview-bubble is-ai">몸의 피로와 마음의 긴장을 나눠서 살펴볼게요.</div>
-          </aside>
         </div>
       </section>
 

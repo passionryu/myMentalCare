@@ -238,7 +238,7 @@ button {
 
 .hero-grid {
   display: grid;
-  grid-template-columns: minmax(0, 1.08fr) minmax(320px, 0.72fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 44px;
   align-items: center;
   flex: 1;
@@ -247,6 +247,7 @@ button {
 .hero-copy {
   display: grid;
   gap: 24px;
+  max-width: 780px;
 }
 
 .eyebrow {
