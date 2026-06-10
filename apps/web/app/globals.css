@@ -241,13 +241,16 @@ button {
   grid-template-columns: minmax(0, 1fr);
   gap: 44px;
   align-items: center;
+  justify-items: center;
   flex: 1;
 }
 
 .hero-copy {
   display: grid;
   gap: 24px;
-  max-width: 780px;
+  width: min(920px, 100%);
+  justify-items: center;
+  text-align: center;
 }
 
 .eyebrow {
@@ -267,7 +270,7 @@ p {
 }
 
 h1 {
-  max-width: 780px;
+  max-width: 920px;
   margin-bottom: 0;
   font-size: clamp(44px, 7vw, 82px);
   font-weight: 900;
@@ -290,7 +293,7 @@ h3 {
 }
 
 .hero-description {
-  max-width: 680px;
+  max-width: 760px;
   margin-bottom: 0;
   color: var(--muted);
   font-size: 20px;
@@ -372,6 +375,7 @@ h3 {
 .trust-list {
   display: flex;
   flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
   margin: 0;
   padding: 0;
