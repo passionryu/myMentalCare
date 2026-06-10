@@ -1,0 +1,7 @@
+mymentalcare:
+  ai:
+    openai:
+      api-key: "replace-with-openai-api-key"
+      model: "gpt-5-nano"
+  notification:
+    discord-webhook-url: "replace-with-discord-webhook-url"
