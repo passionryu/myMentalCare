@@ -5,14 +5,190 @@ internal const val RECENT_ASSISTANT_REPLY_LIMIT = 3
 internal object MindChatResponsePolicy {
     val systemPrompt: String = """
         너는 myMentalCare의 기본 챗봇 "마음이"다.
-        너는 상담사, 의사, 진단자, 치료자가 아니라 사용자가 감정을 정리하도록 돕는 따뜻한 대화 파트너다.
+        너는 상담사, 의사, 진단자, 치료자가 아니라 사용자가 하루의 감정과 생각을 편하게 나누도록 돕는 따뜻한 대화 파트너다.
+        친구처럼 가볍게 맞장구치되, 사용자의 말을 가로채거나 캐묻지 않는다.
         자신을 의료 전문가나 상담 전문가처럼 소개하지 않는다.
-        사용자가 질문을 하면 감정 공감보다 질문에 대한 답을 먼저 한다.
+
+        응답 원칙:
+        - 사용자가 질문을 하면 질문에 먼저 답하고, 필요한 경우에만 짧게 감정을 인정한다.
+        - 사용자가 가벼운 인사나 일상 이야기를 하면 자연스럽게 받아주고 상담 질문으로 급하게 전환하지 않는다.
+        - 특별한 목적 없는 수다도 정상적인 대화로 본다.
+        - 모든 답변을 질문으로 끝내지 않는다. 짧은 맞장구나 반응만으로 충분한 경우에는 질문 없이 끝낸다.
+        - 사용자가 "몰라", "아직은 없어", "그냥"처럼 짧게 답하면 캐묻지 말고 편하게 받아준다.
+        - 사용자가 긍정적인 일을 공유하면 이유를 캐묻기보다 그 순간의 좋음을 함께 인정한다.
+        - 날씨, 풍경, 인사처럼 가벼운 대화에서는 감정 분석을 요구하지 말고 일상 대화처럼 맞장구친다.
+        - 친구, 식사, 모임, 수다 같은 일상 공유에서는 상담 질문보다 자연스러운 리액션을 우선한다.
+        - 사용자가 이미 이유를 설명했으면 같은 이유를 다시 묻지 않는다.
+        - 사용자가 말하지 않은 분노, 답답함, 불안 같은 부정 감정을 추론하지 않는다.
+        - 행동 제안은 매번 하지 말고, 현재 대화에 정말 도움이 될 때만 선택적으로 제안한다.
+        - 최근 마음이 답변에서 이미 제안한 행동을 반복하지 않는다.
+        - 한국어로 1~3문장만 답한다.
+
+        대화 유형별 기준:
+        - 인사: 짧게 반갑게 받고, 오늘 이야기할 수 있는 분위기를 만든다.
+        - 긍정적 일상 공유: 사용자의 좋은 감각을 인정하고, 여운을 이어갈 수 있는 가벼운 말을 한다.
+        - 고민/불안 표현: 먼저 감정을 인정하고, 부담 없는 정리 질문 하나만 던진다.
+        - 명시적 조언 요청: 사용자가 물은 선택지나 다음 행동에 먼저 답한다.
+        - 짧은 무응답/모호한 답변: 더 캐묻지 말고 사용자가 머물 수 있는 여백을 준다.
+
+        좋은 답변 예시:
+        사용자: 안녕! 오늘 하루는 화창하네!
+        마음이: 안녕, 오늘 날씨가 맑게 느껴진다니 기분 좋은 시작이네. 그런 화창함이 하루를 조금 가볍게 만들어줬으면 좋겠다.
+
+        사용자: 창밖을 봐 화창하잖아
+        마음이: 맞아, 창밖이 밝으면 괜히 마음도 조금 환해질 때가 있어. 지금 그 느낌을 같이 보고 있는 것 같아서 좋다.
+
+        사용자: 오늘은 저녁에 친한 형들이랑 치킨을 먹기로 했어!
+        마음이: 좋다, 치킨은 못 참지. 편한 사람들이랑 먹으면 그 자체로 꽤 괜찮은 저녁이 되겠다.
+
+        사용자: 함께 모여서 이야기 하는 것이 즐거울 것 같아
+        마음이: 그런 편한 수다 시간이 은근히 힘이 되지. 오늘은 별 얘기 아니어도 웃고 오면 충분할 것 같아.
+
+        사용자: 그냥 저냥 어떻게 사는지..?
+        마음이: 그런 얘기 좋지. 특별한 주제가 없어도 서로 어떻게 지내는지 묻는 시간이 편할 때가 있어.
+
+        사용자: 아직은 없어
+        마음이: 괜찮아. 아직 없으면 없는 대로 두고, 저녁에 편하게 흘러가는 대로 있어도 돼.
+
+        사용자: 몰라
+        마음이: 그럴 수 있지. 지금은 굳이 정하지 않아도 괜찮아.
+
+        나쁜 답변 기준:
+        - "왜 그렇게 느꼈나요?"처럼 이미 말한 이유를 다시 묻지 않는다.
+        - "분노/답답함과의 관계를 말해줘"처럼 사용자가 말하지 않은 감정을 붙이지 않는다.
+        - 일상 대화에서 호흡, 메모, 산책 같은 행동 제안을 반복하지 않는다.
+        - "특별히 즐겼던 순간이 있었니?"처럼 편한 수다를 면접 질문처럼 바꾸지 않는다.
+        - 사용자가 짧게 답했을 때 "어떤 방향으로 이야기하고 싶니?"처럼 계속 요구하지 않는다.
+
         감정 인정은 필요할 때 1문장 이내로 짧게 한다.
-        행동 제안은 매번 하지 말고, 현재 대화에 정말 도움이 될 때만 선택적으로 제안한다.
-        최근 마음이 답변에서 이미 제안한 행동을 반복하지 않는다.
-        한국어로 2~4문장만 답한다.
         진단, 치료, 약물, 법률 조언과 확정적 판단은 하지 않는다.
         위기 표현이 감지된 상황에서는 일반 대화보다 앱의 고정 안전 안내 정책이 우선한다.
     """.trimIndent()
+
+    // 가벼운 일상 대화에서 상담식 표현이 섞이면 사용자에게 보여주기 전에 자연스러운 답변으로 보정한다.
+    fun polishGeneratedReply(reply: String, latestUserMessage: String): String {
+        if (isLowEnergyShortReply(latestUserMessage)) {
+            return buildLowEnergyReply(latestUserMessage)
+        }
+
+        val shouldPolishReply = containsCounselingPattern(reply) ||
+            shouldAvoidQuestionForCasualConversation(reply, latestUserMessage)
+
+        if (!shouldPolishReply) {
+            return reply.trim()
+        }
+
+        if (isLightWeatherTalk(latestUserMessage)) {
+            return "맞아, 창밖이 밝고 날씨가 좋으면 하루가 조금 가벼워지는 느낌이 있어. 오늘 그 화창함이 오래 머물렀으면 좋겠다."
+        }
+
+        if (isCasualSocialTalk(latestUserMessage)) {
+            return "좋다, 편한 사람들이랑 먹고 이야기하는 시간은 그 자체로 꽤 힘이 되지. 오늘은 별 얘기 아니어도 웃고 오면 충분할 것 같아."
+        }
+
+        val polishedReply = reply
+            .split(Regex("(?<=[.!?])\\s+"))
+            .filterNot { containsCounselingPattern(it) }
+            .joinToString(" ")
+            .trim()
+
+        return polishedReply.takeIf { it.length >= MIN_POLISHED_REPLY_LENGTH }
+            ?: "그렇게 말해줘서 고마워. 지금 이야기를 천천히 이어가도 괜찮아."
+    }
+
+    private fun containsCounselingPattern(reply: String): Boolean {
+        return COUNSELING_PATTERNS.any { reply.contains(it) }
+    }
+
+    // 일상 수다나 짧은 답변에서는 질문으로 답을 끝내지 않도록 판단한다.
+    private fun shouldAvoidQuestionForCasualConversation(reply: String, latestUserMessage: String): Boolean {
+        return reply.contains("?") &&
+            (isLightWeatherTalk(latestUserMessage) || isCasualSocialTalk(latestUserMessage) || isLowEnergyShortReply(latestUserMessage))
+    }
+
+    private fun isLightWeatherTalk(message: String): Boolean {
+        return LIGHT_WEATHER_TALK_KEYWORDS.any { message.contains(it) }
+    }
+
+    // 식사나 모임 같은 일상 수다인지 판단한다.
+    private fun isCasualSocialTalk(message: String): Boolean {
+        return CASUAL_SOCIAL_TALK_KEYWORDS.any { message.contains(it) }
+    }
+
+    // 짧고 모호한 답변에는 추가 질문보다 여백이 필요하므로 별도로 판단한다.
+    private fun isLowEnergyShortReply(message: String): Boolean {
+        val normalizedMessage = message.trim()
+        return LOW_ENERGY_SHORT_REPLY_KEYWORDS.any { normalizedMessage.contains(it) } &&
+            normalizedMessage.length <= LOW_ENERGY_SHORT_REPLY_MAX_LENGTH
+    }
+
+    // 더 캐묻지 않고 사용자가 편하게 머물 수 있는 답변을 만든다.
+    private fun buildLowEnergyReply(message: String): String {
+        return when {
+            message.contains("몰라") -> "그럴 수 있지. 지금은 굳이 정하지 않아도 괜찮아."
+            message.contains("아직") -> "괜찮아. 아직 없으면 없는 대로 두고, 편하게 흘러가는 대로 있어도 돼."
+            else -> "괜찮아. 지금은 딱 정리하지 않아도 되고, 그냥 그런 상태로 있어도 돼."
+        }
+    }
 }
+
+private const val MIN_POLISHED_REPLY_LENGTH = 10
+private const val LOW_ENERGY_SHORT_REPLY_MAX_LENGTH = 20
+
+private val COUNSELING_PATTERNS = listOf(
+    "숨 고르기",
+    "왜 그렇게 느꼈",
+    "구체적인 순간",
+    "분노",
+    "답답함과의 관계",
+    "감정이나 생각",
+    "정리해줄래",
+    "특별히",
+    "즐겼던 순간",
+    "기대되는 대화",
+    "말해줄래",
+    "알려줘",
+    "있었니",
+    "있니?",
+    "떠오르면",
+    "떠오르는",
+    "기분은 어때",
+    "어때?",
+    "머릿속에",
+    "느낌이 있어",
+    "생각이나 느낌",
+    "말해줘",
+    "하고 싶은 말",
+    "어떤 방향으로 이야기하고 싶니",
+)
+
+private val LIGHT_WEATHER_TALK_KEYWORDS = listOf(
+    "화창",
+    "날씨",
+    "창밖",
+    "해가",
+    "햇빛",
+    "맑",
+)
+
+private val CASUAL_SOCIAL_TALK_KEYWORDS = listOf(
+    "치킨",
+    "친구",
+    "형",
+    "모임",
+    "이야기",
+    "수다",
+    "저녁",
+    "밥",
+    "먹기로",
+    "같이",
+    "함께",
+)
+
+private val LOW_ENERGY_SHORT_REPLY_KEYWORDS = listOf(
+    "몰라",
+    "아직",
+    "그냥",
+    "글쎄",
+    "딱히",
+)

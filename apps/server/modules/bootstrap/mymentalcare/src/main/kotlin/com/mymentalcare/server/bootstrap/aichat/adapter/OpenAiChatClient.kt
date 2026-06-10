@@ -59,7 +59,10 @@ class OpenAiChatClient(
                 .retrieve()
                 .body(JsonNode::class.java)
 
-            return extractReplyText(response)
+            return MindChatResponsePolicy.polishGeneratedReply(
+                reply = extractReplyText(response),
+                latestUserMessage = request.recentMessages.lastOrNull()?.content.orEmpty(),
+            )
         } catch (e: ResourceAccessException) {
             throw OpenAiReplyGenerationFailedException(OpenAiReplyFailureType.TIMEOUT, "OpenAI 응답 생성 요청 시간이 초과되었습니다.", e)
         } catch (e: HttpStatusCodeException) {
@@ -121,7 +124,8 @@ class OpenAiChatClient(
 
         return listOf(
             "최근 마음이 답변 ${recentAssistantReplies.size}개를 참고해 같은 행동 제안을 반복하지 않는다.",
-            "이미 제안한 행동이 있다면 다른 관점의 질문, 짧은 정리, 또는 사용자의 직접 질문에 대한 답변을 우선한다.",
+            "이미 비슷한 질문이나 행동 제안을 했다면 이번 답변은 질문 없이 짧은 반응이나 맞장구로 끝낸다.",
+            "사용자가 직접 질문한 경우에는 질문에 대한 답변을 우선한다.",
             "최근 마음이 답변:",
             *recentAssistantReplies.toTypedArray(),
         ).joinToString("\n")
