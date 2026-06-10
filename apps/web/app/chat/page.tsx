@@ -56,7 +56,7 @@ export default function AiChatPage() {
   }
 
   return (
-    <main className="chat-page-shell">
+    <main className="chat-page-shell" suppressHydrationWarning>
       <section className="chat-layout" aria-labelledby="chat-page-title">
         <header className="chat-header">
           <button className="soft-button" type="button" onClick={() => router.push('/')}>
@@ -159,11 +159,19 @@ function ChatBubble({ message }: { message: AiChatMessage }) {
     <article className={`chat-message-row ${isUser ? 'is-user' : 'is-assistant'} ${message.isCrisisDetected ? 'is-crisis' : ''}`}>
       {!isUser && <img className="chat-avatar" src="/maeumi-avatar.svg" alt="마음이 프로필" />}
       <div className="chat-message-body">
-        {isUser && createdTime && <time dateTime={message.createdAt ?? undefined}>{createdTime}</time>}
+        {isUser && createdTime && (
+          <time suppressHydrationWarning dateTime={message.createdAt ?? undefined}>
+            {createdTime}
+          </time>
+        )}
         <div className="chat-bubble">
           <p>{message.content}</p>
         </div>
-        {!isUser && createdTime && <time dateTime={message.createdAt ?? undefined}>{createdTime}</time>}
+        {!isUser && createdTime && (
+          <time suppressHydrationWarning dateTime={message.createdAt ?? undefined}>
+            {createdTime}
+          </time>
+        )}
       </div>
     </article>
   )
@@ -174,9 +182,10 @@ function formatChatMessageTime(createdAt?: string | null) {
     return ''
   }
 
-  return new Intl.DateTimeFormat('ko-KR', {
+  return new Intl.DateTimeFormat('en-US', {
     hour: 'numeric',
     minute: '2-digit',
-    hour12: true,
+    hour12: false,
+    timeZone: 'Asia/Seoul',
   }).format(new Date(createdAt))
 }
