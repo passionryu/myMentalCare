@@ -2,7 +2,7 @@
 
 import { ArrowRight, CheckCircle2, Eye, EyeOff, HeartHandshake, LogOut, Settings, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { FormEvent, useEffect, useState } from 'react'
+import { FormEvent, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 
@@ -12,6 +12,26 @@ const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const trustMessages = ['개인 대화 공간', '대화 흐름 저장 가능', '언제든 종료 가능']
 const conversationPrompts = ['생각이 너무 많아요', '불안해서 집중이 안 돼요', '관계 때문에 마음이 복잡해요', '잠들기 전에 정리하고 싶어요']
+const storyMessages = [
+  { speaker: 'user', message: '머릿속이 계속 복잡해서 어디서부터 말해야 할지 모르겠어요.' },
+  { speaker: 'ai', message: '가장 크게 남아 있는 한 문장만 골라볼게요. 지금 제일 먼저 떠오르는 건 무엇인가요?' },
+  { speaker: 'user', message: '해야 할 일은 많은데 계속 미루고 있어요.' },
+  { speaker: 'ai', message: '해야 하는 일과 지금 부담스러운 감정을 나눠서 정리해볼 수 있어요.' },
+  { speaker: 'user', message: '그렇게 나누면 조금 덜 막막할 것 같아요.' },
+  { speaker: 'ai', message: '좋아요. 오늘 꼭 필요한 일 하나와 나중으로 미뤄도 되는 일을 구분해볼게요.' },
+] as const
+const exampleConversationMessages = [
+  { id: 1, speaker: 'ai', message: '오늘은 어떤 이야기를 먼저 꺼내보고 싶나요?' },
+  { id: 2, speaker: 'user', message: '요즘 계속 피곤한데, 이유를 잘 모르겠어요.' },
+  { id: 3, speaker: 'ai', message: '몸의 피로와 마음의 긴장을 나눠서 살펴볼게요. 최근에 유독 부담이 커진 일이 있었나요?' },
+  { id: 4, speaker: 'user', message: '할 일은 많은데 시작을 못 하고 있어요.' },
+  { id: 5, speaker: 'ai', message: '시작하지 못하는 마음 뒤에 있는 부담을 먼저 작게 나눠볼게요.' },
+  { id: 6, speaker: 'user', message: '실패할까 봐 자꾸 미루는 것 같아요.' },
+  { id: 7, speaker: 'ai', message: '그 마음은 자연스러워요. 오늘은 성공보다 시작 가능한 크기로 줄여보면 어떨까요?' },
+  { id: 8, speaker: 'user', message: '그럼 10분만 해보는 건 가능할 것 같아요.' },
+  { id: 9, speaker: 'ai', message: '좋아요. 10분 뒤에 멈춰도 괜찮다는 조건으로 시작해볼 수 있어요.' },
+  { id: 10, speaker: 'ai', message: '지금 정리된 한 문장은 "작게 시작하면 부담이 줄어든다"에 가까워 보여요.' },
+] as const
 const safetyGuides = [
   '의료 진단이나 치료를 대신하지 않습니다.',
   '위급 상황 알림이나 의료 대응을 대신하지 않습니다.',
@@ -20,6 +40,7 @@ const safetyGuides = [
 
 export default function Page() {
   const router = useRouter()
+  const storyRailRef = useRef<HTMLDivElement | null>(null)
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
@@ -29,6 +50,9 @@ export default function Page() {
   const [accountGuideOpen, setAccountGuideOpen] = useState(false)
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [storyInView, setStoryInView] = useState(false)
+  const [reducedMotion, setReducedMotion] = useState(false)
+  const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -42,6 +66,49 @@ export default function Page() {
       setThemeTone(savedThemeTone)
     }
   }, [])
+
+  useEffect(() => {
+    const motionQuery = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const syncMotionPreference = () => setReducedMotion(motionQuery.matches)
+    syncMotionPreference()
+    motionQuery.addEventListener('change', syncMotionPreference)
+
+    return () => motionQuery.removeEventListener('change', syncMotionPreference)
+  }, [])
+
+  useEffect(() => {
+    const target = storyRailRef.current
+    if (!target || reducedMotion) {
+      setStoryInView(true)
+      return
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (entry.isIntersecting) {
+          setStoryInView(true)
+          observer.disconnect()
+        }
+      },
+      { rootMargin: '0px 0px -16% 0px', threshold: 0.24 },
+    )
+
+    observer.observe(target)
+    return () => observer.disconnect()
+  }, [reducedMotion])
+
+  useEffect(() => {
+    if (reducedMotion) {
+      setExampleWindowIndex(0)
+      return
+    }
+
+    const intervalId = window.setInterval(() => {
+      setExampleWindowIndex((currentIndex) => (currentIndex + 1) % exampleConversationMessages.length)
+    }, 2000)
+
+    return () => window.clearInterval(intervalId)
+  }, [reducedMotion])
 
   const handleThemeChange = (nextThemeTone: ThemeTone) => {
     setThemeTone(nextThemeTone)
@@ -150,11 +217,12 @@ export default function Page() {
           <h2 id="dialogue-heading">마음속 문장이 천천히 선명해집니다</h2>
           <p>복잡한 감정을 기능 카드로 나열하지 않고, 실제 대화가 정리로 바뀌는 흐름을 보여줍니다.</p>
         </div>
-        <div className="story-rail">
-          <div className="story-bubble user">"머릿속이 계속 복잡해서 어디서부터 말해야 할지 모르겠어요."</div>
-          <div className="story-bubble ai">"가장 크게 남아 있는 한 문장만 골라볼게요. 지금 제일 먼저 떠오르는 건 무엇인가요?"</div>
-          <div className="story-bubble user">"해야 할 일은 많은데 계속 미루고 있어요."</div>
-          <div className="story-bubble ai">"해야 하는 일과 지금 부담스러운 감정을 나눠서 정리해볼 수 있어요."</div>
+        <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
+          {storyMessages.map((story) => (
+            <div className={`story-bubble ${story.speaker}`} key={story.message}>
+              "{story.message}"
+            </div>
+          ))}
         </div>
       </section>
 
@@ -164,9 +232,19 @@ export default function Page() {
           <h2 id="example-heading">짧게 말해도 흐름을 잡아줍니다</h2>
         </div>
         <div className="example-card">
-          <div className="preview-bubble is-ai">오늘은 어떤 이야기를 먼저 꺼내보고 싶나요?</div>
-          <div className="preview-bubble is-user">요즘 계속 피곤한데, 이유를 잘 모르겠어요.</div>
-          <div className="preview-bubble is-ai">몸의 피로와 마음의 긴장을 나눠서 살펴볼게요. 최근에 유독 부담이 커진 일이 있었나요?</div>
+          <div className="example-bubble-window" aria-label="AI 마음대화 예시">
+            {[0, 1, 2].map((offset) => {
+              const message = exampleConversationMessages[(exampleWindowIndex + offset) % exampleConversationMessages.length]
+              return (
+                <div
+                  className={`preview-bubble ${message.speaker === 'ai' ? 'is-ai' : 'is-user'}`}
+                  key={`${exampleWindowIndex}-${message.id}`}
+                >
+                  {message.message}
+                </div>
+              )
+            })}
+          </div>
           <div className="topic-tags" aria-label="추천 대화 주제">
             <span>생각 정리하기</span>
             <span>불안 낮추기</span>
