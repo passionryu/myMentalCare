@@ -41,7 +41,6 @@ const safetyGuides = [
 export default function Page() {
   const router = useRouter()
   const storyRailRef = useRef<HTMLDivElement | null>(null)
-  const storyBubbleRefs = useRef<Array<HTMLDivElement | null>>([])
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
@@ -52,9 +51,6 @@ export default function Page() {
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
   const [storyInView, setStoryInView] = useState(false)
-  const [activeStoryIndex, setActiveStoryIndex] = useState(0)
-  const [storyMarkerTop, setStoryMarkerTop] = useState(0)
-  const [storyMarkerVisible, setStoryMarkerVisible] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
 
@@ -100,69 +96,6 @@ export default function Page() {
     observer.observe(target)
     return () => observer.disconnect()
   }, [reducedMotion])
-
-  useEffect(() => {
-    const target = storyRailRef.current
-    if (!target || !storyInView) {
-      return
-    }
-
-    let animationFrame = 0
-    let lastActiveIndex = -1
-
-    const updateMarker = () => {
-      const railRect = target.getBoundingClientRect()
-      const viewportAnchor = window.innerHeight * 0.5
-      const markerVisible = railRect.top < viewportAnchor && railRect.bottom > viewportAnchor
-      let nextActiveIndex = 0
-      let closestDistance = Number.POSITIVE_INFINITY
-
-      storyBubbleRefs.current.forEach((bubble, index) => {
-        if (!bubble) {
-          return
-        }
-
-        const bubbleRect = bubble.getBoundingClientRect()
-        const bubbleCenter = bubbleRect.top + bubbleRect.height / 2
-        const distance = Math.abs(bubbleCenter - viewportAnchor)
-        if (distance < closestDistance) {
-          closestDistance = distance
-          nextActiveIndex = index
-        }
-      })
-
-      const activeBubble = storyBubbleRefs.current[nextActiveIndex]
-      if (!activeBubble) {
-        return
-      }
-
-      const activeBubbleRect = activeBubble.getBoundingClientRect()
-      const nextMarkerTop = activeBubbleRect.top + activeBubbleRect.height / 2 - railRect.top
-
-      setStoryMarkerVisible(markerVisible)
-
-      if (nextActiveIndex !== lastActiveIndex || !markerVisible) {
-        lastActiveIndex = nextActiveIndex
-        setActiveStoryIndex(nextActiveIndex)
-        setStoryMarkerTop(nextMarkerTop)
-      }
-    }
-
-    const requestUpdate = () => {
-      window.cancelAnimationFrame(animationFrame)
-      animationFrame = window.requestAnimationFrame(updateMarker)
-    }
-
-    updateMarker()
-    window.addEventListener('scroll', requestUpdate, { passive: true })
-    window.addEventListener('resize', requestUpdate)
-
-    return () => {
-      window.cancelAnimationFrame(animationFrame)
-      window.removeEventListener('scroll', requestUpdate)
-      window.removeEventListener('resize', requestUpdate)
-    }
-  }, [storyInView])
 
   useEffect(() => {
     if (reducedMotion) {
@@ -285,22 +218,8 @@ export default function Page() {
           <p>복잡한 감정을 기능 카드로 나열하지 않고, 실제 대화가 정리로 바뀌는 흐름을 보여줍니다.</p>
         </div>
         <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
-          {storyInView && (
-            <span
-              className={`story-step-marker ${storyMarkerVisible ? 'is-visible' : ''}`}
-              data-step={activeStoryIndex + 1}
-              style={{ top: storyMarkerTop }}
-              aria-hidden="true"
-            />
-          )}
-          {storyMessages.map((story, index) => (
-            <div
-              className={`story-bubble ${story.speaker}`}
-              key={story.message}
-              ref={(node) => {
-                storyBubbleRefs.current[index] = node
-              }}
-            >
+          {storyMessages.map((story) => (
+            <div className={`story-bubble ${story.speaker}`} key={story.message}>
               "{story.message}"
             </div>
           ))}
