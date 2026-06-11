@@ -523,8 +523,34 @@ h3 {
   background: linear-gradient(180deg, transparent, var(--theme-border-strong), transparent);
 }
 
+.story-step-marker {
+  position: absolute;
+  left: 50%;
+  z-index: 2;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 999px;
+  background: var(--theme-panel-solid);
+  box-shadow:
+    0 0 0 1px var(--theme-border),
+    0 10px 24px rgba(56, 43, 28, 0.12);
+  transform: translate(-50%, -50%);
+  animation: storyMarkerFade 520ms ease both;
+}
+
+.story-step-marker span {
+  width: 11px;
+  height: 11px;
+  border-radius: 999px;
+  background: var(--theme-primary);
+}
+
 .story-bubble {
   position: relative;
+  z-index: 1;
   opacity: 0;
   animation-duration: 560ms;
   animation-fill-mode: both;
@@ -710,6 +736,15 @@ h3 {
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes storyMarkerFade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
   }
 }
 
@@ -1347,6 +1382,10 @@ h3 {
     left: 18px;
   }
 
+  .story-step-marker {
+    left: 18px;
+  }
+
   .story-bubble,
   .preview-bubble {
     max-width: calc(100% - 28px);
@@ -1408,9 +1447,14 @@ h3 {
 
 @media (prefers-reduced-motion: reduce) {
   .story-bubble,
-  .example-bubble-window .preview-bubble {
+  .example-bubble-window .preview-bubble,
+  .story-step-marker {
     opacity: 1;
     animation: none;
     transform: none;
+  }
+
+  .story-step-marker {
+    transform: translate(-50%, -50%);
   }
 }

@@ -30,7 +30,7 @@ const exampleConversationMessages = [
   { id: 7, speaker: 'ai', message: '그 마음은 자연스러워요. 오늘은 성공보다 시작 가능한 크기로 줄여보면 어떨까요?' },
   { id: 8, speaker: 'user', message: '그럼 10분만 해보는 건 가능할 것 같아요.' },
   { id: 9, speaker: 'ai', message: '좋아요. 10분 뒤에 멈춰도 괜찮다는 조건으로 시작해볼 수 있어요.' },
-  { id: 10, speaker: 'ai', message: '지금 정리된 한 문장은 "작게 시작하면 부담이 줄어든다"에 가까워 보여요.' },
+  { id: 10, speaker: 'user', message: '지금 정리된 한 문장은 "작게 시작하면 부담이 줄어든다"에 가까워 보여요.' },
 ] as const
 const safetyGuides = [
   '의료 진단이나 치료를 대신하지 않습니다.',
@@ -41,6 +41,7 @@ const safetyGuides = [
 export default function Page() {
   const router = useRouter()
   const storyRailRef = useRef<HTMLDivElement | null>(null)
+  const storyBubbleRefs = useRef<Array<HTMLDivElement | null>>([])
   const [authMode, setAuthMode] = useState<AuthMode | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
@@ -51,6 +52,8 @@ export default function Page() {
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
   const [storyInView, setStoryInView] = useState(false)
+  const [activeStoryIndex, setActiveStoryIndex] = useState(0)
+  const [storyMarkerTop, setStoryMarkerTop] = useState(0)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
 
@@ -98,6 +101,66 @@ export default function Page() {
   }, [reducedMotion])
 
   useEffect(() => {
+    const target = storyRailRef.current
+    if (!target || !storyInView) {
+      return
+    }
+
+    let animationFrame = 0
+    let lastActiveIndex = -1
+
+    const updateMarker = () => {
+      const railRect = target.getBoundingClientRect()
+      const viewportAnchor = window.innerHeight * 0.5
+      let nextActiveIndex = 0
+      let closestDistance = Number.POSITIVE_INFINITY
+
+      storyBubbleRefs.current.forEach((bubble, index) => {
+        if (!bubble) {
+          return
+        }
+
+        const bubbleRect = bubble.getBoundingClientRect()
+        const bubbleCenter = bubbleRect.top + bubbleRect.height / 2
+        const distance = Math.abs(bubbleCenter - viewportAnchor)
+        if (distance < closestDistance) {
+          closestDistance = distance
+          nextActiveIndex = index
+        }
+      })
+
+      const activeBubble = storyBubbleRefs.current[nextActiveIndex]
+      if (!activeBubble) {
+        return
+      }
+
+      const activeBubbleRect = activeBubble.getBoundingClientRect()
+      const nextMarkerTop = activeBubbleRect.top + activeBubbleRect.height / 2 - railRect.top
+
+      if (nextActiveIndex !== lastActiveIndex) {
+        lastActiveIndex = nextActiveIndex
+        setActiveStoryIndex(nextActiveIndex)
+        setStoryMarkerTop(nextMarkerTop)
+      }
+    }
+
+    const requestUpdate = () => {
+      window.cancelAnimationFrame(animationFrame)
+      animationFrame = window.requestAnimationFrame(updateMarker)
+    }
+
+    updateMarker()
+    window.addEventListener('scroll', requestUpdate, { passive: true })
+    window.addEventListener('resize', requestUpdate)
+
+    return () => {
+      window.cancelAnimationFrame(animationFrame)
+      window.removeEventListener('scroll', requestUpdate)
+      window.removeEventListener('resize', requestUpdate)
+    }
+  }, [storyInView])
+
+  useEffect(() => {
     if (reducedMotion) {
       setExampleWindowIndex(0)
       return
@@ -105,7 +168,7 @@ export default function Page() {
 
     const intervalId = window.setInterval(() => {
       setExampleWindowIndex((currentIndex) => (currentIndex + 1) % exampleConversationMessages.length)
-    }, 2000)
+    }, 3000)
 
     return () => window.clearInterval(intervalId)
   }, [reducedMotion])
@@ -218,8 +281,19 @@ export default function Page() {
           <p>복잡한 감정을 기능 카드로 나열하지 않고, 실제 대화가 정리로 바뀌는 흐름을 보여줍니다.</p>
         </div>
         <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
-          {storyMessages.map((story) => (
-            <div className={`story-bubble ${story.speaker}`} key={story.message}>
+          {storyInView && (
+            <span className="story-step-marker" key={activeStoryIndex} style={{ top: storyMarkerTop }} aria-hidden="true">
+              <span />
+            </span>
+          )}
+          {storyMessages.map((story, index) => (
+            <div
+              className={`story-bubble ${story.speaker}`}
+              key={story.message}
+              ref={(node) => {
+                storyBubbleRefs.current[index] = node
+              }}
+            >
               "{story.message}"
             </div>
           ))}
