@@ -510,42 +510,88 @@ h3 {
   position: relative;
   display: grid;
   gap: 18px;
-  padding: 10px 0;
+  padding: 18px 0;
 }
 
 .story-rail::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 12px;
+  bottom: 12px;
   left: 50%;
+  z-index: 0;
   width: 1px;
-  background: linear-gradient(180deg, transparent, var(--theme-border-strong), transparent);
+  background: linear-gradient(180deg, transparent, rgba(83, 111, 90, 0.12) 12%, rgba(83, 111, 90, 0.34) 50%, rgba(166, 110, 74, 0.18) 82%, transparent);
+}
+
+.story-rail::after {
+  content: '';
+  position: absolute;
+  top: 8px;
+  bottom: 8px;
+  left: 50%;
+  z-index: 0;
+  width: 92px;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% var(--story-glow-y, 50%), rgba(255, 236, 211, 0.58), transparent 18%),
+    linear-gradient(180deg, transparent, rgba(231, 240, 229, 0.32), transparent);
+  filter: blur(18px);
+  opacity: 0.72;
+  transform: translateX(-50%);
 }
 
 .story-step-marker {
   position: absolute;
   left: 50%;
-  z-index: 2;
+  z-index: 3;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  width: 28px;
-  height: 28px;
+  width: 34px;
+  height: 34px;
   border-radius: 999px;
-  background: var(--theme-panel-solid);
+  background:
+    radial-gradient(circle at 35% 32%, rgba(255, 253, 247, 0.96), rgba(255, 244, 226, 0.72) 42%, rgba(83, 111, 90, 0.1) 100%),
+    var(--theme-panel-solid);
   box-shadow:
-    0 0 0 1px var(--theme-border),
-    0 10px 24px rgba(56, 43, 28, 0.12);
+    0 0 0 1px rgba(255, 253, 247, 0.9),
+    0 0 0 7px rgba(231, 240, 229, 0.34),
+    0 0 28px rgba(83, 111, 90, 0.24),
+    0 16px 36px rgba(56, 43, 28, 0.14);
   transform: translate(-50%, -50%);
-  animation: storyMarkerFade 520ms ease both;
+  transition:
+    top 420ms cubic-bezier(0.2, 0.8, 0.2, 1),
+    box-shadow 220ms ease,
+    opacity 220ms ease;
 }
 
 .story-step-marker span {
-  width: 11px;
-  height: 11px;
+  position: relative;
+  width: 10px;
+  height: 10px;
   border-radius: 999px;
   background: var(--theme-primary);
+  box-shadow: 0 0 0 4px rgba(83, 111, 90, 0.12);
+}
+
+.story-step-marker::before,
+.story-step-marker::after {
+  content: '';
+  position: absolute;
+  inset: -10px;
+  border-radius: inherit;
+  border: 1px solid rgba(83, 111, 90, 0.14);
+}
+
+.story-step-marker::before {
+  animation: storyMarkerPulse 2400ms ease-out infinite;
+}
+
+.story-step-marker::after {
+  inset: -18px;
+  border-color: rgba(166, 110, 74, 0.12);
+  animation: storyMarkerPulse 2400ms ease-out 650ms infinite;
 }
 
 .story-bubble {
@@ -745,6 +791,17 @@ h3 {
   }
   to {
     opacity: 1;
+  }
+}
+
+@keyframes storyMarkerPulse {
+  from {
+    opacity: 0.72;
+    transform: scale(0.66);
+  }
+  to {
+    opacity: 0;
+    transform: scale(1.18);
   }
 }
 
@@ -1448,7 +1505,9 @@ h3 {
 @media (prefers-reduced-motion: reduce) {
   .story-bubble,
   .example-bubble-window .preview-bubble,
-  .story-step-marker {
+  .story-step-marker,
+  .story-step-marker::before,
+  .story-step-marker::after {
     opacity: 1;
     animation: none;
     transform: none;

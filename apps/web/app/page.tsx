@@ -282,7 +282,7 @@ export default function Page() {
         </div>
         <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
           {storyInView && (
-            <span className="story-step-marker" key={activeStoryIndex} style={{ top: storyMarkerTop }} aria-hidden="true">
+            <span className="story-step-marker" data-step={activeStoryIndex + 1} style={{ top: storyMarkerTop }} aria-hidden="true">
               <span />
             </span>
           )}
