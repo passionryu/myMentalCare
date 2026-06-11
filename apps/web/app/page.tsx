@@ -54,6 +54,7 @@ export default function Page() {
   const [storyInView, setStoryInView] = useState(false)
   const [activeStoryIndex, setActiveStoryIndex] = useState(0)
   const [storyMarkerTop, setStoryMarkerTop] = useState(0)
+  const [storyMarkerVisible, setStoryMarkerVisible] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
 
@@ -112,6 +113,7 @@ export default function Page() {
     const updateMarker = () => {
       const railRect = target.getBoundingClientRect()
       const viewportAnchor = window.innerHeight * 0.5
+      const markerVisible = railRect.top < viewportAnchor && railRect.bottom > viewportAnchor
       let nextActiveIndex = 0
       let closestDistance = Number.POSITIVE_INFINITY
 
@@ -137,7 +139,9 @@ export default function Page() {
       const activeBubbleRect = activeBubble.getBoundingClientRect()
       const nextMarkerTop = activeBubbleRect.top + activeBubbleRect.height / 2 - railRect.top
 
-      if (nextActiveIndex !== lastActiveIndex) {
+      setStoryMarkerVisible(markerVisible)
+
+      if (nextActiveIndex !== lastActiveIndex || !markerVisible) {
         lastActiveIndex = nextActiveIndex
         setActiveStoryIndex(nextActiveIndex)
         setStoryMarkerTop(nextMarkerTop)
@@ -282,9 +286,12 @@ export default function Page() {
         </div>
         <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
           {storyInView && (
-            <span className="story-step-marker" data-step={activeStoryIndex + 1} style={{ top: storyMarkerTop }} aria-hidden="true">
-              <span />
-            </span>
+            <span
+              className={`story-step-marker ${storyMarkerVisible ? 'is-visible' : ''}`}
+              data-step={activeStoryIndex + 1}
+              style={{ top: storyMarkerTop }}
+              aria-hidden="true"
+            />
           )}
           {storyMessages.map((story, index) => (
             <div
