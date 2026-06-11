@@ -510,31 +510,42 @@ h3 {
   position: relative;
   display: grid;
   gap: 18px;
-  padding: 10px 0;
+  padding: 18px 0;
 }
 
 .story-rail::before {
   content: '';
   position: absolute;
-  top: 0;
-  bottom: 0;
+  top: 12px;
+  bottom: 12px;
   left: 50%;
+  z-index: 0;
   width: 1px;
-  background: linear-gradient(180deg, transparent, var(--theme-border-strong), transparent);
+  background: linear-gradient(180deg, transparent, rgba(83, 111, 90, 0.12) 12%, rgba(83, 111, 90, 0.34) 50%, rgba(166, 110, 74, 0.18) 82%, transparent);
 }
 
 .story-bubble {
   position: relative;
+  z-index: 2;
+  opacity: 0;
   animation-duration: 560ms;
   animation-fill-mode: both;
   animation-timing-function: ease-out;
 }
 
 .story-bubble.user {
-  animation-name: slideFromRight;
+  transform: translateX(28px);
 }
 
 .story-bubble.ai {
+  transform: translateX(-28px);
+}
+
+.story-rail.is-visible .story-bubble.user {
+  animation-name: slideFromRight;
+}
+
+.story-rail.is-visible .story-bubble.ai {
   animation-name: slideFromLeft;
 }
 
@@ -550,6 +561,14 @@ h3 {
   animation-delay: 300ms;
 }
 
+.story-bubble:nth-child(5) {
+  animation-delay: 400ms;
+}
+
+.story-bubble:nth-child(6) {
+  animation-delay: 500ms;
+}
+
 .example-card {
   display: grid;
   gap: 14px;
@@ -559,6 +578,26 @@ h3 {
     border-color 180ms ease,
     box-shadow 180ms ease,
     transform 180ms ease;
+}
+
+.example-bubble-window {
+  display: grid;
+  align-content: start;
+  gap: 14px;
+  min-height: 258px;
+  overflow: hidden;
+}
+
+.example-bubble-window .preview-bubble {
+  animation: bubbleRiseIn 420ms ease-out both;
+}
+
+.example-bubble-window .preview-bubble:nth-child(2) {
+  animation-delay: 80ms;
+}
+
+.example-bubble-window .preview-bubble:nth-child(3) {
+  animation-delay: 160ms;
 }
 
 .topic-tags {
@@ -665,6 +704,17 @@ h3 {
   }
 }
 
+@keyframes bubbleRiseIn {
+  from {
+    opacity: 0;
+    transform: translateY(22px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 .feature-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -710,6 +760,7 @@ h3 {
   justify-content: space-between;
   gap: 28px;
   border-radius: 26px;
+  margin-top: 56px;
   margin-bottom: 42px;
   padding: 30px;
 }
@@ -1303,6 +1354,10 @@ h3 {
     max-width: calc(100% - 28px);
   }
 
+  .example-bubble-window {
+    min-height: 336px;
+  }
+
   .story-bubble.user,
   .story-bubble.ai {
     justify-self: end;
@@ -1354,7 +1409,10 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .story-bubble {
+  .story-bubble,
+  .example-bubble-window .preview-bubble {
+    opacity: 1;
     animation: none;
+    transform: none;
   }
 }
