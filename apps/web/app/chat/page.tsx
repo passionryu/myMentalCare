@@ -57,24 +57,24 @@ export default function AiChatPage() {
   const [isStarting, setIsStarting] = useState(false)
   const [isReportLoading, setIsReportLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
-  const handledPendingCheckInRef = useRef(false)
+  const pendingCheckInTemplateRef = useRef<CheckInTemplateDefinition | null | undefined>(undefined)
 
   useEffect(() => {
-    const consumePendingCheckInTemplate = () => {
-      if (handledPendingCheckInRef.current) {
-        return null
+    const readPendingCheckInTemplate = () => {
+      if (pendingCheckInTemplateRef.current !== undefined) {
+        return pendingCheckInTemplateRef.current
       }
 
-      handledPendingCheckInRef.current = true
       const checkInTemplateParam = new URLSearchParams(window.location.search).get('checkInTemplate')
       const storedTemplateType = sessionStorage.getItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
       sessionStorage.removeItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
-      return findCheckInTemplate(checkInTemplateParam) ?? findCheckInTemplate(storedTemplateType)
+      pendingCheckInTemplateRef.current = findCheckInTemplate(checkInTemplateParam) ?? findCheckInTemplate(storedTemplateType)
+      return pendingCheckInTemplateRef.current
     }
 
     readTodayAiChatRoom()
       .then((todayRoom) => {
-        const pendingTemplate = consumePendingCheckInTemplate()
+        const pendingTemplate = readPendingCheckInTemplate()
         setRoom(todayRoom)
         setActiveSegmentId(todayRoom.activeSegmentId ?? null)
         if (pendingTemplate) {
