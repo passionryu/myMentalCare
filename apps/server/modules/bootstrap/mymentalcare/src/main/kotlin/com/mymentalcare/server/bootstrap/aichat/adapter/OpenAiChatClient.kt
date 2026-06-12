@@ -84,6 +84,12 @@ class OpenAiChatClient(
                 "content" to buildSummaryMemoryContent(it),
             )
         }
+        val segmentMemory = buildSegmentMemoryContent(request)?.let {
+            mapOf(
+                "role" to "system",
+                "content" to it,
+            )
+        }
         val repetitionGuard = buildRepetitionGuardContent(request.recentMessages)?.let {
             mapOf(
                 "role" to "system",
@@ -97,7 +103,19 @@ class OpenAiChatClient(
             )
         }
 
-        return listOfNotNull(systemMessage, summaryMemory, repetitionGuard) + recentMessages
+        return listOfNotNull(systemMessage, segmentMemory, summaryMemory, repetitionGuard) + recentMessages
+    }
+
+    // 현재 대화 구간과 체크인 정보를 AI가 참고하되 사용자 상태를 단정하지 않도록 안내한다.
+    private fun buildSegmentMemoryContent(request: AiReplyRequest): String? {
+        val segmentContext = request.segmentContext ?: return null
+        return listOfNotNull(
+            "현재 대화 구간: ${segmentContext.title}",
+            "구간 시작 방식: ${segmentContext.startType}",
+            request.checkInContext?.let { "사용자 체크인: ${it.summaryText}" },
+            request.checkInContext?.let { "체크인 유형: ${it.templateType}" },
+            "체크인 정보는 참고하되, 사용자가 말하지 않은 원인을 단정하지 않는다.",
+        ).joinToString("\n")
     }
 
     // 오늘 대화 요약 메모리를 OpenAI가 참고할 수 있는 짧은 시스템 컨텍스트로 변환한다.

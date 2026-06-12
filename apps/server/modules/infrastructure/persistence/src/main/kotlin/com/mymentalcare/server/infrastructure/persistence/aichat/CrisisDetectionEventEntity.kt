@@ -1,6 +1,7 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
 import com.mymentalcare.server.domain.aichat.CrisisDetectionEvent
+import com.mymentalcare.server.domain.aichat.CrisisDetectionSourceType
 import com.mymentalcare.server.domain.aichat.CrisisHandledAction
 import com.mymentalcare.server.domain.aichat.CrisisRiskLevel
 import jakarta.persistence.Column
@@ -26,8 +27,15 @@ class CrisisDetectionEventEntity(
     @Column(name = "room_id", nullable = false)
     val roomId: Long,
 
-    @Column(name = "message_id", nullable = false)
-    val messageId: Long,
+    @Enumerated(EnumType.STRING)
+    @Column(name = "source_type", nullable = false)
+    val sourceType: CrisisDetectionSourceType = CrisisDetectionSourceType.MESSAGE,
+
+    @Column(name = "message_id")
+    val messageId: Long?,
+
+    @Column(name = "check_in_id")
+    val checkInId: Long?,
 
     @Column(name = "detected_keywords", nullable = false)
     val detectedKeywords: String,
@@ -48,7 +56,9 @@ class CrisisDetectionEventEntity(
             id = id,
             memberId = memberId,
             roomId = roomId,
+            sourceType = sourceType,
             messageId = messageId,
+            checkInId = checkInId,
             detectedKeywords = detectedKeywords.split(",").filter { it.isNotBlank() },
             riskLevel = riskLevel,
             handledAction = handledAction,
@@ -62,7 +72,9 @@ fun CrisisDetectionEvent.toEntity(): CrisisDetectionEventEntity {
         id = id,
         memberId = memberId,
         roomId = roomId,
+        sourceType = sourceType,
         messageId = messageId,
+        checkInId = checkInId,
         detectedKeywords = detectedKeywords.joinToString(","),
         riskLevel = riskLevel,
         handledAction = handledAction,
