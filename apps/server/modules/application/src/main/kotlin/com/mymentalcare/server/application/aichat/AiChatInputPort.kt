@@ -8,4 +8,10 @@ interface AiChatInputPort {
     fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse
 
     fun sendMessage(memberId: Long, request: SendAiChatMessageRequest): SendAiChatMessageResponse
+
+    fun readTodayReportReadiness(memberId: Long): AiChatReportReadinessResponse
+
+    fun createTodayReport(memberId: Long, request: CreateAiChatReportRequest): AiChatReportResponse
+
+    fun readLatestTodayReport(memberId: Long): AiChatReportResponse?
 }

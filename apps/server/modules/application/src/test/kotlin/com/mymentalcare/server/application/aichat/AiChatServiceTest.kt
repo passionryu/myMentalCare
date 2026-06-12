@@ -2,6 +2,7 @@ package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatCheckInRepository
 import com.mymentalcare.server.application.port.AiChatRecentMessageCache
+import com.mymentalcare.server.application.port.AiChatReportRepository
 import com.mymentalcare.server.application.port.AiChatRoomRepository
 import com.mymentalcare.server.application.port.AiChatRoomSummaryRepository
 import com.mymentalcare.server.application.port.AiChatSegmentRepository
@@ -10,6 +11,7 @@ import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
 import com.mymentalcare.server.domain.aichat.AiChatCheckIn
 import com.mymentalcare.server.domain.aichat.AiChatCheckInAnswer
 import com.mymentalcare.server.domain.aichat.AiChatCheckInTemplateType
+import com.mymentalcare.server.domain.aichat.AiChatReport
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatRoomStatus
 import com.mymentalcare.server.domain.aichat.AiChatRoomSummary
@@ -261,11 +263,212 @@ class AiChatServiceTest {
         assertEquals(OPEN_AI_REPLY_ERROR_MESSAGE, response.assistantMessage.content)
     }
 
+    @Test
+    fun `유저 메시지가 10개 미만이면 짧은 대화 리포트 안내 대상으로 판단한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val service = aiChatService(messageRepository = messageRepository)
+        val room = service.readTodayRoom(memberId = 1L)
+        repeat(9) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = room.roomId,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "회사 일 때문에 불안한 마음을 이야기하고 있어 ${index + 1}",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        val response = service.readTodayReportReadiness(memberId = 1L)
+
+        assertEquals(false, response.ready)
+        assertEquals("SHORT_CONVERSATION", response.reason)
+        assertEquals(9, response.userMessageCount)
+        assertEquals(10, response.requiredUserMessageCount)
+        assertEquals(listOf("USER_MESSAGE_COUNT"), response.unmetRequirements)
+    }
+
+    @Test
+    fun `메시지 수와 글자 수가 충분하면 감정 키워드가 없어도 충분한 대화로 판단한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val service = aiChatService(messageRepository = messageRepository)
+        val room = service.readTodayRoom(memberId = 1L)
+        repeat(10) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = room.roomId,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "오늘 있었던 일을 순서대로 조금씩 적어보고 있습니다 ${index + 1}",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        val response = service.readTodayReportReadiness(memberId = 1L)
+
+        assertEquals(true, response.ready)
+        assertEquals("SUFFICIENT_CONVERSATION", response.reason)
+        assertEquals(10, response.userMessageCount)
+        assertTrue(response.userTextLength >= 80)
+        assertEquals(emptyList<String>(), response.unmetRequirements)
+    }
+
+    @Test
+    fun `오늘 방이 없을 때 리포트 준비도 조회는 방을 만들지 않는다`() {
+        val roomRepository = FakeAiChatRoomRepository()
+        val service = aiChatService(roomRepository = roomRepository)
+
+        val response = service.readTodayReportReadiness(memberId = 1L)
+
+        assertEquals(false, response.ready)
+        assertEquals("SHORT_CONVERSATION", response.reason)
+        assertEquals(0, response.userMessageCount)
+        assertEquals(listOf("USER_MESSAGE_COUNT", "USER_TEXT_LENGTH"), response.unmetRequirements)
+        assertEquals(0, roomRepository.rooms.size)
+    }
+
+    @Test
+    fun `오늘 방이 없을 때 최신 리포트 조회는 방을 만들지 않는다`() {
+        val roomRepository = FakeAiChatRoomRepository()
+        val service = aiChatService(roomRepository = roomRepository)
+
+        val response = service.readLatestTodayReport(memberId = 1L)
+
+        assertEquals(null, response)
+        assertEquals(0, roomRepository.rooms.size)
+    }
+
+    @Test
+    fun `충분한 대화는 FULL 리포트로 생성하고 저장한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val reportRepository = FakeAiChatReportRepository()
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            reportRepository = reportRepository,
+        )
+        repeat(10) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = 1L,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "회사 업무 때문에 불안하고 지친 마음이 계속 남아 있어 ${index + 1}",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        val response = service.createTodayReport(
+            memberId = 1L,
+            request = CreateAiChatReportRequest(forceCreate = false, clientRequestId = "report-1"),
+        )
+
+        assertEquals("FULL", response.reportType)
+        assertEquals(true, response.saved)
+        assertEquals(3, response.songs.size)
+        assertEquals(1, reportRepository.reports.size)
+    }
+
+    @Test
+    fun `짧은 대화는 forceCreate가 true일 때 SHORT 리포트로 저장한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val reportRepository = FakeAiChatReportRepository()
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            reportRepository = reportRepository,
+        )
+        messageRepository.save(
+            ChatMessage(
+                id = 0,
+                roomId = 1L,
+                senderType = ChatMessageSenderType.USER,
+                content = "안녕",
+                messageOrder = 1,
+                isCrisisDetected = false,
+            )
+        )
+
+        val response = service.createTodayReport(
+            memberId = 1L,
+            request = CreateAiChatReportRequest(forceCreate = true, clientRequestId = "short-report-1"),
+        )
+
+        assertEquals("SHORT", response.reportType)
+        assertEquals("아직 판단하기 어려움", response.primaryEmotion)
+        assertEquals(null, response.emotionIntensity)
+        assertEquals("확인되지 않음", response.mainCause)
+        assertEquals(1, reportRepository.reports.size)
+    }
+
+    @Test
+    fun `짧은 대화는 forceCreate가 false이면 리포트를 저장하지 않는다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val reportRepository = FakeAiChatReportRepository()
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            reportRepository = reportRepository,
+        )
+        messageRepository.save(
+            ChatMessage(
+                id = 0,
+                roomId = 1L,
+                senderType = ChatMessageSenderType.USER,
+                content = "안녕",
+                messageOrder = 1,
+                isCrisisDetected = false,
+            )
+        )
+
+        val exception = org.junit.jupiter.api.assertThrows<AiChatInvalidRequestException> {
+            service.createTodayReport(
+                memberId = 1L,
+                request = CreateAiChatReportRequest(forceCreate = false, clientRequestId = "report-short-blocked"),
+            )
+        }
+
+        assertTrue(exception.message!!.contains("대화가 조금 더 필요합니다"))
+        assertEquals(0, reportRepository.reports.size)
+    }
+
+    @Test
+    fun `이미 오늘 리포트가 있으면 새로 만들지 않고 기존 리포트를 반환한다`() {
+        val messageRepository = FakeChatMessageRepository()
+        val reportRepository = FakeAiChatReportRepository()
+        val service = aiChatService(
+            messageRepository = messageRepository,
+            reportRepository = reportRepository,
+        )
+        repeat(10) { index ->
+            messageRepository.save(
+                ChatMessage(
+                    id = 0,
+                    roomId = 1L,
+                    senderType = ChatMessageSenderType.USER,
+                    content = "회사 업무 때문에 불안하고 지친 마음이 계속 남아 있어 ${index + 1}",
+                    messageOrder = index + 1,
+                    isCrisisDetected = false,
+                )
+            )
+        }
+
+        val first = service.createTodayReport(1L, CreateAiChatReportRequest(forceCreate = false, clientRequestId = "report-1"))
+        val second = service.createTodayReport(1L, CreateAiChatReportRequest(forceCreate = false, clientRequestId = "report-2"))
+
+        assertEquals(first.reportId, second.reportId)
+        assertEquals(1, reportRepository.reports.size)
+    }
+
     private fun aiChatService(
         roomRepository: FakeAiChatRoomRepository = FakeAiChatRoomRepository(),
         segmentRepository: FakeAiChatSegmentRepository = FakeAiChatSegmentRepository(),
         checkInRepository: FakeAiChatCheckInRepository = FakeAiChatCheckInRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
+        reportRepository: FakeAiChatReportRepository = FakeAiChatReportRepository(),
         summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
         recentMessageCache: FakeAiChatRecentMessageCache = FakeAiChatRecentMessageCache(),
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
@@ -291,6 +494,9 @@ class AiChatServiceTest {
             aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
+            aiChatReportRepository = reportRepository,
+            aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
+            aiChatReportGenerator = DefaultAiChatReportGenerator(),
             crisisKeywordDetector = CrisisKeywordDetector(),
             aiReplyProvider = aiReplyProvider,
         )
@@ -405,6 +611,30 @@ class AiChatServiceTest {
             val savedMessage = message.copy(id = (messages.size + 1).toLong())
             messages.add(savedMessage)
             return savedMessage
+        }
+    }
+
+    private class FakeAiChatReportRepository : AiChatReportRepository {
+        val reports = mutableListOf<AiChatReport>()
+
+        override fun findLatestByRoomId(roomId: Long): AiChatReport? {
+            return reports.filter { it.roomId == roomId }.maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport? {
+            return reports.firstOrNull { it.roomId == roomId && it.clientRequestId == clientRequestId }
+        }
+
+        override fun save(report: AiChatReport): AiChatReport {
+            val savedReport = report.copy(
+                id = report.id.takeIf { it > 0 } ?: (reports.size + 1).toLong(),
+                songs = report.songs.mapIndexed { index, song ->
+                    song.copy(id = (index + 1).toLong(), reportId = report.id.takeIf { it > 0 } ?: (reports.size + 1).toLong())
+                },
+                createdAt = report.createdAt ?: java.time.LocalDateTime.now(),
+            )
+            reports.add(savedReport)
+            return savedReport
         }
     }
 

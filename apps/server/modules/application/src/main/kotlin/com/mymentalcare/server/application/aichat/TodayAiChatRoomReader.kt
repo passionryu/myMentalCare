@@ -28,4 +28,10 @@ internal class TodayAiChatRoomReader(
                 )
             )
     }
+
+    // 한국 시간 기준 오늘의 기본 공감형 챗봇 대화방을 조회한다.
+    fun readTodayRoom(memberId: Long): AiChatRoom? {
+        val today = LocalDate.now(KOREA_ZONE_ID)
+        return aiChatRoomRepository.findTodayRoom(memberId, DEFAULT_EMPATHY_CHATBOT_CODE, today)
+    }
 }

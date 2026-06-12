@@ -2,6 +2,9 @@ package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatCheckInResponse as ApplicationAiChatCheckInResponse
 import com.mymentalcare.server.application.aichat.AiChatMessageResponse as ApplicationAiChatMessageResponse
+import com.mymentalcare.server.application.aichat.AiChatReportReadinessResponse as ApplicationAiChatReportReadinessResponse
+import com.mymentalcare.server.application.aichat.AiChatReportResponse as ApplicationAiChatReportResponse
+import com.mymentalcare.server.application.aichat.AiChatReportSongResponse as ApplicationAiChatReportSongResponse
 import com.mymentalcare.server.application.aichat.AiChatSegmentResponse as ApplicationAiChatSegmentResponse
 import com.mymentalcare.server.application.aichat.SendAiChatMessageResponse as ApplicationSendAiChatMessageResponse
 import com.mymentalcare.server.application.aichat.StartAiChatSegmentResponse as ApplicationStartAiChatSegmentResponse
@@ -46,6 +49,37 @@ fun ApplicationStartAiChatSegmentResponse.toBootstrapResponse(): StartAiChatSegm
     )
 }
 
+fun ApplicationAiChatReportReadinessResponse.toBootstrapResponse(): AiChatReportReadinessResponse {
+    return AiChatReportReadinessResponse(
+        ready = ready,
+        reason = reason,
+        userMessageCount = userMessageCount,
+        userTextLength = userTextLength,
+        requiredUserMessageCount = requiredUserMessageCount,
+        requiredUserTextLength = requiredUserTextLength,
+        unmetRequirements = unmetRequirements,
+        guideMessage = guideMessage,
+    )
+}
+
+fun ApplicationAiChatReportResponse.toBootstrapResponse(): AiChatReportResponse {
+    return AiChatReportResponse(
+        reportId = reportId,
+        roomId = roomId,
+        reportType = reportType,
+        conversationDate = conversationDate,
+        summary = summary,
+        primaryEmotion = primaryEmotion,
+        emotionIntensity = emotionIntensity,
+        mainCause = mainCause,
+        emotionalFlow = emotionalFlow,
+        todaySentence = todaySentence,
+        songs = songs.map { it.toBootstrapResponse() },
+        saved = saved,
+        createdAt = createdAt,
+    )
+}
+
 private fun ApplicationAiChatSegmentResponse.toBootstrapResponse(): AiChatSegmentResponse {
     return AiChatSegmentResponse(
         segmentId = segmentId,
@@ -54,6 +88,15 @@ private fun ApplicationAiChatSegmentResponse.toBootstrapResponse(): AiChatSegmen
         title = title,
         startedAt = startedAt,
         checkIn = checkIn?.toBootstrapResponse(),
+    )
+}
+
+private fun ApplicationAiChatReportSongResponse.toBootstrapResponse(): AiChatReportSongResponse {
+    return AiChatReportSongResponse(
+        title = title,
+        artist = artist,
+        reason = reason,
+        youtubeUrl = youtubeUrl,
     )
 }
 
