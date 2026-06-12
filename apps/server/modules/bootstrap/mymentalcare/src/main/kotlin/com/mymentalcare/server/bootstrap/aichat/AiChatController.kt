@@ -2,6 +2,7 @@ package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatInputPort
 import com.mymentalcare.server.application.aichat.AiChatInvalidRequestException
+import com.mymentalcare.server.application.aichat.CreateAiChatReportRequest
 import com.mymentalcare.server.application.aichat.SendAiChatMessageRequest
 import com.mymentalcare.server.application.aichat.StartAiChatCheckInRequest
 import com.mymentalcare.server.application.aichat.StartAiChatSegmentRequest
@@ -99,6 +100,53 @@ class AiChatController(
         val status = if (response.aiReplyFailed) HttpStatus.SERVICE_UNAVAILABLE else HttpStatus.OK
 
         return ResponseEntity.status(status).body(bootstrapResponse)
+    }
+
+    @Operation(
+        summary = "오늘 마음 리포트 생성 가능 여부 조회",
+        description = "오늘 대화가 충분한지 판단해 바로 리포트를 만들지, 짧은 대화 안내 모달을 먼저 보여줄지 결정합니다.",
+    )
+    @GetMapping("/rooms/today/report-readiness")
+    fun readTodayReportReadiness(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<AiChatReportReadinessResponse> {
+        val response = aiChatInputPort.readTodayReportReadiness(memberId)
+
+        return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
+        summary = "오늘 마음 리포트 생성",
+        description = "오늘 대화를 FULL 또는 SHORT 리포트로 정리하고 생성 즉시 저장합니다.",
+    )
+    @PostMapping("/rooms/today/reports")
+    fun createTodayReport(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody request: CreateAiChatReportPayload,
+    ): ResponseEntity<AiChatReportResponse> {
+        val response = aiChatInputPort.createTodayReport(
+            memberId = memberId,
+            request = CreateAiChatReportRequest(
+                forceCreate = request.forceCreate,
+                clientRequestId = request.clientRequestId,
+            ),
+        )
+
+        return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
+        summary = "오늘 최신 마음 리포트 조회",
+        description = "오늘 대화방에 저장된 최신 마음 리포트를 조회합니다. 아직 리포트가 없으면 빈 응답을 반환합니다.",
+    )
+    @GetMapping("/rooms/today/reports/latest")
+    fun readLatestTodayReport(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<AiChatReportResponse> {
+        val response = aiChatInputPort.readLatestTodayReport(memberId)
+
+        return response?.let { ResponseEntity.ok(it.toBootstrapResponse()) }
+            ?: ResponseEntity.noContent().build()
     }
 
     private fun String.toCheckInTemplateType(): AiChatCheckInTemplateType {

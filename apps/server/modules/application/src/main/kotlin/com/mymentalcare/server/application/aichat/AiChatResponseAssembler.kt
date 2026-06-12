@@ -19,8 +19,12 @@ internal class AiChatResponseAssembler(
     fun toTodayRoomResponse(room: AiChatRoom): TodayAiChatRoomResponse {
         return room.toResponse(
             segments = aiChatSegmentRepository.findByRoomId(room.id),
-            messages = chatMessageRepository.findByRoomId(room.id),
+            messages = readMessages(room),
         )
+    }
+
+    fun readMessages(room: AiChatRoom): List<ChatMessage> {
+        return chatMessageRepository.findByRoomId(room.id)
     }
 
     // 메시지 전송 결과를 사용자 메시지, 챗봇 응답, 위기 감지 결과로 묶어 반환한다.

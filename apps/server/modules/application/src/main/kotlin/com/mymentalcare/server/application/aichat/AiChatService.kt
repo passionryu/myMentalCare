@@ -1,5 +1,9 @@
 package com.mymentalcare.server.application.aichat
 
+import com.mymentalcare.server.application.port.AiChatReportRepository
+import com.mymentalcare.server.domain.aichat.AiChatReport
+import com.mymentalcare.server.domain.aichat.AiChatReportSong
+import com.mymentalcare.server.domain.aichat.AiChatReportType
 import com.mymentalcare.server.domain.aichat.AiChatCheckInTemplateType
 import com.mymentalcare.server.domain.aichat.AiChatSegmentStartType
 import com.mymentalcare.server.domain.aichat.CrisisRiskLevel
@@ -20,6 +24,9 @@ internal class AiChatService(
     private val aiChatSegmentContextReader: AiChatSegmentContextReader,
     private val crisisDetectionRecorder: CrisisDetectionRecorder,
     private val aiChatResponseAssembler: AiChatResponseAssembler,
+    private val aiChatReportRepository: AiChatReportRepository,
+    private val aiChatReportReadinessDecider: AiChatReportReadinessDecider,
+    private val aiChatReportGenerator: AiChatReportGenerator,
     private val crisisKeywordDetector: CrisisKeywordDetector,
     private val aiReplyProvider: AiReplyProvider,
 ) : AiChatInputPort {
@@ -171,6 +178,68 @@ internal class AiChatService(
         )
     }
 
+    // 오늘 대화가 리포트를 만들 만큼 충분한지 판단한다.
+    @Transactional(readOnly = true)
+    override fun readTodayReportReadiness(memberId: Long): AiChatReportReadinessResponse {
+        val room = todayAiChatRoomReader.readTodayRoom(memberId)
+        val messages = room?.let { aiChatResponseAssembler.readMessages(it) }.orEmpty()
+        val readiness = aiChatReportReadinessDecider.decide(messages)
+
+        return readiness.toResponse()
+    }
+
+    // 오늘 대화를 FULL 또는 SHORT 리포트로 정리하고 생성 즉시 저장한다.
+    @Transactional
+    override fun createTodayReport(memberId: Long, request: CreateAiChatReportRequest): AiChatReportResponse {
+        val room = todayAiChatRoomReader.readOrCreateTodayRoom(memberId)
+        val existingRequestReport = request.clientRequestId
+            ?.let { aiChatReportRepository.findByRoomIdAndClientRequestId(room.id, it) }
+        if (existingRequestReport != null) {
+            return existingRequestReport.toResponse()
+        }
+
+        val existingReport = aiChatReportRepository.findLatestByRoomId(room.id)
+        if (existingReport != null) {
+            return existingReport.toResponse()
+        }
+
+        val messages = aiChatResponseAssembler.readMessages(room)
+        val readiness = aiChatReportReadinessDecider.decide(messages)
+        if (!readiness.ready && !request.forceCreate) {
+            throw AiChatInvalidRequestException(readiness.guideMessage ?: SHORT_REPORT_GUIDE_MESSAGE)
+        }
+
+        val reportType = if (readiness.ready) AiChatReportType.FULL else AiChatReportType.SHORT
+        val draft = aiChatReportGenerator.generateReport(reportType, messages)
+        val savedReport = aiChatReportRepository.save(
+            AiChatReport(
+                id = 0,
+                roomId = room.id,
+                memberId = memberId,
+                conversationDate = room.conversationDate,
+                reportType = reportType,
+                summary = draft.summary,
+                primaryEmotion = draft.primaryEmotion,
+                emotionIntensity = draft.emotionIntensity,
+                mainCause = draft.mainCause,
+                emotionalFlow = draft.emotionalFlow,
+                todaySentence = draft.todaySentence,
+                clientRequestId = request.clientRequestId,
+                songs = draft.songs,
+            )
+        )
+
+        return savedReport.toResponse()
+    }
+
+    // 오늘 저장된 최신 마음 리포트를 조회한다.
+    @Transactional(readOnly = true)
+    override fun readLatestTodayReport(memberId: Long): AiChatReportResponse? {
+        val room = todayAiChatRoomReader.readTodayRoom(memberId) ?: return null
+
+        return aiChatReportRepository.findLatestByRoomId(room.id)?.toResponse()
+    }
+
     private fun validateCheckInAnswers(request: StartAiChatCheckInRequest) {
         if (request.answers.isEmpty()) {
             throw AiChatInvalidRequestException("체크인 답변을 입력해주세요.")
@@ -195,5 +264,45 @@ internal class AiChatService(
             AiChatCheckInTemplateType.CONDITION -> AiChatSegmentStartType.CONDITION
             AiChatCheckInTemplateType.DAY_REVIEW -> AiChatSegmentStartType.DAY_REVIEW
         }
+    }
+
+    private fun AiChatReportReadinessResult.toResponse(): AiChatReportReadinessResponse {
+        return AiChatReportReadinessResponse(
+            ready = ready,
+            reason = reason,
+            userMessageCount = userMessageCount,
+            userTextLength = userTextLength,
+            requiredUserMessageCount = requiredUserMessageCount,
+            requiredUserTextLength = requiredUserTextLength,
+            unmetRequirements = unmetRequirements,
+            guideMessage = guideMessage,
+        )
+    }
+
+    private fun AiChatReport.toResponse(): AiChatReportResponse {
+        return AiChatReportResponse(
+            reportId = id,
+            roomId = roomId,
+            reportType = reportType.name,
+            conversationDate = conversationDate,
+            summary = summary,
+            primaryEmotion = primaryEmotion,
+            emotionIntensity = emotionIntensity,
+            mainCause = mainCause,
+            emotionalFlow = emotionalFlow,
+            todaySentence = todaySentence,
+            songs = songs.map { it.toResponse() },
+            saved = true,
+            createdAt = createdAt,
+        )
+    }
+
+    private fun AiChatReportSong.toResponse(): AiChatReportSongResponse {
+        return AiChatReportSongResponse(
+            title = title,
+            artist = artist,
+            reason = reason,
+            youtubeUrl = youtubeUrl,
+        )
     }
 }

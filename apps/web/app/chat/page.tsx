@@ -3,9 +3,13 @@
 import {
   ArrowLeft,
   ChevronLeft,
+  ExternalLink,
+  FileText,
   HeartHandshake,
+  Home,
   Loader2,
   MessageCircle,
+  Music,
   Send,
   ShieldAlert,
   Sparkles,
@@ -17,9 +21,13 @@ import { LoginApiError } from '@/lib/auth-api'
 import {
   AiChatCheckInAnswer,
   AiChatMessage,
+  AiChatReport,
+  AiChatReportReadiness,
   CheckInTemplateType,
   TodayAiChatRoom,
+  createAiChatReport,
   readTodayAiChatRoom,
+  readAiChatReportReadiness,
   sendAiChatMessage,
   startCheckInAiChatSegment,
   startDirectAiChatSegment,
@@ -211,11 +219,16 @@ export default function AiChatPage() {
   const [crisisGuideMessage, setCrisisGuideMessage] = useState('')
   const [modalMode, setModalMode] = useState<ModalMode>('NONE')
   const [selectedTemplate, setSelectedTemplate] = useState<CheckInTemplateDefinition | null>(null)
+  const [reportReadiness, setReportReadiness] = useState<AiChatReportReadiness | null>(null)
+  const [todayReport, setTodayReport] = useState<AiChatReport | null>(null)
+  const [isShortReportGuideOpen, setIsShortReportGuideOpen] = useState(false)
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false)
   const [optimisticMessages, setOptimisticMessages] = useState<AiChatMessage[]>([])
   const [isAssistantTyping, setIsAssistantTyping] = useState(false)
   const [isLoading, setIsLoading] = useState(true)
   const [isSending, setIsSending] = useState(false)
   const [isStarting, setIsStarting] = useState(false)
+  const [isReportLoading, setIsReportLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
 
   useEffect(() => {
@@ -352,6 +365,46 @@ export default function AiChatPage() {
     }
   }
 
+  const handleFinishTodayConversation = async () => {
+    if (isReportLoading || isSending || isAssistantTyping) {
+      return
+    }
+
+    setIsReportLoading(true)
+    setErrorMessage('')
+    try {
+      const readiness = await readAiChatReportReadiness()
+      setReportReadiness(readiness)
+      if (!readiness.ready) {
+        setIsShortReportGuideOpen(true)
+        return
+      }
+
+      await handleCreateReport(false)
+    } catch (error) {
+      setErrorMessage(error instanceof LoginApiError ? error.message : '오늘 마음 리포트를 준비하지 못했습니다.')
+    } finally {
+      setIsReportLoading(false)
+    }
+  }
+
+  const handleCreateReport = async (forceCreate: boolean) => {
+    setIsReportLoading(true)
+    setErrorMessage('')
+    try {
+      const report = await createAiChatReport(forceCreate, buildClientRequestId('report'))
+      setTodayReport(report)
+      setIsShortReportGuideOpen(false)
+      setIsReportModalOpen(true)
+    } catch (error) {
+      setErrorMessage(error instanceof LoginApiError ? error.message : '오늘 마음 리포트를 만들지 못했습니다.')
+    } finally {
+      setIsReportLoading(false)
+    }
+  }
+
+  const isConversationBusy = isSending || isAssistantTyping
+
   return (
     <main className="chat-page-shell" suppressHydrationWarning>
       <section className="chat-layout" aria-labelledby="chat-page-title">
@@ -380,13 +433,39 @@ export default function AiChatPage() {
 
           {room?.hasConversation && (
             <div className="chat-action-strip" aria-label="오늘 대화 진입 선택">
-              <button className="soft-button" type="button" onClick={handleContinueTodayConversation}>
-                <MessageCircle size={17} aria-hidden="true" />
-                오늘 대화 이어가기
+              <button className="chat-action-button is-primary-action" type="button" onClick={handleContinueTodayConversation}>
+                <span className="chat-action-icon">
+                  <MessageCircle size={19} aria-hidden="true" />
+                </span>
+                <span className="chat-action-copy">
+                  <strong>오늘 대화 이어가기</strong>
+                  <small>방금 흐름 그대로 계속</small>
+                </span>
               </button>
-              <button className="ghost-button" type="button" onClick={handleOpenStartSelector}>
-                <Sparkles size={17} aria-hidden="true" />
-                새 주제로 시작
+              <button className="chat-action-button is-secondary-action" type="button" onClick={handleOpenStartSelector}>
+                <span className="chat-action-icon">
+                  <Sparkles size={19} aria-hidden="true" />
+                </span>
+                <span className="chat-action-copy">
+                  <strong>새 주제로 시작</strong>
+                  <small>체크인 또는 새 구간</small>
+                </span>
+              </button>
+              <button
+                className="chat-action-button is-report-action"
+                type="button"
+                onClick={handleFinishTodayConversation}
+                disabled={isReportLoading || isConversationBusy}
+                aria-label={isConversationBusy ? '마음이 답변 완료 후 오늘 대화 마무리' : '오늘 대화 마무리'}
+                title={isConversationBusy ? '마음이 답변이 끝난 뒤 마무리할 수 있어요.' : undefined}
+              >
+                <span className="chat-action-icon">
+                  {isReportLoading || isConversationBusy ? <Loader2 size={19} aria-hidden="true" /> : <FileText size={19} aria-hidden="true" />}
+                </span>
+                <span className="chat-action-copy">
+                  <strong>오늘 대화 마무리</strong>
+                  <small>리포트 만들기</small>
+                </span>
               </button>
             </div>
           )}
@@ -473,6 +552,20 @@ export default function AiChatPage() {
             </div>
           </section>
         </div>
+      )}
+
+      {isShortReportGuideOpen && reportReadiness && (
+        <ShortReportGuideModal
+          readiness={reportReadiness}
+          isSubmitting={isReportLoading}
+          onClose={() => setIsShortReportGuideOpen(false)}
+          onContinue={() => setIsShortReportGuideOpen(false)}
+          onCreateReport={() => handleCreateReport(true)}
+        />
+      )}
+
+      {isReportModalOpen && todayReport && (
+        <AiChatReportModal report={todayReport} onClose={() => setIsReportModalOpen(false)} onGoHome={() => router.push('/')} />
       )}
     </main>
   )
@@ -846,6 +939,159 @@ function AssistantTypingBubble() {
         </div>
       </article>
     </div>
+  )
+}
+
+function ShortReportGuideModal({
+  readiness,
+  isSubmitting,
+  onClose,
+  onContinue,
+  onCreateReport,
+}: {
+  readiness: AiChatReportReadiness
+  isSubmitting: boolean
+  onClose: () => void
+  onContinue: () => void
+  onCreateReport: () => void
+}) {
+  const requiredUserMessageCount = readiness.requiredUserMessageCount ?? 10
+  const requiredUserTextLength = readiness.requiredUserTextLength ?? 80
+  const messageCountMet = readiness.userMessageCount >= requiredUserMessageCount
+  const textLengthMet = readiness.userTextLength >= requiredUserTextLength
+  const missingLabels = [
+    !messageCountMet ? `유저 메시지 ${Math.max(0, requiredUserMessageCount - readiness.userMessageCount)}개 더 필요` : null,
+    !textLengthMet ? `글자 수 ${Math.max(0, requiredUserTextLength - readiness.userTextLength)}자 더 필요` : null,
+  ].filter((label): label is string => Boolean(label))
+
+  return (
+    <div className="modal-backdrop stacked" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal report-modal report-guide-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="short-report-guide-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="짧은 대화 안내 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">리포트 기준 안내</p>
+        <h2 id="short-report-guide-title">아직 채워지지 않은 기준이 있습니다</h2>
+        <p className="modal-description">
+          {readiness.guideMessage ??
+            '지금 리포트를 만들면, 충분히 확인된 내용만 바탕으로 간단히 정리됩니다.'}
+        </p>
+        {missingLabels.length > 0 && <p className="report-missing-summary">미충족 항목: {missingLabels.join(', ')}</p>}
+        <div className="report-readiness-box" aria-label="현재 대화 기준">
+          <span className={messageCountMet ? 'is-met' : 'is-missing'}>
+            <b>{messageCountMet ? '충족' : '미충족'}</b>
+            유저 메시지 {readiness.userMessageCount}/{requiredUserMessageCount}개
+          </span>
+          <span className={textLengthMet ? 'is-met' : 'is-missing'}>
+            <b>{textLengthMet ? '충족' : '미충족'}</b>
+            글자 수 {readiness.userTextLength}/{requiredUserTextLength}자
+          </span>
+        </div>
+        <div className="modal-actions split">
+          <button className="soft-button" type="button" onClick={onContinue} disabled={isSubmitting}>
+            대화 더 이어가기
+          </button>
+          <button className="primary-button report-confirm-button" type="button" onClick={onCreateReport} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <FileText size={18} aria-hidden="true" />}
+            그래도 리포트 만들기
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport; onClose: () => void; onGoHome: () => void }) {
+  return (
+    <div className="modal-backdrop stacked" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal report-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="ai-chat-report-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="마음 리포트 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+
+        <div className="report-hero">
+          <div className="report-hero-icon">
+            <FileText size={24} aria-hidden="true" />
+          </div>
+          <div>
+            <p className="eyebrow">{report.reportType === 'FULL' ? '대화 기반 리포트' : '짧은 대화 기반 리포트'}</p>
+            <h2 id="ai-chat-report-title">오늘 마음 리포트</h2>
+            <div className="report-meta-row">
+              <span>자동 저장됨</span>
+              <span>{report.conversationDate}</span>
+            </div>
+          </div>
+        </div>
+
+        <section className="report-highlight-card" aria-label="오늘 마음 리포트 핵심">
+          <div>
+            <span>대표 감정</span>
+            <strong>{report.primaryEmotion}</strong>
+          </div>
+          <div>
+            <span>감정 강도</span>
+            <strong>{report.emotionIntensity ? `${report.emotionIntensity}/5` : '판단 유보'}</strong>
+          </div>
+          <p>{report.todaySentence}</p>
+        </section>
+
+        <div className="report-section-grid">
+          <ReportSection title="오늘의 대화 요약" value={report.summary} />
+          <ReportSection title="주요 원인" value={report.mainCause} />
+          <ReportSection title="마음 흐름" value={report.emotionalFlow} />
+        </div>
+
+        <div className="report-song-section">
+          <div className="report-song-heading">
+            <Music size={18} aria-hidden="true" />
+            <strong>추천 노래</strong>
+          </div>
+          <div className="report-song-list">
+            {report.songs.map((song) => (
+              <a className="report-song-card" href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.artist}-${song.title}`}>
+                <span>
+                  <strong>{song.title}</strong>
+                  <small>{song.artist}</small>
+                </span>
+                <p>{song.reason}</p>
+                <em>
+                  YouTube에서 듣기
+                  <ExternalLink size={14} aria-hidden="true" />
+                </em>
+              </a>
+            ))}
+          </div>
+        </div>
+
+        <div className="report-footer-actions">
+          <button className="primary-button report-home-button" type="button" onClick={onGoHome}>
+            <Home size={18} aria-hidden="true" />
+            홈으로 이동하기
+          </button>
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function ReportSection({ title, value }: { title: string; value: string }) {
+  return (
+    <section className="report-section">
+      <h3>{title}</h3>
+      <p>{value}</p>
+    </section>
   )
 }
 
