@@ -43,7 +43,7 @@ export class LoginApiError extends Error {
   }
 }
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
+const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
 const accessTokenKey = 'myMentalCare.accessToken'
 const refreshTokenKey = 'myMentalCare.refreshToken'
 
