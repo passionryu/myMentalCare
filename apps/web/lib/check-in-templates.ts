@@ -28,6 +28,7 @@ export type CheckInTemplateDefinition = {
 }
 
 export const PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY = 'myMentalCare.pendingCheckInTemplate'
+export const PENDING_CHECK_IN_SELECTOR_STORAGE_KEY = 'myMentalCare.pendingCheckInSelector'
 
 export const CHECK_IN_TEMPLATES: CheckInTemplateDefinition[] = [
   {

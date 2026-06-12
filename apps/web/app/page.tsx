@@ -20,7 +20,7 @@ import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
-import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY } from '@/lib/check-in-templates'
+import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY } from '@/lib/check-in-templates'
 import type { CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type AuthMode = 'signup' | 'login'
@@ -173,6 +173,16 @@ export default function Page() {
 
     sessionStorage.setItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, template.type)
     router.push(`/chat?checkInTemplate=${template.type}`)
+  }
+
+  const handleOpenCheckInSelector = () => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    sessionStorage.setItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, '1')
+    router.push('/chat?checkInSelector=1')
   }
 
   return (
@@ -372,7 +382,7 @@ export default function Page() {
           <MessageCircle size={18} aria-hidden="true" />
           <span>대화</span>
         </button>
-        <button className="mobile-tab-button" type="button" onClick={() => handleStartCheckIn(CHECK_IN_TEMPLATES[0])}>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenCheckInSelector}>
           <ClipboardList size={18} aria-hidden="true" />
           <span>체크인</span>
         </button>

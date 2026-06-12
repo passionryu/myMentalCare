@@ -32,7 +32,7 @@ import {
   startCheckInAiChatSegment,
   startDirectAiChatSegment,
 } from '@/lib/ai-chat-api'
-import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
+import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
 import type { CheckInOption, CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
@@ -58,6 +58,8 @@ export default function AiChatPage() {
   const [isReportLoading, setIsReportLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
   const pendingCheckInTemplateRef = useRef<CheckInTemplateDefinition | null | undefined>(undefined)
+  const pendingCheckInSelectorRef = useRef<boolean | undefined>(undefined)
+  const [isCheckInOnlyStart, setIsCheckInOnlyStart] = useState(false)
 
   useEffect(() => {
     const readPendingCheckInTemplate = () => {
@@ -72,9 +74,22 @@ export default function AiChatPage() {
       return pendingCheckInTemplateRef.current
     }
 
+    const readPendingCheckInSelector = () => {
+      if (pendingCheckInSelectorRef.current !== undefined) {
+        return pendingCheckInSelectorRef.current
+      }
+
+      const checkInSelectorParam = new URLSearchParams(window.location.search).get('checkInSelector')
+      const storedCheckInSelector = sessionStorage.getItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY)
+      sessionStorage.removeItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY)
+      pendingCheckInSelectorRef.current = checkInSelectorParam === '1' || storedCheckInSelector === '1'
+      return pendingCheckInSelectorRef.current
+    }
+
     readTodayAiChatRoom()
       .then((todayRoom) => {
         const pendingTemplate = readPendingCheckInTemplate()
+        const pendingCheckInSelector = readPendingCheckInSelector()
         setRoom(todayRoom)
         setActiveSegmentId(todayRoom.activeSegmentId ?? null)
         if (pendingTemplate) {
@@ -84,6 +99,15 @@ export default function AiChatPage() {
           return
         }
 
+        if (pendingCheckInSelector) {
+          setIsCheckInOnlyStart(true)
+          setSelectedTemplate(null)
+          setModalMode('START_SELECTOR')
+          window.history.replaceState(null, '', '/chat')
+          return
+        }
+
+        setIsCheckInOnlyStart(false)
         setModalMode(todayRoom.hasConversation ? 'EXISTING_CONVERSATION' : 'START_SELECTOR')
       })
       .catch((error) => {
@@ -110,6 +134,7 @@ export default function AiChatPage() {
   }
 
   const handleOpenStartSelector = () => {
+    setIsCheckInOnlyStart(false)
     setSelectedTemplate(null)
     setModalMode('START_SELECTOR')
   }
@@ -363,6 +388,7 @@ export default function AiChatPage() {
           mode={modalMode}
           selectedTemplate={selectedTemplate}
           roomHasConversation={room?.hasConversation ?? false}
+          isCheckInOnlyStart={isCheckInOnlyStart}
           isSubmitting={isStarting}
           errorMessage={errorMessage}
           onClose={room?.hasConversation ? handleContinueTodayConversation : undefined}
@@ -423,6 +449,7 @@ function CheckInEntryModal({
   mode,
   selectedTemplate,
   roomHasConversation,
+  isCheckInOnlyStart,
   isSubmitting,
   errorMessage,
   onClose,
@@ -436,6 +463,7 @@ function CheckInEntryModal({
   mode: ModalMode
   selectedTemplate: CheckInTemplateDefinition | null
   roomHasConversation: boolean
+  isCheckInOnlyStart: boolean
   isSubmitting: boolean
   errorMessage: string
   onClose?: () => void
@@ -468,6 +496,7 @@ function CheckInEntryModal({
         {mode === 'START_SELECTOR' && (
           <StartModeSelector
             roomHasConversation={roomHasConversation}
+            isCheckInOnlyStart={isCheckInOnlyStart}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
             onStartDirect={onStartDirect}
@@ -517,12 +546,14 @@ function ExistingConversationChoice({ onContinue, onStartNewTopic }: { onContinu
 
 function StartModeSelector({
   roomHasConversation,
+  isCheckInOnlyStart,
   isSubmitting,
   errorMessage,
   onStartDirect,
   onSelectTemplate,
 }: {
   roomHasConversation: boolean
+  isCheckInOnlyStart: boolean
   isSubmitting: boolean
   errorMessage: string
   onStartDirect: () => void
@@ -531,17 +562,25 @@ function StartModeSelector({
   return (
     <>
       <p className="eyebrow">{roomHasConversation ? '새 주제 시작' : '대화 시작'}</p>
-      <h2 id="checkin-modal-title">어떻게 시작할까요?</h2>
-      <p className="modal-description">체크인을 건너뛰고 바로 말해도 되고, 지금 상태를 짧게 고른 뒤 시작해도 됩니다.</p>
+      <h2 id="checkin-modal-title">{isCheckInOnlyStart ? '어떤 체크인으로 시작할까요?' : '어떻게 시작할까요?'}</h2>
+      <p className="modal-description">
+        {isCheckInOnlyStart
+          ? '지금 상태에 가장 가까운 체크인 방식을 고르면, 짧은 질문 뒤 대화가 시작됩니다.'
+          : '체크인을 건너뛰고 바로 말해도 되고, 지금 상태를 짧게 고른 뒤 시작해도 됩니다.'}
+      </p>
 
-      <button className="direct-start-card" type="button" onClick={onStartDirect} disabled={isSubmitting}>
-        {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
-        바로 상담 시작하기
-      </button>
+      {!isCheckInOnlyStart && (
+        <>
+          <button className="direct-start-card" type="button" onClick={onStartDirect} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
+            바로 상담 시작하기
+          </button>
 
-      <div className="checkin-start-heading">
-        <p>체크인으로 시작하기</p>
-      </div>
+          <div className="checkin-start-heading">
+            <p>체크인으로 시작하기</p>
+          </div>
+        </>
+      )}
 
       <div className="checkin-template-grid">
         {CHECK_IN_TEMPLATES.map((template) => (
