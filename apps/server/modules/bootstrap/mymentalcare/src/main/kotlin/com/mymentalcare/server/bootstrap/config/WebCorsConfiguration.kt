@@ -11,12 +11,12 @@ import org.springframework.web.cors.UrlBasedCorsConfigurationSource
 class WebCorsConfiguration {
 
     @Value("\${mymentalcare.cors.allowed-origins:http://localhost:3000}")
-    private lateinit var allowedOrigins: String
+    private lateinit var allowedOriginValues: String
 
     @Bean
     fun corsConfigurationSource(): CorsConfigurationSource {
         val config = CorsConfiguration().apply {
-            val origins = allowedOrigins
+            val origins = allowedOriginValues
                 .split(",")
                 .map { it.trim() }
                 .filter { it.isNotBlank() }
