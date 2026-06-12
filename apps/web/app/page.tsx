@@ -193,7 +193,7 @@ export default function Page() {
             <span className="brand-icon">
               <HeartHandshake size={20} aria-hidden="true" />
             </span>
-            <span>myMentalCare</span>
+            <span>Haru Mind</span>
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
@@ -490,7 +490,7 @@ function SettingsModal({
 
           <button className="settings-action" type="button" onClick={onOpenServiceGuide}>
             <strong>서비스 안내</strong>
-            <span>myMentalCare가 제공하는 도움의 범위를 확인합니다.</span>
+            <span>Haru Mind가 제공하는 도움의 범위를 확인합니다.</span>
           </button>
         </div>
       </section>
@@ -519,7 +519,7 @@ function AccountGuideModal({ onClose }: { onClose: () => void }) {
 function ServiceGuideModal({ onClose }: { onClose: () => void }) {
   return (
     <GuideModal title="서비스 안내" eyebrow="안내" onClose={onClose}>
-      <p>myMentalCare는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
+      <p>Haru Mind는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
       <ul className="guide-list">
         <li>AI 대화는 감정 정리를 돕는 보조 도구입니다.</li>
         <li>위기 상황이나 치료가 필요한 경우 전문 기관의 도움을 받아야 합니다.</li>
