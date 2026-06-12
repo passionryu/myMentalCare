@@ -24,7 +24,7 @@ class WebCorsConfiguration {
             if (origins.contains("*")) {
                 addAllowedOriginPattern("*")
             } else {
-                allowedOriginPatterns = origins
+                allowedOriginPatterns = origins.toMutableList()
             }
             allowedMethods = listOf("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS")
             allowedHeaders = listOf("*")
