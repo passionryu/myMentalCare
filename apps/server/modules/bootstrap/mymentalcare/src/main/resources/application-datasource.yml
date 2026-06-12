@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:mariadb://localhost:3310/mymentalcare
-    username: mymentalcare
-    password: mymentalcare-local
+    url: ${MY_MENTAL_CARE_DATASOURCE_URL:jdbc:mariadb://${MARIADB_HOST:${MYSQLHOST:localhost}}:${MARIADB_PORT:${MYSQLPORT:3310}}/${MARIADB_DATABASE:${MYSQLDATABASE:mymentalcare}}}
+    username: ${MY_MENTAL_CARE_DATASOURCE_USERNAME:${MARIADB_USER:${MYSQLUSER:mymentalcare}}}
+    password: ${MY_MENTAL_CARE_DATASOURCE_PASSWORD:${MARIADB_PASSWORD:${MYSQLPASSWORD:mymentalcare-local}}}
     driver-class-name: org.mariadb.jdbc.Driver
   jpa:
     hibernate:
@@ -12,5 +12,6 @@ spring:
         format_sql: true
   data:
     redis:
-      host: localhost
-      port: 6380
+      host: ${MY_MENTAL_CARE_REDIS_HOST:${REDIS_HOST:localhost}}
+      port: ${MY_MENTAL_CARE_REDIS_PORT:${REDIS_PORT:6380}}
+      password: ${MY_MENTAL_CARE_REDIS_PASSWORD:${REDIS_PASSWORD:}}
