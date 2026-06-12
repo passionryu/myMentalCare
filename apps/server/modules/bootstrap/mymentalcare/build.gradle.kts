@@ -4,6 +4,8 @@ tasks.jar {
 
 tasks.bootJar {
     enabled = true
+    mainClass.set("com.mymentalcare.server.bootstrap.MyMentalCareApplicationKt")
+    archiveFileName.set("mymentalcare-server.jar")
 }
 
 dependencies {
