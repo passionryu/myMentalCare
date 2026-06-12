@@ -1,0 +1,5 @@
+[phases.build]
+cmds = ["./gradlew :modules:bootstrap:mymentalcare:bootJar"]
+
+[start]
+cmd = "java -jar modules/bootstrap/mymentalcare/build/libs/mymentalcare-server.jar"
