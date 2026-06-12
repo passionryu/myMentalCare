@@ -27,6 +27,8 @@ export type CheckInTemplateDefinition = {
   steps: CheckInStep[]
 }
 
+export const PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY = 'myMentalCare.pendingCheckInTemplate'
+
 export const CHECK_IN_TEMPLATES: CheckInTemplateDefinition[] = [
   {
     type: 'BASIC_EMOTION',
@@ -174,3 +176,11 @@ export const CHECK_IN_TEMPLATES: CheckInTemplateDefinition[] = [
     ],
   },
 ]
+
+export function findCheckInTemplate(type: string | null | undefined): CheckInTemplateDefinition | null {
+  if (!type) {
+    return null
+  }
+
+  return CHECK_IN_TEMPLATES.find((template) => template.type === type) ?? null
+}

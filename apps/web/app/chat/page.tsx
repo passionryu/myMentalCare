@@ -32,7 +32,7 @@ import {
   startCheckInAiChatSegment,
   startDirectAiChatSegment,
 } from '@/lib/ai-chat-api'
-import { CHECK_IN_TEMPLATES } from '@/lib/check-in-templates'
+import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
 import type { CheckInOption, CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
@@ -57,12 +57,33 @@ export default function AiChatPage() {
   const [isStarting, setIsStarting] = useState(false)
   const [isReportLoading, setIsReportLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const handledPendingCheckInRef = useRef(false)
 
   useEffect(() => {
+    const consumePendingCheckInTemplate = () => {
+      if (handledPendingCheckInRef.current) {
+        return null
+      }
+
+      handledPendingCheckInRef.current = true
+      const checkInTemplateParam = new URLSearchParams(window.location.search).get('checkInTemplate')
+      const storedTemplateType = sessionStorage.getItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
+      sessionStorage.removeItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
+      return findCheckInTemplate(checkInTemplateParam) ?? findCheckInTemplate(storedTemplateType)
+    }
+
     readTodayAiChatRoom()
       .then((todayRoom) => {
+        const pendingTemplate = consumePendingCheckInTemplate()
         setRoom(todayRoom)
         setActiveSegmentId(todayRoom.activeSegmentId ?? null)
+        if (pendingTemplate) {
+          setSelectedTemplate(pendingTemplate)
+          setModalMode('CHECK_IN_WIZARD')
+          window.history.replaceState(null, '', '/chat')
+          return
+        }
+
         setModalMode(todayRoom.hasConversation ? 'EXISTING_CONVERSATION' : 'START_SELECTOR')
       })
       .catch((error) => {
