@@ -14,6 +14,11 @@ class ChatMessagePersistenceAdapter(
             .map { it.toDomain() }
     }
 
+    override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
+        return jpaChatMessageRepository.findBySegmentIdOrderByMessageOrderAsc(segmentId)
+            .map { it.toDomain() }
+    }
+
     override fun findRecentByRoomId(roomId: Long, limit: Int): List<ChatMessage> {
         return jpaChatMessageRepository.findByRoomIdOrderByMessageOrderDesc(roomId, PageRequest.of(0, limit))
             .asReversed()

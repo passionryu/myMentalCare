@@ -22,6 +22,9 @@ class ChatMessageEntity(
     @Column(name = "room_id", nullable = false)
     val roomId: Long,
 
+    @Column(name = "segment_id")
+    val segmentId: Long?,
+
     @Enumerated(EnumType.STRING)
     @Column(name = "sender_type", nullable = false)
     val senderType: ChatMessageSenderType,
@@ -42,6 +45,7 @@ class ChatMessageEntity(
         return ChatMessage(
             id = id,
             roomId = roomId,
+            segmentId = segmentId,
             senderType = senderType,
             content = content,
             messageOrder = messageOrder,
@@ -55,6 +59,7 @@ fun ChatMessage.toEntity(): ChatMessageEntity {
     return ChatMessageEntity(
         id = id,
         roomId = roomId,
+        segmentId = segmentId,
         senderType = senderType,
         content = content,
         messageOrder = messageOrder,

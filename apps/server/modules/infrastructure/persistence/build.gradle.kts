@@ -20,6 +20,7 @@ allOpen {
 dependencies {
     implementation(projects.modules.domain)
     implementation(projects.modules.application)
+    implementation("com.fasterxml.jackson.module:jackson-module-kotlin")
     implementation("org.springframework.boot:spring-boot-starter-data-jpa")
     implementation("org.mariadb.jdbc:mariadb-java-client")
     implementation("com.mysql:mysql-connector-j")

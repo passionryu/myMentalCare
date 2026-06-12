@@ -7,7 +7,7 @@ const chatPage = readFileSync(resolve(root, 'app/chat/page.tsx'), 'utf8')
 const chatApi = readFileSync(resolve(root, 'lib/ai-chat-api.ts'), 'utf8')
 
 const checks = [
-  ['메인 화면 AI 마음 대화 카드 진입 버튼', page.includes('오늘의 대화 시작') && page.includes("router.push('/chat')")],
+  ['메인 화면 AI 마음 대화 카드 진입 버튼', page.includes('AI 마음대화 시작') && page.includes("router.push('/chat')")],
   ['비로그인 상태 로그인 모달 표시', page.includes("setAuthMode('login')") && page.includes('handleOpenAiChat')],
   ['채팅 화면 경로 구현', chatPage.includes('마음이와 오늘의 대화')],
   ['오늘 대화방 조회 API 사용', chatApi.includes('/api/ai-chat/rooms/today')],
