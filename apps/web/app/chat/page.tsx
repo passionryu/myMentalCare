@@ -32,183 +32,10 @@ import {
   startCheckInAiChatSegment,
   startDirectAiChatSegment,
 } from '@/lib/ai-chat-api'
+import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
+import type { CheckInOption, CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
-
-type CheckInOption = {
-  optionKey: string
-  label: string
-}
-
-type CheckInStep =
-  | {
-      stepKey: string
-      question: string
-      type: 'choice'
-      options: CheckInOption[]
-    }
-  | {
-      stepKey: string
-      question: string
-      type: 'scale'
-      min: number
-      max: number
-    }
-
-type CheckInTemplateDefinition = {
-  type: CheckInTemplateType
-  title: string
-  description: string
-  steps: CheckInStep[]
-}
-
-const CHECK_IN_TEMPLATES: CheckInTemplateDefinition[] = [
-  {
-    type: 'BASIC_EMOTION',
-    title: '기본 감정형',
-    description: '감정, 강도, 이유를 1분 안에 선택',
-    steps: [
-      {
-        stepKey: 'emotion',
-        question: '지금 마음은 어떤가요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'OKAY', label: '괜찮음' },
-          { optionKey: 'ANXIOUS', label: '불안함' },
-          { optionKey: 'TIRED', label: '지침' },
-          { optionKey: 'DEPRESSED', label: '우울함' },
-          { optionKey: 'ANGRY', label: '화남' },
-        ],
-      },
-      {
-        stepKey: 'intensity',
-        question: '그 정도는 어느 정도인가요?',
-        type: 'scale',
-        min: 1,
-        max: 5,
-      },
-      {
-        stepKey: 'reason',
-        question: '무엇 때문인 것 같나요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'WORK_STUDY', label: '일/공부' },
-          { optionKey: 'RELATIONSHIP', label: '인간관계' },
-          { optionKey: 'FAMILY', label: '가족' },
-          { optionKey: 'HEALTH', label: '건강' },
-          { optionKey: 'MONEY', label: '돈' },
-          { optionKey: 'OTHER', label: '기타' },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'CONVERSATION_START',
-    title: '대화 시작형',
-    description: '걱정, 위로, 정리, 조언, 그냥 들어주기',
-    steps: [
-      {
-        stepKey: 'topic',
-        question: '지금 어떤 이야기를 하고 싶나요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'WORRY', label: '걱정' },
-          { optionKey: 'COMFORT', label: '위로' },
-          { optionKey: 'ORGANIZE', label: '정리' },
-          { optionKey: 'ADVICE', label: '조언' },
-          { optionKey: 'LISTEN', label: '그냥 들어주기' },
-        ],
-      },
-      {
-        stepKey: 'responseStyle',
-        question: '마음이는 어떻게 반응하면 좋을까요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'CALM', label: '차분하게' },
-          { optionKey: 'REALISTIC', label: '현실적으로' },
-          { optionKey: 'WARM', label: '따뜻하게' },
-          { optionKey: 'SHORT', label: '짧게' },
-          { optionKey: 'OTHER', label: '기타' },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'CONDITION',
-    title: '컨디션 중심형',
-    description: '몸과 마음의 에너지 상태로 시작',
-    steps: [
-      {
-        stepKey: 'energy',
-        question: '지금 몸과 마음의 에너지는 어떤가요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'ENOUGH', label: '충분함' },
-          { optionKey: 'NORMAL', label: '보통' },
-          { optionKey: 'LOW', label: '부족함' },
-          { optionKey: 'EMPTY', label: '거의 없음' },
-        ],
-      },
-      {
-        stepKey: 'factor',
-        question: '오늘 가장 크게 영향을 준 것은 무엇인가요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'SLEEP', label: '수면' },
-          { optionKey: 'WORK_STUDY', label: '업무·학업' },
-          { optionKey: 'PEOPLE', label: '사람' },
-          { optionKey: 'HEALTH', label: '건강' },
-          { optionKey: 'NOTHING_SPECIAL', label: '특별한 일 없음' },
-          { optionKey: 'OTHER', label: '기타' },
-        ],
-      },
-    ],
-  },
-  {
-    type: 'DAY_REVIEW',
-    title: '하루 회고형',
-    description: '오늘 하루의 느낌과 마무리 방식 선택',
-    steps: [
-      {
-        stepKey: 'day',
-        question: '오늘 하루는 어땠나요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'OKAY', label: '괜찮았음' },
-          { optionKey: 'AMBIGUOUS', label: '애매했음' },
-          { optionKey: 'HARD', label: '힘들었음' },
-          { optionKey: 'VERY_HARD', label: '많이 힘들었음' },
-        ],
-      },
-      {
-        stepKey: 'remainingEmotion',
-        question: '오늘 가장 많이 남은 감정은 무엇인가요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'RELIEF', label: '안도' },
-          { optionKey: 'ANXIETY', label: '불안' },
-          { optionKey: 'FATIGUE', label: '피로' },
-          { optionKey: 'REGRET', label: '후회' },
-          { optionKey: 'ANGER', label: '분노' },
-          { optionKey: 'LONELINESS', label: '외로움' },
-          { optionKey: 'OTHER', label: '기타' },
-        ],
-      },
-      {
-        stepKey: 'closing',
-        question: '오늘을 어떻게 마무리하고 싶나요?',
-        type: 'choice',
-        options: [
-          { optionKey: 'ORGANIZE', label: '정리하기' },
-          { optionKey: 'LET_GO', label: '내려놓기' },
-          { optionKey: 'PREPARE_TOMORROW', label: '내일 준비하기' },
-          { optionKey: 'REST', label: '그냥 쉬기' },
-          { optionKey: 'OTHER', label: '기타' },
-        ],
-      },
-    ],
-  },
-]
 
 export default function AiChatPage() {
   const router = useRouter()
@@ -230,12 +57,57 @@ export default function AiChatPage() {
   const [isStarting, setIsStarting] = useState(false)
   const [isReportLoading, setIsReportLoading] = useState(false)
   const messagesEndRef = useRef<HTMLDivElement | null>(null)
+  const pendingCheckInTemplateRef = useRef<CheckInTemplateDefinition | null | undefined>(undefined)
+  const pendingCheckInSelectorRef = useRef<boolean | undefined>(undefined)
+  const [isCheckInOnlyStart, setIsCheckInOnlyStart] = useState(false)
 
   useEffect(() => {
+    const readPendingCheckInTemplate = () => {
+      if (pendingCheckInTemplateRef.current !== undefined) {
+        return pendingCheckInTemplateRef.current
+      }
+
+      const checkInTemplateParam = new URLSearchParams(window.location.search).get('checkInTemplate')
+      const storedTemplateType = sessionStorage.getItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
+      sessionStorage.removeItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY)
+      pendingCheckInTemplateRef.current = findCheckInTemplate(checkInTemplateParam) ?? findCheckInTemplate(storedTemplateType)
+      return pendingCheckInTemplateRef.current
+    }
+
+    const readPendingCheckInSelector = () => {
+      if (pendingCheckInSelectorRef.current !== undefined) {
+        return pendingCheckInSelectorRef.current
+      }
+
+      const checkInSelectorParam = new URLSearchParams(window.location.search).get('checkInSelector')
+      const storedCheckInSelector = sessionStorage.getItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY)
+      sessionStorage.removeItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY)
+      pendingCheckInSelectorRef.current = checkInSelectorParam === '1' || storedCheckInSelector === '1'
+      return pendingCheckInSelectorRef.current
+    }
+
     readTodayAiChatRoom()
       .then((todayRoom) => {
+        const pendingTemplate = readPendingCheckInTemplate()
+        const pendingCheckInSelector = readPendingCheckInSelector()
         setRoom(todayRoom)
         setActiveSegmentId(todayRoom.activeSegmentId ?? null)
+        if (pendingTemplate) {
+          setSelectedTemplate(pendingTemplate)
+          setModalMode('CHECK_IN_WIZARD')
+          window.history.replaceState(null, '', '/chat')
+          return
+        }
+
+        if (pendingCheckInSelector) {
+          setIsCheckInOnlyStart(true)
+          setSelectedTemplate(null)
+          setModalMode('START_SELECTOR')
+          window.history.replaceState(null, '', '/chat')
+          return
+        }
+
+        setIsCheckInOnlyStart(false)
         setModalMode(todayRoom.hasConversation ? 'EXISTING_CONVERSATION' : 'START_SELECTOR')
       })
       .catch((error) => {
@@ -262,6 +134,7 @@ export default function AiChatPage() {
   }
 
   const handleOpenStartSelector = () => {
+    setIsCheckInOnlyStart(false)
     setSelectedTemplate(null)
     setModalMode('START_SELECTOR')
   }
@@ -515,6 +388,7 @@ export default function AiChatPage() {
           mode={modalMode}
           selectedTemplate={selectedTemplate}
           roomHasConversation={room?.hasConversation ?? false}
+          isCheckInOnlyStart={isCheckInOnlyStart}
           isSubmitting={isStarting}
           errorMessage={errorMessage}
           onClose={room?.hasConversation ? handleContinueTodayConversation : undefined}
@@ -575,6 +449,7 @@ function CheckInEntryModal({
   mode,
   selectedTemplate,
   roomHasConversation,
+  isCheckInOnlyStart,
   isSubmitting,
   errorMessage,
   onClose,
@@ -588,6 +463,7 @@ function CheckInEntryModal({
   mode: ModalMode
   selectedTemplate: CheckInTemplateDefinition | null
   roomHasConversation: boolean
+  isCheckInOnlyStart: boolean
   isSubmitting: boolean
   errorMessage: string
   onClose?: () => void
@@ -620,6 +496,7 @@ function CheckInEntryModal({
         {mode === 'START_SELECTOR' && (
           <StartModeSelector
             roomHasConversation={roomHasConversation}
+            isCheckInOnlyStart={isCheckInOnlyStart}
             isSubmitting={isSubmitting}
             errorMessage={errorMessage}
             onStartDirect={onStartDirect}
@@ -669,12 +546,14 @@ function ExistingConversationChoice({ onContinue, onStartNewTopic }: { onContinu
 
 function StartModeSelector({
   roomHasConversation,
+  isCheckInOnlyStart,
   isSubmitting,
   errorMessage,
   onStartDirect,
   onSelectTemplate,
 }: {
   roomHasConversation: boolean
+  isCheckInOnlyStart: boolean
   isSubmitting: boolean
   errorMessage: string
   onStartDirect: () => void
@@ -683,17 +562,25 @@ function StartModeSelector({
   return (
     <>
       <p className="eyebrow">{roomHasConversation ? '새 주제 시작' : '대화 시작'}</p>
-      <h2 id="checkin-modal-title">어떻게 시작할까요?</h2>
-      <p className="modal-description">체크인을 건너뛰고 바로 말해도 되고, 지금 상태를 짧게 고른 뒤 시작해도 됩니다.</p>
+      <h2 id="checkin-modal-title">{isCheckInOnlyStart ? '어떤 체크인으로 시작할까요?' : '어떻게 시작할까요?'}</h2>
+      <p className="modal-description">
+        {isCheckInOnlyStart
+          ? '지금 상태에 가장 가까운 체크인 방식을 고르면, 짧은 질문 뒤 대화가 시작됩니다.'
+          : '체크인을 건너뛰고 바로 말해도 되고, 지금 상태를 짧게 고른 뒤 시작해도 됩니다.'}
+      </p>
 
-      <button className="direct-start-card" type="button" onClick={onStartDirect} disabled={isSubmitting}>
-        {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
-        바로 상담 시작하기
-      </button>
+      {!isCheckInOnlyStart && (
+        <>
+          <button className="direct-start-card" type="button" onClick={onStartDirect} disabled={isSubmitting}>
+            {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
+            바로 상담 시작하기
+          </button>
 
-      <div className="checkin-start-heading">
-        <p>체크인으로 시작하기</p>
-      </div>
+          <div className="checkin-start-heading">
+            <p>체크인으로 시작하기</p>
+          </div>
+        </>
+      )}
 
       <div className="checkin-template-grid">
         {CHECK_IN_TEMPLATES.map((template) => (
@@ -753,10 +640,6 @@ function CheckInWizard({
     }
 
     setAnswers(nextAnswers)
-
-    if (option.optionKey !== 'OTHER') {
-      window.setTimeout(() => moveNextWithAnswers(nextAnswers), 80)
-    }
   }
 
   const handleSelectScale = (value: number) => {
@@ -770,7 +653,6 @@ function CheckInWizard({
     }
 
     setAnswers(nextAnswers)
-    window.setTimeout(() => moveNextWithAnswers(nextAnswers), 80)
   }
 
   const handleOtherInput = (freeText: string) => {

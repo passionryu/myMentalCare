@@ -1,17 +1,33 @@
 'use client'
 
-import { ArrowRight, CheckCircle2, Eye, EyeOff, HeartHandshake, LogOut, Settings, ShieldCheck, Sparkles, UserRound, X } from 'lucide-react'
+import {
+  ArrowRight,
+  CheckCircle2,
+  ClipboardList,
+  Eye,
+  EyeOff,
+  HeartHandshake,
+  Home,
+  LogOut,
+  MessageCircle,
+  Settings,
+  ShieldCheck,
+  Sparkles,
+  UserRound,
+  X,
+} from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useRef, useState } from 'react'
 import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
+import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY } from '@/lib/check-in-templates'
+import type { CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type AuthMode = 'signup' | 'login'
 type ThemeTone = 'sunset' | 'cream' | 'wood'
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const trustMessages = ['개인 대화 공간', '대화 흐름 저장 가능', '언제든 종료 가능']
-const conversationPrompts = ['생각이 너무 많아요', '불안해서 집중이 안 돼요', '관계 때문에 마음이 복잡해요', '잠들기 전에 정리하고 싶어요']
 const storyMessages = [
   { speaker: 'user', message: '머릿속이 계속 복잡해서 어디서부터 말해야 할지 모르겠어요.' },
   { speaker: 'ai', message: '가장 크게 남아 있는 한 문장만 골라볼게요. 지금 제일 먼저 떠오르는 건 무엇인가요?' },
@@ -149,6 +165,26 @@ export default function Page() {
     router.push('/chat')
   }
 
+  const handleStartCheckIn = (template: CheckInTemplateDefinition) => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    sessionStorage.setItem(PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, template.type)
+    router.push(`/chat?checkInTemplate=${template.type}`)
+  }
+
+  const handleOpenCheckInSelector = () => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    sessionStorage.setItem(PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, '1')
+    router.push('/chat?checkInSelector=1')
+  }
+
   return (
     <main className="page-shell" data-theme-tone={themeTone}>
       <section className="hero-section" aria-labelledby="main-heading">
@@ -157,7 +193,7 @@ export default function Page() {
             <span className="brand-icon">
               <HeartHandshake size={20} aria-hidden="true" />
             </span>
-            <span>myMentalCare</span>
+            <span>Haru Mind</span>
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
@@ -259,14 +295,18 @@ export default function Page() {
 
       <section className="prompt-section" aria-labelledby="prompt-heading">
         <div className="section-heading">
-          <p className="eyebrow">대화 시작점</p>
-          <h2 id="prompt-heading">지금 상황에 가까운 문장을 고르세요</h2>
+          <p className="eyebrow">체크인으로 시작하기</p>
+          <h2 id="prompt-heading">지금 필요한 방식으로 바로 시작하세요</h2>
+          <p>기존 체크인 모달로 이어져 짧게 상태를 고른 뒤, 같은 흐름에서 AI 마음대화를 시작합니다.</p>
         </div>
         <div className="prompt-grid">
-          {conversationPrompts.map((prompt) => (
-            <button className="prompt-card" type="button" key={prompt} onClick={handleOpenAiChat}>
+          {CHECK_IN_TEMPLATES.map((template) => (
+            <button className="prompt-card checkin-prompt-card" type="button" key={template.type} onClick={() => handleStartCheckIn(template)}>
               <Sparkles size={18} aria-hidden="true" />
-              <span>{prompt}</span>
+              <span>
+                <strong>{template.title}</strong>
+                <small>{template.description}</small>
+              </span>
             </button>
           ))}
         </div>
@@ -333,6 +373,24 @@ export default function Page() {
       )}
       {accountGuideOpen && <AccountGuideModal onClose={() => setAccountGuideOpen(false)} />}
       {serviceGuideOpen && <ServiceGuideModal onClose={() => setServiceGuideOpen(false)} />}
+      <nav className="mobile-bottom-nav" aria-label="모바일 주요 메뉴">
+        <button className="mobile-tab-button is-active" type="button" aria-current="page">
+          <Home size={18} aria-hidden="true" />
+          <span>홈</span>
+        </button>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenAiChat}>
+          <MessageCircle size={18} aria-hidden="true" />
+          <span>대화</span>
+        </button>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenCheckInSelector}>
+          <ClipboardList size={18} aria-hidden="true" />
+          <span>체크인</span>
+        </button>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenProfile}>
+          <UserRound size={18} aria-hidden="true" />
+          <span>나</span>
+        </button>
+      </nav>
     </main>
   )
 }
@@ -432,7 +490,7 @@ function SettingsModal({
 
           <button className="settings-action" type="button" onClick={onOpenServiceGuide}>
             <strong>서비스 안내</strong>
-            <span>myMentalCare가 제공하는 도움의 범위를 확인합니다.</span>
+            <span>Haru Mind가 제공하는 도움의 범위를 확인합니다.</span>
           </button>
         </div>
       </section>
@@ -461,7 +519,7 @@ function AccountGuideModal({ onClose }: { onClose: () => void }) {
 function ServiceGuideModal({ onClose }: { onClose: () => void }) {
   return (
     <GuideModal title="서비스 안내" eyebrow="안내" onClose={onClose}>
-      <p>myMentalCare는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
+      <p>Haru Mind는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
       <ul className="guide-list">
         <li>AI 대화는 감정 정리를 돕는 보조 도구입니다.</li>
         <li>위기 상황이나 치료가 필요한 경우 전문 기관의 도움을 받아야 합니다.</li>

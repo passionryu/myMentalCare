@@ -6,7 +6,7 @@ const styles = readFileSync(resolve('app/globals.css'), 'utf8')
 const authApi = readFileSync(resolve('lib/auth-api.ts'), 'utf8')
 
 const checks = [
-  ['메인 서비스 이름 표시', page.includes('myMentalCare')],
+  ['메인 서비스 이름 표시', page.includes('Haru Mind')],
   ['메인 CTA 버튼 제거', !page.includes('마음 기록 시작하기')],
   ['기존 로그인 CTA 문구 제거', !page.includes('이미 계정이 있어요')],
   ['임시 구현 단계 안내 제거', !page.includes('아직은 화면 구현 단계입니다.')],
