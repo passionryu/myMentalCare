@@ -23,6 +23,8 @@ springdoc:
     path: /swagger-ui/index.html
 
 mymentalcare:
+  cors:
+    allowed-origins: ${MY_MENTAL_CARE_CORS_ALLOWED_ORIGINS:*}
   security:
     jwt:
       secret: ${MY_MENTAL_CARE_JWT_SECRET:local-mymentalcare-jwt-secret-must-be-changed}
