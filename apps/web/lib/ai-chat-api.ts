@@ -70,6 +70,40 @@ export type StartAiChatSegmentResponse = {
   aiReplyErrorMessage?: string | null
 }
 
+export type AiChatReportReadiness = {
+  ready: boolean
+  reason: 'SUFFICIENT_CONVERSATION' | 'SHORT_CONVERSATION' | string
+  userMessageCount: number
+  userTextLength: number
+  requiredUserMessageCount?: number
+  requiredUserTextLength?: number
+  unmetRequirements?: string[]
+  guideMessage?: string | null
+}
+
+export type AiChatReport = {
+  reportId: number
+  roomId: number
+  reportType: 'FULL' | 'SHORT'
+  conversationDate: string
+  summary: string
+  primaryEmotion: string
+  emotionIntensity?: number | null
+  mainCause: string
+  emotionalFlow: string
+  todaySentence: string
+  songs: AiChatReportSong[]
+  saved: boolean
+  createdAt?: string | null
+}
+
+export type AiChatReportSong = {
+  title: string
+  artist: string
+  reason: string
+  youtubeUrl: string
+}
+
 async function readJson(response: Response) {
   return response.json().catch(() => null)
 }
@@ -146,4 +180,47 @@ export async function sendAiChatMessage(
   }
 
   return body as SendAiChatMessageResponse
+}
+
+export async function readAiChatReportReadiness(): Promise<AiChatReportReadiness> {
+  const response = await requestWithAuth('/api/ai-chat/rooms/today/report-readiness')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '오늘 마음 리포트 가능 여부를 확인하지 못했습니다.')
+  }
+
+  return body as AiChatReportReadiness
+}
+
+export async function createAiChatReport(forceCreate: boolean, clientRequestId: string): Promise<AiChatReport> {
+  const response = await requestWithAuth('/api/ai-chat/rooms/today/reports', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ forceCreate, clientRequestId }),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '오늘 마음 리포트를 만들지 못했습니다.')
+  }
+
+  return body as AiChatReport
+}
+
+export async function readLatestAiChatReport(): Promise<AiChatReport | null> {
+  const response = await requestWithAuth('/api/ai-chat/rooms/today/reports/latest')
+  if (response.status === 204) {
+    return null
+  }
+
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '오늘 마음 리포트를 불러오지 못했습니다.')
+  }
+
+  return body as AiChatReport
 }
