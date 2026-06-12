@@ -3,7 +3,7 @@ import { Analytics } from '@vercel/analytics/next'
 import './globals.css'
 
 export const metadata: Metadata = {
-  title: 'myMentalCare',
+  title: 'Haru Mind',
   description: '혼자 꾸준히 감정과 컨디션을 기록하고 돌보는 개인 멘탈 케어 서비스',
 }
 
