@@ -111,6 +111,10 @@ class AiReplyContextReaderTest {
             return messages.filter { it.roomId == roomId }.sortedBy { it.messageOrder }
         }
 
+        override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
+            return messages.filter { it.segmentId == segmentId }.sortedBy { it.messageOrder }
+        }
+
         override fun findRecentByRoomId(roomId: Long, limit: Int): List<ChatMessage> {
             findRecentCallCount += 1
             return findByRoomId(roomId).takeLast(limit)

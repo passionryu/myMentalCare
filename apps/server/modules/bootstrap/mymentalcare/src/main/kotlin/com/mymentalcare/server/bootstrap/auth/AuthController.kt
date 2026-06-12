@@ -1,7 +1,6 @@
 package com.mymentalcare.server.bootstrap.auth
 
 import com.mymentalcare.server.application.auth.AuthenticationInputPort
-import com.mymentalcare.server.application.auth.ReissueTokenRequest as ApplicationReissueTokenRequest
 import com.mymentalcare.server.application.auth.SignInRequest
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
@@ -10,6 +9,7 @@ import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
 import org.springframework.web.bind.annotation.RestController
+import com.mymentalcare.server.application.auth.ReissueTokenRequest as ApplicationReissueTokenRequest
 
 @RestController
 @RequestMapping("/api/auth")

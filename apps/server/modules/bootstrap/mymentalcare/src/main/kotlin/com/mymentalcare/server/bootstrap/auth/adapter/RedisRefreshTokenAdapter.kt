@@ -4,7 +4,6 @@ import com.mymentalcare.server.application.port.RefreshTokenStore
 import com.mymentalcare.server.bootstrap.config.JwtProperties
 import org.springframework.data.redis.core.StringRedisTemplate
 import org.springframework.stereotype.Component
-import java.time.Duration
 
 @Component
 class RedisRefreshTokenAdapter(

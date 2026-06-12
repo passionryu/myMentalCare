@@ -1,16 +1,24 @@
 package com.mymentalcare.server.application.aichat
 
-import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.port.AiChatCheckInRepository
 import com.mymentalcare.server.application.port.AiChatRecentMessageCache
+import com.mymentalcare.server.application.port.AiChatRoomRepository
 import com.mymentalcare.server.application.port.AiChatRoomSummaryRepository
+import com.mymentalcare.server.application.port.AiChatSegmentRepository
 import com.mymentalcare.server.application.port.ChatMessageRepository
 import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
+import com.mymentalcare.server.domain.aichat.AiChatCheckIn
+import com.mymentalcare.server.domain.aichat.AiChatCheckInAnswer
+import com.mymentalcare.server.domain.aichat.AiChatCheckInTemplateType
 import com.mymentalcare.server.domain.aichat.AiChatRoom
-import com.mymentalcare.server.domain.aichat.AiChatRoomSummary
 import com.mymentalcare.server.domain.aichat.AiChatRoomStatus
+import com.mymentalcare.server.domain.aichat.AiChatRoomSummary
+import com.mymentalcare.server.domain.aichat.AiChatSegment
+import com.mymentalcare.server.domain.aichat.AiChatSegmentStartType
 import com.mymentalcare.server.domain.aichat.ChatMessage
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
 import com.mymentalcare.server.domain.aichat.CrisisDetectionEvent
+import com.mymentalcare.server.domain.aichat.CrisisDetectionSourceType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -29,6 +37,74 @@ class AiChatServiceTest {
         assertEquals("마음이", response.chatbotName)
         assertEquals(emptyList<AiChatMessageResponse>(), response.messages)
         assertEquals(1, roomRepository.rooms.size)
+    }
+
+    @Test
+    fun `바로 상담 시작 요청이 반복되면 같은 구간과 첫 메시지를 재사용한다`() {
+        val segmentRepository = FakeAiChatSegmentRepository()
+        val messageRepository = FakeChatMessageRepository()
+        val service = aiChatService(
+            segmentRepository = segmentRepository,
+            messageRepository = messageRepository,
+        )
+
+        val firstResponse = service.startSegment(1L, StartAiChatSegmentRequest(startType = "DIRECT", clientRequestId = "direct-1"))
+        val secondResponse = service.startSegment(1L, StartAiChatSegmentRequest(startType = "DIRECT", clientRequestId = "direct-1"))
+
+        assertEquals(firstResponse.segment.segmentId, secondResponse.segment.segmentId)
+        assertEquals(1, segmentRepository.segments.size)
+        assertEquals(1, messageRepository.messages.size)
+        assertEquals("ASSISTANT", firstResponse.assistantMessage.senderType)
+    }
+
+    @Test
+    fun `체크인 답변으로 오늘 대화 구간과 첫 메시지를 시작한다`() {
+        val checkInRepository = FakeAiChatCheckInRepository()
+        val service = aiChatService(checkInRepository = checkInRepository)
+
+        val response = service.startCheckInSegment(
+            1L,
+            StartAiChatCheckInRequest(
+                templateType = AiChatCheckInTemplateType.BASIC_EMOTION,
+                answers = listOf(
+                    AiChatCheckInAnswer(stepKey = "emotion", optionKey = "ANXIOUS", label = "불안함"),
+                    AiChatCheckInAnswer(stepKey = "intensity", value = 4, label = "4"),
+                    AiChatCheckInAnswer(stepKey = "reason", optionKey = "OTHER", label = "기타", freeText = "면접 준비"),
+                ),
+                clientRequestId = "checkin-1",
+            ),
+        )
+
+        assertEquals("BASIC_EMOTION", response.segment.startType)
+        assertEquals("불안함 4/5 · 면접 준비", response.checkIn!!.summaryText)
+        assertEquals("불안함 4/5 · 면접 준비", checkInRepository.checkIns.single().summaryText)
+        assertTrue(response.assistantMessage.content.contains("불안함 4/5"))
+        assertEquals(response.segment.segmentId, response.assistantMessage.segmentId)
+    }
+
+    @Test
+    fun `체크인 직접 입력에 위기 표현이 포함되면 체크인 이벤트를 기록하고 안전 안내를 반환한다`() {
+        val eventRepository = FakeCrisisDetectionEventRepository()
+        val service = aiChatService(eventRepository = eventRepository)
+
+        val response = service.startCheckInSegment(
+            1L,
+            StartAiChatCheckInRequest(
+                templateType = AiChatCheckInTemplateType.DAY_REVIEW,
+                answers = listOf(
+                    AiChatCheckInAnswer(stepKey = "day", optionKey = "VERY_HARD", label = "많이 힘들었음"),
+                    AiChatCheckInAnswer(stepKey = "remainingEmotion", optionKey = "OTHER", label = "기타", freeText = "사라지고 싶다"),
+                    AiChatCheckInAnswer(stepKey = "closing", optionKey = "REST", label = "그냥 쉬기"),
+                ),
+                clientRequestId = "checkin-crisis-1",
+            ),
+        )
+
+        assertTrue(response.crisisDetected)
+        assertEquals(SAFETY_GUIDE_MESSAGE, response.crisisGuideMessage)
+        assertEquals(SAFETY_GUIDE_MESSAGE, response.assistantMessage.content)
+        assertEquals(CrisisDetectionSourceType.CHECK_IN, eventRepository.events.single().sourceType)
+        assertNotNull(eventRepository.events.single().checkInId)
     }
 
     @Test
@@ -187,6 +263,8 @@ class AiChatServiceTest {
 
     private fun aiChatService(
         roomRepository: FakeAiChatRoomRepository = FakeAiChatRoomRepository(),
+        segmentRepository: FakeAiChatSegmentRepository = FakeAiChatSegmentRepository(),
+        checkInRepository: FakeAiChatCheckInRepository = FakeAiChatCheckInRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
         summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
         recentMessageCache: FakeAiChatRecentMessageCache = FakeAiChatRecentMessageCache(),
@@ -194,9 +272,15 @@ class AiChatServiceTest {
         aiChatSummaryGenerator: AiChatSummaryGenerator = DefaultAiChatSummaryGenerator(),
         aiReplyProvider: AiReplyProvider = FakeAiReplyProvider(reply = "마음이 기본 응답입니다."),
     ): AiChatService {
+        val aiChatMessageAppender = AiChatMessageAppender(messageRepository)
         return AiChatService(
             todayAiChatRoomReader = TodayAiChatRoomReader(roomRepository),
-            aiChatMessageAppender = AiChatMessageAppender(messageRepository),
+            aiChatSegmentStarter = AiChatSegmentStarter(segmentRepository),
+            aiChatCheckInSummaryFactory = AiChatCheckInSummaryFactory(),
+            aiChatCheckInRecorder = AiChatCheckInRecorder(checkInRepository),
+            aiChatOpeningMessageFactory = AiChatOpeningMessageFactory(),
+            aiChatOpeningMessageRecorder = AiChatOpeningMessageRecorder(messageRepository, aiChatMessageAppender),
+            aiChatMessageAppender = aiChatMessageAppender,
             aiChatSummaryRefreshProcessor = AiChatSummaryRefreshProcessor(
                 summaryRepository,
                 messageRepository,
@@ -204,8 +288,9 @@ class AiChatServiceTest {
                 aiChatSummaryGenerator,
             ),
             aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository, recentMessageCache),
+            aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
-            aiChatResponseAssembler = AiChatResponseAssembler(messageRepository),
+            aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
             crisisKeywordDetector = CrisisKeywordDetector(),
             aiReplyProvider = aiReplyProvider,
         )
@@ -244,11 +329,68 @@ class AiChatServiceTest {
         }
     }
 
+    private class FakeAiChatSegmentRepository : AiChatSegmentRepository {
+        val segments = mutableListOf<AiChatSegment>()
+
+        override fun findById(segmentId: Long): AiChatSegment? {
+            return segments.firstOrNull { it.id == segmentId }
+        }
+
+        override fun findByRoomId(roomId: Long): List<AiChatSegment> {
+            return segments.filter { it.roomId == roomId }.sortedBy { it.segmentOrder }
+        }
+
+        override fun findLatestByRoomId(roomId: Long): AiChatSegment? {
+            return findByRoomId(roomId).maxByOrNull { it.segmentOrder }
+        }
+
+        override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatSegment? {
+            return segments.firstOrNull { it.roomId == roomId && it.clientRequestId == clientRequestId }
+        }
+
+        override fun countByRoomId(roomId: Long): Int {
+            return segments.count { it.roomId == roomId }
+        }
+
+        override fun save(segment: AiChatSegment): AiChatSegment {
+            val savedSegment = segment.copy(
+                id = segment.id.takeIf { it > 0 } ?: (segments.size + 1).toLong(),
+                startType = segment.startType.takeUnless { it.name.isBlank() } ?: AiChatSegmentStartType.DIRECT,
+            )
+            segments.removeIf { it.id == savedSegment.id }
+            segments.add(savedSegment)
+            return savedSegment
+        }
+    }
+
+    private class FakeAiChatCheckInRepository : AiChatCheckInRepository {
+        val checkIns = mutableListOf<AiChatCheckIn>()
+
+        override fun findBySegmentId(segmentId: Long): AiChatCheckIn? {
+            return checkIns.firstOrNull { it.segmentId == segmentId }
+        }
+
+        override fun findBySegmentIds(segmentIds: List<Long>): List<AiChatCheckIn> {
+            return checkIns.filter { it.segmentId in segmentIds }
+        }
+
+        override fun save(checkIn: AiChatCheckIn): AiChatCheckIn {
+            val savedCheckIn = checkIn.copy(id = checkIn.id.takeIf { it > 0 } ?: (checkIns.size + 1).toLong())
+            checkIns.removeIf { it.segmentId == savedCheckIn.segmentId }
+            checkIns.add(savedCheckIn)
+            return savedCheckIn
+        }
+    }
+
     private class FakeChatMessageRepository : ChatMessageRepository {
         val messages = mutableListOf<ChatMessage>()
 
         override fun findByRoomId(roomId: Long): List<ChatMessage> {
             return messages.filter { it.roomId == roomId }.sortedBy { it.messageOrder }
+        }
+
+        override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
+            return messages.filter { it.segmentId == segmentId }.sortedBy { it.messageOrder }
         }
 
         override fun findRecentByRoomId(roomId: Long, limit: Int): List<ChatMessage> {

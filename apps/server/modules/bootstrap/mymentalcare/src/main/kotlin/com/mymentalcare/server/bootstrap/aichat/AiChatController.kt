@@ -1,7 +1,12 @@
 package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatInputPort
+import com.mymentalcare.server.application.aichat.AiChatInvalidRequestException
 import com.mymentalcare.server.application.aichat.SendAiChatMessageRequest
+import com.mymentalcare.server.application.aichat.StartAiChatCheckInRequest
+import com.mymentalcare.server.application.aichat.StartAiChatSegmentRequest
+import com.mymentalcare.server.domain.aichat.AiChatCheckInAnswer
+import com.mymentalcare.server.domain.aichat.AiChatCheckInTemplateType
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
@@ -32,6 +37,47 @@ class AiChatController(
     }
 
     @Operation(
+        summary = "오늘 대화방 새 주제 시작",
+        description = "체크인 없이 오늘 대화방 안에 새 주제 구간을 만들고 마음이의 첫 메시지를 반환합니다.",
+    )
+    @PostMapping("/rooms/today/segments")
+    fun startSegment(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody request: StartAiChatSegmentPayload,
+    ): ResponseEntity<StartAiChatSegmentResponse> {
+        val response = aiChatInputPort.startSegment(
+            memberId = memberId,
+            request = StartAiChatSegmentRequest(
+                startType = request.startType,
+                clientRequestId = request.clientRequestId,
+            ),
+        )
+
+        return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
+        summary = "체크인 기반 오늘 대화 구간 시작",
+        description = "체크인 답변을 저장하고 오늘 대화방 안에 새 구간을 만든 뒤 체크인 맥락이 반영된 첫 메시지를 반환합니다.",
+    )
+    @PostMapping("/rooms/today/segments/check-in")
+    fun startCheckInSegment(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody request: StartAiChatCheckInPayload,
+    ): ResponseEntity<StartAiChatSegmentResponse> {
+        val response = aiChatInputPort.startCheckInSegment(
+            memberId = memberId,
+            request = StartAiChatCheckInRequest(
+                templateType = request.templateType.toCheckInTemplateType(),
+                answers = request.answers.map { it.toApplicationAnswer() },
+                clientRequestId = request.clientRequestId,
+            ),
+        )
+
+        return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
         summary = "AI 마음 대화 메시지 전송",
         description = "사용자 메시지를 저장하고 기본 공감형 챗봇 응답을 생성합니다. 위기 키워드가 감지되면 안전 안내를 함께 반환합니다.",
     )
@@ -42,12 +88,31 @@ class AiChatController(
     ): ResponseEntity<SendAiChatMessageResponse> {
         val response = aiChatInputPort.sendMessage(
             memberId = memberId,
-            request = SendAiChatMessageRequest(content = request.content),
+            request = SendAiChatMessageRequest(
+                content = request.content,
+                segmentId = request.segmentId,
+                clientRequestId = request.clientRequestId,
+            ),
         )
 
         val bootstrapResponse = response.toBootstrapResponse()
         val status = if (response.aiReplyFailed) HttpStatus.SERVICE_UNAVAILABLE else HttpStatus.OK
 
         return ResponseEntity.status(status).body(bootstrapResponse)
+    }
+
+    private fun String.toCheckInTemplateType(): AiChatCheckInTemplateType {
+        return runCatching { AiChatCheckInTemplateType.valueOf(this) }
+            .getOrElse { throw AiChatInvalidRequestException("지원하지 않는 체크인 유형입니다.") }
+    }
+
+    private fun AiChatCheckInAnswerPayload.toApplicationAnswer(): AiChatCheckInAnswer {
+        return AiChatCheckInAnswer(
+            stepKey = stepKey,
+            optionKey = optionKey,
+            label = label,
+            value = value,
+            freeText = freeText,
+        )
     }
 }
