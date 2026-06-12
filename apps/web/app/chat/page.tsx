@@ -601,10 +601,6 @@ function CheckInWizard({
     }
 
     setAnswers(nextAnswers)
-
-    if (option.optionKey !== 'OTHER') {
-      window.setTimeout(() => moveNextWithAnswers(nextAnswers), 80)
-    }
   }
 
   const handleSelectScale = (value: number) => {
@@ -618,7 +614,6 @@ function CheckInWizard({
     }
 
     setAnswers(nextAnswers)
-    window.setTimeout(() => moveNextWithAnswers(nextAnswers), 80)
   }
 
   const handleOtherInput = (freeText: string) => {
