@@ -156,6 +156,15 @@ export default function Page() {
     }
   }
 
+  const handleOpenMyPage = () => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    router.push('/mypage')
+  }
+
   const handleOpenAiChat = () => {
     if (!isAuthenticated) {
       setAuthMode('login')
@@ -197,15 +206,14 @@ export default function Page() {
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
-              <button className="soft-button profile-button" type="button" aria-label="내 프로필" onClick={handleOpenProfile}>
+              <button className="soft-button profile-button" type="button" aria-label="마이페이지" onClick={handleOpenMyPage}>
                 <UserRound size={18} aria-hidden="true" />
-                프로필
+                마이페이지
               </button>
               <button className="ghost-button logout-button" type="button" onClick={handleLogout}>
                 <LogOut size={18} aria-hidden="true" />
                 로그아웃
               </button>
-              <SettingsButton onClick={() => setSettingsOpen(true)} />
             </div>
           ) : (
             <div className="nav-actions">
@@ -386,7 +394,7 @@ export default function Page() {
           <ClipboardList size={18} aria-hidden="true" />
           <span>체크인</span>
         </button>
-        <button className="mobile-tab-button" type="button" onClick={handleOpenProfile}>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenMyPage}>
           <UserRound size={18} aria-hidden="true" />
           <span>나</span>
         </button>
