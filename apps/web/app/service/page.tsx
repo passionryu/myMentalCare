@@ -23,10 +23,19 @@ const exampleConversationMessages = [
 ] as const
 
 const safetyGuides = [
-  '의료 진단이나 치료를 대신하지 않습니다.',
-  '위급 상황 알림이나 의료 대응을 대신하지 않습니다.',
-  '대화는 언제든 멈출 수 있습니다.',
-]
+  {
+    title: '의료 진단이나 치료를 대신하지 않습니다.',
+    detail: '마음이는 감정과 생각을 정리하는 대화 도구입니다. 증상 판단, 진단, 치료 계획은 의료 전문가와 상의해주세요.',
+  },
+  {
+    title: '위급 상황 알림이나 의료 대응을 대신하지 않습니다.',
+    detail: '즉각적인 도움이 필요한 상황에서는 119, 112, 응급실, 주변 사람 등 실제 도움을 먼저 이용해주세요.',
+  },
+  {
+    title: '대화는 언제든 멈출 수 있습니다.',
+    detail: '불편하거나 부담스러우면 대화를 멈추고 나중에 다시 이어갈 수 있습니다. 사용자의 속도를 우선합니다.',
+  },
+] as const
 
 const flowSteps = [
   {
@@ -55,6 +64,7 @@ export default function ServicePage() {
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
+  const [selectedSafetyGuide, setSelectedSafetyGuide] = useState<(typeof safetyGuides)[number] | null>(null)
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -111,6 +121,12 @@ export default function ServicePage() {
     router.push('/mypage')
   }
 
+  const handleSafetyGuideClick = (guide: (typeof safetyGuides)[number]) => {
+    if (window.matchMedia('(max-width: 860px)').matches) {
+      setSelectedSafetyGuide(guide)
+    }
+  }
+
   return (
     <main className="page-shell service-page-shell" data-theme-tone={themeTone}>
       <div className="service-page-frame">
@@ -134,7 +150,7 @@ export default function ServicePage() {
           <div className="service-brand-copy">
             <p className="eyebrow">서비스 소개</p>
             <h1 className="hero-brand-logo service-hero-logo" id="service-intro-heading">Haru Mind</h1>
-            <p>체크인으로 지금 상태를 가볍게 고르고, 마음이는 오늘의 대화를 이어가며 생각과 감정을 정리해줍니다.</p>
+            <p>조언보다는 마음의 정리를 먼저 돕습니다.</p>
           </div>
           <div className="service-mascot-card" aria-hidden="true">
             <img className="service-mascot-illustration" src="/maeumi-service-hero.svg" alt="" />
@@ -236,9 +252,14 @@ export default function ServicePage() {
             <div className="safety-section safety-card">
               <ul className="safety-list">
                 {safetyGuides.map((guide) => (
-                  <li key={guide}>
-                    <ShieldCheck size={18} aria-hidden="true" />
-                    <span>{guide}</span>
+                  <li key={guide.title}>
+                    <button className="safety-guide-button" type="button" onClick={() => handleSafetyGuideClick(guide)}>
+                      <ShieldCheck size={18} aria-hidden="true" />
+                      <span>
+                        <strong>{guide.title}</strong>
+                        <small>{guide.detail}</small>
+                      </span>
+                    </button>
                   </li>
                 ))}
               </ul>
@@ -276,6 +297,25 @@ export default function ServicePage() {
           <span>나</span>
         </button>
       </nav>
+
+      {selectedSafetyGuide && (
+        <div className="service-safety-modal-backdrop" role="presentation" onClick={() => setSelectedSafetyGuide(null)}>
+          <section
+            className="service-safety-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="service-safety-modal-title"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <ShieldCheck size={24} aria-hidden="true" />
+            <h2 id="service-safety-modal-title">{selectedSafetyGuide.title}</h2>
+            <p>{selectedSafetyGuide.detail}</p>
+            <button className="primary-button" type="button" onClick={() => setSelectedSafetyGuide(null)}>
+              확인
+            </button>
+          </section>
+        </div>
+      )}
     </main>
   )
 }
