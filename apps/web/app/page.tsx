@@ -208,8 +208,8 @@ export default function Page() {
         </div>
         <nav aria-label="푸터 링크">
           <a href="/service">서비스 소개</a>
-          <span>개인정보처리방침</span>
-          <span>이용약관</span>
+          <a href="/privacy">개인정보처리방침</a>
+          <a href="/terms">이용약관</a>
           <span>© 2026 Haru Mind</span>
         </nav>
       </footer>
