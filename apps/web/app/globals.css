@@ -3216,3 +3216,27 @@ h3 {
     width: 100%;
   }
 }
+
+@media (max-width: 520px) {
+  .story-rail {
+    gap: 14px;
+  }
+
+  .story-rail::before {
+    display: none;
+  }
+
+  .story-bubble {
+    max-width: calc(100% - 24px);
+  }
+
+  .story-bubble.user {
+    justify-self: end;
+    transform: translateX(10px);
+  }
+
+  .story-bubble.ai {
+    justify-self: start;
+    transform: translateX(-10px);
+  }
+}
