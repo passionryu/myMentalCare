@@ -10,14 +10,12 @@ import {
   Home,
   LogOut,
   MessageCircle,
-  Settings,
   Sparkles,
   UserRound,
   X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useState } from 'react'
-import type { ReactNode } from 'react'
 import { LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY } from '@/lib/check-in-templates'
 import type { CheckInTemplateDefinition } from '@/lib/check-in-templates'
@@ -40,10 +38,6 @@ export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
-  const [settingsOpen, setSettingsOpen] = useState(false)
-  const [serviceGuideOpen, setServiceGuideOpen] = useState(false)
-  const [accountGuideOpen, setAccountGuideOpen] = useState(false)
-  const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
   const [authNotice, setAuthNotice] = useState<AuthNotice | null>(null)
 
@@ -63,11 +57,6 @@ export default function Page() {
       setThemeTone(savedThemeTone)
     }
   }, [])
-
-  const handleThemeChange = (nextThemeTone: ThemeTone) => {
-    setThemeTone(nextThemeTone)
-    localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
-  }
 
   const handleLogout = () => {
     localStorage.removeItem('myMentalCare.accessToken')
@@ -139,6 +128,10 @@ export default function Page() {
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
+              <button className="ghost-button service-nav-button" type="button" onClick={() => router.push('/service')}>
+                <BookOpen size={18} aria-hidden="true" />
+                서비스 소개
+              </button>
               <button className="soft-button profile-button" type="button" aria-label="마이페이지" onClick={handleOpenMyPage}>
                 <UserRound size={18} aria-hidden="true" />
                 마이페이지
@@ -150,7 +143,10 @@ export default function Page() {
             </div>
           ) : (
             <div className="nav-actions">
-              <SettingsButton onClick={() => setSettingsOpen(true)} />
+              <button className="ghost-button service-nav-button" type="button" onClick={() => router.push('/service')}>
+                <BookOpen size={18} aria-hidden="true" />
+                서비스 소개
+              </button>
               <button className="ghost-button mobile-login-button" type="button" onClick={() => setAuthMode('login')}>
                 로그인
               </button>
@@ -234,19 +230,6 @@ export default function Page() {
           }}
         />
       )}
-      {settingsOpen && (
-        <SettingsModal
-          notificationEnabled={notificationEnabled}
-          themeTone={themeTone}
-          onClose={() => setSettingsOpen(false)}
-          onNotificationChange={setNotificationEnabled}
-          onThemeChange={handleThemeChange}
-          onOpenAccountGuide={() => setAccountGuideOpen(true)}
-          onOpenServiceGuide={() => setServiceGuideOpen(true)}
-        />
-      )}
-      {accountGuideOpen && <AccountGuideModal onClose={() => setAccountGuideOpen(false)} />}
-      {serviceGuideOpen && <ServiceGuideModal onClose={() => setServiceGuideOpen(false)} />}
       <nav className="mobile-bottom-nav" aria-label="모바일 주요 메뉴">
         <button className="mobile-tab-button is-active" type="button" aria-current="page">
           <Home size={18} aria-hidden="true" />
@@ -269,14 +252,6 @@ export default function Page() {
   )
 }
 
-function SettingsButton({ onClick }: { onClick: () => void }) {
-  return (
-    <button className="settings-button" type="button" aria-label="설정 열기" onClick={onClick}>
-      <Settings size={19} aria-hidden="true" />
-    </button>
-  )
-}
-
 function StatusNoticeModal({ notice, onClose }: { notice: AuthNotice; onClose: () => void }) {
   return (
     <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
@@ -296,168 +271,6 @@ function StatusNoticeModal({ notice, onClose }: { notice: AuthNotice; onClose: (
         <p className="eyebrow">{notice.eyebrow}</p>
         <h2 id="status-notice-title">{notice.title}</h2>
         <p className="modal-description">{notice.description}</p>
-        <div className="modal-actions">
-          <button className="primary-button" type="button" onClick={onClose}>
-            확인
-          </button>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function SettingsModal({
-  notificationEnabled,
-  themeTone,
-  onClose,
-  onNotificationChange,
-  onThemeChange,
-  onOpenAccountGuide,
-  onOpenServiceGuide,
-}: {
-  notificationEnabled: boolean
-  themeTone: ThemeTone
-  onClose: () => void
-  onNotificationChange: (enabled: boolean) => void
-  onThemeChange: (theme: ThemeTone) => void
-  onOpenAccountGuide: () => void
-  onOpenServiceGuide: () => void
-}) {
-  const themes: Array<{ value: ThemeTone; label: string; description: string }> = [
-    { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
-    { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
-    { value: 'wood', label: '우드빛', description: '내추럴 우드와 아이보리 톤' },
-  ]
-
-  return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section
-        className="auth-modal settings-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="settings-modal-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <button className="icon-button" type="button" aria-label="설정 닫기" onClick={onClose}>
-          <X size={20} aria-hidden="true" />
-        </button>
-        <p className="eyebrow">내 공간 설정</p>
-        <h2 id="settings-modal-title">설정</h2>
-        <p className="modal-description">나에게 편안한 방식으로 알림과 화면 분위기를 조정합니다.</p>
-
-        <div className="settings-list">
-          <div className="settings-row">
-            <div className="settings-control-text">
-              <strong>알림 설정</strong>
-              <span>오늘의 마음 체크 알림을 받을지 선택합니다.</span>
-            </div>
-            <button
-              className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
-              type="button"
-              role="switch"
-              aria-checked={notificationEnabled}
-              onClick={() => onNotificationChange(!notificationEnabled)}
-            >
-              <span />
-            </button>
-          </div>
-
-          <div className="settings-group">
-            <div className="settings-control-text">
-              <strong>화면 색상</strong>
-              <span>노을빛, 크림빛, 우드빛 중 나에게 편안한 화면 분위기를 선택합니다.</span>
-            </div>
-            <div className="theme-options">
-              {themes.map((theme) => (
-                <button
-                  className={`theme-option theme-option-${theme.value} ${themeTone === theme.value ? 'is-selected' : ''}`}
-                  type="button"
-                  key={theme.value}
-                  aria-pressed={themeTone === theme.value}
-                  onClick={() => onThemeChange(theme.value)}
-                >
-                  <span className="theme-swatch" aria-hidden="true" />
-                  <span>
-                    <strong>{theme.label}</strong>
-                    <small>{theme.description}</small>
-                  </span>
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <button className="settings-action" type="button" onClick={onOpenAccountGuide}>
-            <strong>계정</strong>
-            <span>회원 정보 수정과 탈퇴 프로세스를 확인합니다.</span>
-          </button>
-
-          <button className="settings-action" type="button" onClick={onOpenServiceGuide}>
-            <strong>서비스 안내</strong>
-            <span>Haru Mind가 제공하는 도움의 범위를 확인합니다.</span>
-          </button>
-        </div>
-      </section>
-    </div>
-  )
-}
-
-function AccountGuideModal({ onClose }: { onClose: () => void }) {
-  return (
-    <GuideModal title="계정 관리 안내" eyebrow="계정" onClose={onClose}>
-      <p>회원 정보 수정과 탈퇴는 안전한 본인 확인 과정을 거쳐 제공될 예정입니다.</p>
-      <div className="account-action-grid">
-        <button className="settings-action" type="button">
-          <strong>회원 정보 수정</strong>
-          <span>이름, 이메일, 전화번호를 수정하는 화면으로 연결됩니다.</span>
-        </button>
-        <button className="settings-action danger" type="button">
-          <strong>회원 탈퇴</strong>
-          <span>데이터 보관 안내와 비밀번호 재확인 후 탈퇴를 진행합니다.</span>
-        </button>
-      </div>
-    </GuideModal>
-  )
-}
-
-function ServiceGuideModal({ onClose }: { onClose: () => void }) {
-  return (
-    <GuideModal title="서비스 안내" eyebrow="안내" onClose={onClose}>
-      <p>Haru Mind는 진단이나 치료를 대신하지 않고, 일상적인 마음 기록과 자기 돌봄을 돕는 서비스입니다.</p>
-      <ul className="guide-list">
-        <li>AI 대화는 감정 정리를 돕는 보조 도구입니다.</li>
-        <li>위기 상황이나 치료가 필요한 경우 전문 기관의 도움을 받아야 합니다.</li>
-        <li>알림과 기록은 사용자가 스스로를 돌볼 수 있게 돕는 방향으로 제공됩니다.</li>
-      </ul>
-    </GuideModal>
-  )
-}
-
-function GuideModal({
-  title,
-  eyebrow,
-  children,
-  onClose,
-}: {
-  title: string
-  eyebrow: string
-  children: ReactNode
-  onClose: () => void
-}) {
-  return (
-    <div className="modal-backdrop stacked" role="presentation" onMouseDown={onClose}>
-      <section
-        className="auth-modal guide-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="guide-modal-title"
-        onMouseDown={(event) => event.stopPropagation()}
-      >
-        <button className="icon-button" type="button" aria-label="안내 닫기" onClick={onClose}>
-          <X size={20} aria-hidden="true" />
-        </button>
-        <p className="eyebrow">{eyebrow}</p>
-        <h2 id="guide-modal-title">{title}</h2>
-        <div className="guide-content">{children}</div>
         <div className="modal-actions">
           <button className="primary-button" type="button" onClick={onClose}>
             확인
