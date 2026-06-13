@@ -36,6 +36,9 @@ import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHEC
 import type { CheckInOption, CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
+type ThemeTone = 'sunset' | 'cream' | 'wood'
+
+const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 export default function AiChatPage() {
   const router = useRouter()
@@ -60,8 +63,17 @@ export default function AiChatPage() {
   const pendingCheckInTemplateRef = useRef<CheckInTemplateDefinition | null | undefined>(undefined)
   const pendingCheckInSelectorRef = useRef<boolean | undefined>(undefined)
   const [isCheckInOnlyStart, setIsCheckInOnlyStart] = useState(false)
+  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
 
   useEffect(() => {
+    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
+    if (savedThemeTone === 'rose') {
+      setThemeTone('wood')
+      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
+    } else if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
+      setThemeTone(savedThemeTone)
+    }
+
     const readPendingCheckInTemplate = () => {
       if (pendingCheckInTemplateRef.current !== undefined) {
         return pendingCheckInTemplateRef.current
@@ -279,7 +291,7 @@ export default function AiChatPage() {
   const isConversationBusy = isSending || isAssistantTyping
 
   return (
-    <main className="chat-page-shell" suppressHydrationWarning>
+    <main className="chat-page-shell" data-theme-tone={themeTone} suppressHydrationWarning>
       <section className="chat-layout" aria-labelledby="chat-page-title">
         <header className="chat-header">
           <button className="soft-button" type="button" onClick={() => router.push('/')}>

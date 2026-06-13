@@ -11,6 +11,7 @@ import {
   FileText,
   HeartHandshake,
   Home,
+  LogOut,
   Mail,
   MessageCircle,
   Palette,
@@ -129,6 +130,12 @@ export default function MyPage() {
     const nextValue = !notificationEnabled
     setNotificationEnabled(nextValue)
     localStorage.setItem(NOTIFICATION_STORAGE_KEY, nextValue ? '1' : '0')
+  }
+
+  const handleLogout = () => {
+    localStorage.removeItem('myMentalCare.accessToken')
+    localStorage.removeItem('myMentalCare.refreshToken')
+    router.push('/')
   }
 
   const handleHistoryAction = (href?: string) => {
@@ -378,15 +385,19 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'security') && (
+          {activeSection === 'security' && (
             <section className="mypage-panel" aria-labelledby="security-section-title">
               <PanelHeader
                 eyebrow="계정"
-                title="회원 탈퇴"
-                description="탈퇴는 데이터 보관 안내와 본인 확인을 거쳐야 하므로 후속 API 연결이 필요합니다."
+                title="로그아웃 및 계정 관리"
+                description="로그아웃은 여기에서 진행하고, 회원 탈퇴는 데이터 보관 안내와 본인 확인을 거친 뒤 진행합니다."
                 icon={ShieldCheck}
               />
               <div className="mypage-security-actions">
+                <button className="soft-button" type="button" onClick={handleLogout}>
+                  <LogOut size={17} aria-hidden="true" />
+                  로그아웃
+                </button>
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('withdraw')}>
                   <Trash2 size={17} aria-hidden="true" />
                   회원 탈퇴 안내
