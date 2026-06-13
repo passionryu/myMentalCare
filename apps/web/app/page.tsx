@@ -128,7 +128,7 @@ export default function Page() {
           </div>
           {isAuthenticated ? (
             <div className="nav-actions">
-              <button className="ghost-button service-nav-button" type="button" onClick={() => router.push('/service')}>
+              <button className="ghost-button nav-outline-button service-nav-button" type="button" onClick={() => router.push('/service')}>
                 <BookOpen size={18} aria-hidden="true" />
                 서비스 소개
               </button>
@@ -136,18 +136,18 @@ export default function Page() {
                 <UserRound size={18} aria-hidden="true" />
                 마이페이지
               </button>
-              <button className="ghost-button logout-button" type="button" onClick={handleLogout}>
+              <button className="ghost-button nav-outline-button logout-button" type="button" onClick={handleLogout}>
                 <LogOut size={18} aria-hidden="true" />
                 로그아웃
               </button>
             </div>
           ) : (
             <div className="nav-actions">
-              <button className="ghost-button service-nav-button" type="button" onClick={() => router.push('/service')}>
+              <button className="ghost-button nav-outline-button service-nav-button" type="button" onClick={() => router.push('/service')}>
                 <BookOpen size={18} aria-hidden="true" />
                 서비스 소개
               </button>
-              <button className="ghost-button mobile-login-button" type="button" onClick={() => setAuthMode('login')}>
+              <button className="ghost-button nav-outline-button mobile-login-button" type="button" onClick={() => setAuthMode('login')}>
                 로그인
               </button>
               <button className="primary-button" type="button" onClick={() => setAuthMode('signup')}>

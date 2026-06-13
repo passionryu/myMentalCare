@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ArrowRight, BookOpen, HeartHandshake, Home, MessageCircle, ShieldCheck, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, HeartHandshake, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -132,7 +132,7 @@ export default function ServicePage() {
           <span>Haru Mind</span>
         </div>
         <div className="nav-actions">
-          <button className="ghost-button" type="button" onClick={() => router.push('/')}>
+          <button className="ghost-button nav-outline-button" type="button" onClick={() => router.push('/')}>
             <ArrowLeft size={18} aria-hidden="true" />
             홈으로
           </button>
@@ -188,10 +188,12 @@ export default function ServicePage() {
             <span>불안 낮추기</span>
             <span>잠들기 전 대화</span>
           </div>
-          <button className="primary-button" type="button" onClick={handleOpenAiChat}>
-            AI와 대화하기
-            <ArrowRight size={18} aria-hidden="true" />
-          </button>
+          <div className="decorative-chat-input" aria-hidden="true">
+            <span>지금 마음에 떠오르는 말을 적어보세요.</span>
+            <span className="decorative-send-button">
+              <SendHorizontal size={18} aria-hidden="true" />
+            </span>
+          </div>
         </div>
       </section>
 
