@@ -835,6 +835,8 @@ h3 {
 
 .example-card {
   display: grid;
+  grid-template-rows: auto auto auto;
+  align-content: start;
   gap: 14px;
   border-radius: 28px;
   padding: 28px;
@@ -970,8 +972,9 @@ h3 {
   display: grid;
   align-content: start;
   gap: 14px;
-  min-height: 258px;
+  min-height: 0;
   overflow: hidden;
+  padding-bottom: 10px;
 }
 
 .example-bubble-window .preview-bubble {
@@ -3334,10 +3337,6 @@ h3 {
 
   .preview-bubble {
     max-width: calc(100% - 28px);
-  }
-
-  .example-bubble-window {
-    min-height: 336px;
   }
 
   .theme-options {
