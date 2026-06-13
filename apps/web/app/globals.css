@@ -154,9 +154,10 @@ button {
 }
 
 .service-brand-intro {
-  grid-template-columns: minmax(0, 1fr) minmax(260px, 360px);
+  grid-template-columns: minmax(0, 1fr) minmax(260px, 340px);
   align-items: center;
   gap: 28px;
+  min-height: 300px;
 }
 
 .service-brand-copy {
@@ -170,8 +171,20 @@ button {
   line-height: 0.96;
 }
 
-.service-hero-note {
+.service-mascot-card {
+  display: grid;
+  justify-items: center;
+  gap: 12px;
   justify-self: end;
+}
+
+.service-mascot-card img {
+  width: min(160px, 70%);
+  height: auto;
+  filter: drop-shadow(0 18px 30px rgba(53, 84, 61, 0.14));
+}
+
+.service-hero-note {
   max-width: 320px;
   border: 1px solid var(--theme-border);
   border-radius: 24px 24px 24px 8px;
@@ -548,8 +561,7 @@ h3 {
   align-content: center;
 }
 
-.preview-bubble,
-.story-bubble {
+.preview-bubble {
   width: fit-content;
   max-width: 86%;
   border-radius: 22px;
@@ -558,16 +570,14 @@ h3 {
   box-shadow: 0 12px 30px rgba(56, 43, 28, 0.08);
 }
 
-.preview-bubble.is-ai,
-.story-bubble.ai {
+.preview-bubble.is-ai {
   justify-self: start;
   background: var(--theme-primary-soft);
   color: var(--foreground);
   border-top-left-radius: 8px;
 }
 
-.preview-bubble.is-user,
-.story-bubble.user {
+.preview-bubble.is-user {
   justify-self: end;
   background: var(--theme-primary);
   color: #fffdf7;
@@ -634,24 +644,6 @@ h3 {
   margin: 0 auto;
 }
 
-.story-rail {
-  position: relative;
-  display: grid;
-  gap: 18px;
-  padding: 18px 0;
-}
-
-.story-rail::before {
-  content: '';
-  position: absolute;
-  top: 12px;
-  bottom: 12px;
-  left: 50%;
-  z-index: 0;
-  width: 1px;
-  background: linear-gradient(180deg, transparent, rgba(83, 111, 90, 0.12) 12%, rgba(83, 111, 90, 0.34) 50%, rgba(166, 110, 74, 0.18) 82%, transparent);
-}
-
 .flow-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -692,49 +684,20 @@ h3 {
   line-height: 1.65;
 }
 
-.story-bubble {
-  position: relative;
-  z-index: 2;
-  opacity: 0;
-  animation-duration: 560ms;
-  animation-fill-mode: both;
-  animation-timing-function: ease-out;
+.flow-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 6px;
 }
 
-.story-bubble.user {
-  transform: translateX(28px);
-}
-
-.story-bubble.ai {
-  transform: translateX(-28px);
-}
-
-.story-rail.is-visible .story-bubble.user {
-  animation-name: slideFromRight;
-}
-
-.story-rail.is-visible .story-bubble.ai {
-  animation-name: slideFromLeft;
-}
-
-.story-bubble:nth-child(2) {
-  animation-delay: 100ms;
-}
-
-.story-bubble:nth-child(3) {
-  animation-delay: 200ms;
-}
-
-.story-bubble:nth-child(4) {
-  animation-delay: 300ms;
-}
-
-.story-bubble:nth-child(5) {
-  animation-delay: 400ms;
-}
-
-.story-bubble:nth-child(6) {
-  animation-delay: 500ms;
+.flow-card-tags span {
+  border-radius: 999px;
+  background: var(--theme-soft-surface);
+  color: var(--theme-primary);
+  padding: 6px 9px;
+  font-size: 12px;
+  font-weight: 900;
 }
 
 .example-card {
@@ -3103,28 +3066,8 @@ h3 {
     max-width: calc(100% - 28px);
   }
 
-  .story-bubble {
-    max-width: calc(50% - 16px);
-  }
-
-  .story-bubble.user {
-    transform: translateX(12px);
-  }
-
-  .story-bubble.ai {
-    transform: translateX(-12px);
-  }
-
   .example-bubble-window {
     min-height: 336px;
-  }
-
-  .story-bubble.user {
-    justify-self: end;
-  }
-
-  .story-bubble.ai {
-    justify-self: start;
   }
 
   .theme-options {
@@ -3158,6 +3101,15 @@ h3 {
 
   .service-intro-section .service-hero-logo {
     font-size: clamp(44px, 16vw, 64px);
+  }
+
+  .service-mascot-card {
+    justify-self: stretch;
+    justify-items: start;
+  }
+
+  .service-mascot-card img {
+    width: 96px;
   }
 
   .service-hero-note {
@@ -3290,7 +3242,6 @@ h3 {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .story-bubble,
   .example-bubble-window .preview-bubble,
   .chat-timeline-item,
   .chat-segment-divider,
@@ -3936,29 +3887,5 @@ h3 {
   .mypage-login-actions button,
   .mypage-dialog-form .modal-actions button {
     width: 100%;
-  }
-}
-
-@media (max-width: 520px) {
-  .story-rail {
-    gap: 14px;
-  }
-
-  .story-rail::before {
-    display: none;
-  }
-
-  .story-bubble {
-    max-width: calc(100% - 24px);
-  }
-
-  .story-bubble.user {
-    justify-self: end;
-    transform: translateX(10px);
-  }
-
-  .story-bubble.ai {
-    justify-self: start;
-    transform: translateX(-10px);
   }
 }

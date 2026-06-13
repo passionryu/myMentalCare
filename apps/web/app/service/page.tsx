@@ -2,21 +2,12 @@
 
 import { ArrowLeft, ArrowRight, BookOpen, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useState } from 'react'
 
 type ThemeTone = 'sunset' | 'cream' | 'wood'
 
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
-
-const storyMessages = [
-  { speaker: 'user', message: '머릿속이 계속 복잡해서 어디서부터 말해야 할지 모르겠어요.' },
-  { speaker: 'ai', message: '가장 크게 남아 있는 한 문장만 골라볼게요. 지금 제일 먼저 떠오르는 건 무엇인가요?' },
-  { speaker: 'user', message: '해야 할 일은 많은데 계속 미루고 있어요.' },
-  { speaker: 'ai', message: '해야 하는 일과 지금 부담스러운 감정을 나눠서 정리해볼 수 있어요.' },
-  { speaker: 'user', message: '그렇게 나누면 조금 덜 막막할 것 같아요.' },
-  { speaker: 'ai', message: '좋아요. 오늘 꼭 필요한 일 하나와 나중으로 미뤄도 되는 일을 구분해볼게요.' },
-] as const
 
 const exampleConversationMessages = [
   { id: 1, speaker: 'ai', message: '오늘은 어떤 이야기를 먼저 꺼내보고 싶나요?' },
@@ -38,17 +29,30 @@ const safetyGuides = [
 ]
 
 const flowSteps = [
-  { step: '1', title: '체크인으로 시작', description: '지금 상태를 가볍게 고르고 대화의 출발점을 만듭니다.' },
-  { step: '2', title: '오늘의 대화 이어가기', description: '마음이는 오늘의 흐름 안에서 생각과 감정을 차분히 정리합니다.' },
-  { step: '3', title: '마음 리포트로 남기기', description: '대화가 충분하면 확인된 내용을 바탕으로 오늘의 기록을 남깁니다.' },
+  {
+    step: '1',
+    title: '체크인으로 시작',
+    description: '지금 상태를 가볍게 고르고 대화의 출발점을 만듭니다.',
+    meta: ['기본 감정형', '대화 시작형', '컨디션', '하루 회고'],
+  },
+  {
+    step: '2',
+    title: '오늘의 대화 이어가기',
+    description: '마음이는 오늘의 흐름 안에서 생각과 감정을 차분히 정리합니다.',
+    meta: ['오늘의 대화', '새 주제', '마음이 답변'],
+  },
+  {
+    step: '3',
+    title: '마음 리포트로 남기기',
+    description: '대화가 충분하면 확인된 내용을 바탕으로 오늘의 기록을 남깁니다.',
+    meta: ['대화 요약', '마음 흐름', '추천 노래'],
+  },
 ] as const
 
 export default function ServicePage() {
   const router = useRouter()
-  const storyRailRef = useRef<HTMLDivElement | null>(null)
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
-  const [storyInView, setStoryInView] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
 
@@ -73,27 +77,6 @@ export default function ServicePage() {
 
     return () => motionQuery.removeEventListener('change', syncMotionPreference)
   }, [])
-
-  useEffect(() => {
-    const target = storyRailRef.current
-    if (!target || reducedMotion) {
-      setStoryInView(true)
-      return
-    }
-
-    const observer = new IntersectionObserver(
-      ([entry]) => {
-        if (entry.isIntersecting) {
-          setStoryInView(true)
-          observer.disconnect()
-        }
-      },
-      { rootMargin: '0px 0px -16% 0px', threshold: 0.24 },
-    )
-
-    observer.observe(target)
-    return () => observer.disconnect()
-  }, [reducedMotion])
 
   useEffect(() => {
     if (reducedMotion) {
@@ -152,8 +135,11 @@ export default function ServicePage() {
           <h1 className="hero-brand-logo service-hero-logo" id="service-intro-heading">Haru Mind</h1>
           <p>체크인으로 지금 상태를 가볍게 고르고, 마음이는 오늘의 대화를 이어가며 생각과 감정을 정리해줍니다.</p>
         </div>
-        <div className="service-hero-note" aria-hidden="true">
-          지금 떠오르는 말부터 시작해도 괜찮아요.
+        <div className="service-mascot-card" aria-hidden="true">
+          <div className="service-hero-note">
+            지금 떠오르는 말부터 시작해도 괜찮아요.
+          </div>
+          <img src="/maeumi-avatar.svg" alt="" />
         </div>
       </section>
 
@@ -169,14 +155,12 @@ export default function ServicePage() {
               <span className="flow-card-index">{flow.step}</span>
               <strong>{flow.title}</strong>
               <p>{flow.description}</p>
+              <div className="flow-card-tags" aria-hidden="true">
+                {flow.meta.map((item) => (
+                  <span key={item}>{item}</span>
+                ))}
+              </div>
             </article>
-          ))}
-        </div>
-        <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
-          {storyMessages.map((story) => (
-            <div className={`story-bubble ${story.speaker}`} key={story.message}>
-              "{story.message}"
-            </div>
           ))}
         </div>
       </section>
