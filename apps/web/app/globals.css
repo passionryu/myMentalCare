@@ -2588,6 +2588,10 @@ h3 {
     backdrop-filter: blur(16px);
   }
 
+  .home-page-shell .top-nav {
+    display: none;
+  }
+
   .cta-band {
     align-items: flex-start;
     flex-direction: column;

@@ -8,7 +8,6 @@ import {
   EyeOff,
   HeartHandshake,
   Home,
-  LogOut,
   MessageCircle,
   Sparkles,
   UserRound,
@@ -58,20 +57,6 @@ export default function Page() {
     }
   }, [])
 
-  const handleLogout = () => {
-    localStorage.removeItem('myMentalCare.accessToken')
-    localStorage.removeItem('myMentalCare.refreshToken')
-    setIsAuthenticated(false)
-    setAuthMode(null)
-    setProfile(null)
-    setProfileMessage('')
-    setAuthNotice({
-      eyebrow: '로그아웃 완료',
-      title: '로그아웃되었습니다',
-      description: '다시 이용하려면 상단의 로그인 버튼을 눌러주세요.',
-    })
-  }
-
   const handleOpenProfile = async () => {
     const accessToken = localStorage.getItem('myMentalCare.accessToken')
     if (!accessToken) {
@@ -117,7 +102,7 @@ export default function Page() {
   }
 
   return (
-    <main className="page-shell" data-theme-tone={themeTone}>
+    <main className="page-shell home-page-shell" data-theme-tone={themeTone}>
       <section className="hero-section" aria-labelledby="main-heading">
         <nav className="top-nav" aria-label="주요 메뉴">
           <div className="brand-mark">
@@ -135,10 +120,6 @@ export default function Page() {
               <button className="soft-button profile-button" type="button" aria-label="마이페이지" onClick={handleOpenMyPage}>
                 <UserRound size={18} aria-hidden="true" />
                 마이페이지
-              </button>
-              <button className="ghost-button nav-outline-button logout-button" type="button" onClick={handleLogout}>
-                <LogOut size={18} aria-hidden="true" />
-                로그아웃
               </button>
             </div>
           ) : (
