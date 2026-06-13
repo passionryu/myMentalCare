@@ -854,8 +854,21 @@ h3 {
 }
 
 .settings-modal,
-.guide-modal {
+.guide-modal,
+.status-notice-modal {
   width: min(620px, 100%);
+}
+
+.status-notice-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 54px;
+  height: 54px;
+  margin-bottom: 14px;
+  border-radius: 20px;
+  background: var(--theme-primary-soft);
+  color: var(--theme-primary);
 }
 
 .modal-description {

@@ -25,6 +25,11 @@ import type { CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type AuthMode = 'signup' | 'login'
 type ThemeTone = 'sunset' | 'cream' | 'wood'
+type AuthNotice = {
+  eyebrow: string
+  title: string
+  description: string
+}
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 const trustMessages = ['개인 대화 공간', '대화 흐름 저장 가능', '언제든 종료 가능']
@@ -69,6 +74,7 @@ export default function Page() {
   const [storyInView, setStoryInView] = useState(false)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
+  const [authNotice, setAuthNotice] = useState<AuthNotice | null>(null)
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
@@ -138,6 +144,11 @@ export default function Page() {
     setAuthMode(null)
     setProfile(null)
     setProfileMessage('')
+    setAuthNotice({
+      eyebrow: '로그아웃 완료',
+      title: '로그아웃되었습니다',
+      description: '다시 이용하려면 상단의 로그인 버튼을 눌러주세요.',
+    })
   }
 
   const handleOpenProfile = async () => {
@@ -354,10 +365,16 @@ export default function Page() {
           onLoginSuccess={() => {
             setIsAuthenticated(true)
             setAuthMode(null)
+            setAuthNotice({
+              eyebrow: '로그인 완료',
+              title: '로그인되었습니다',
+              description: '이제 AI 마음대화와 마이페이지를 이용할 수 있습니다.',
+            })
           }}
           onModeChange={setAuthMode}
         />
       )}
+      {authNotice && <StatusNoticeModal notice={authNotice} onClose={() => setAuthNotice(null)} />}
       {(profile || profileMessage) && (
         <ProfileModal
           profile={profile}
@@ -408,6 +425,35 @@ function SettingsButton({ onClick }: { onClick: () => void }) {
     <button className="settings-button" type="button" aria-label="설정 열기" onClick={onClick}>
       <Settings size={19} aria-hidden="true" />
     </button>
+  )
+}
+
+function StatusNoticeModal({ notice, onClose }: { notice: AuthNotice; onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal status-notice-modal"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="status-notice-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="안내 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <span className="status-notice-icon" aria-hidden="true">
+          <CheckCircle2 size={24} />
+        </span>
+        <p className="eyebrow">{notice.eyebrow}</p>
+        <h2 id="status-notice-title">{notice.title}</h2>
+        <p className="modal-description">{notice.description}</p>
+        <div className="modal-actions">
+          <button className="primary-button" type="button" onClick={onClose}>
+            확인
+          </button>
+        </div>
+      </section>
+    </div>
   )
 }
 
