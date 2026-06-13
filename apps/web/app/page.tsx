@@ -30,7 +30,7 @@ type AuthNotice = {
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
 
-const trustMessages = ['개인 대화 공간', '대화 흐름 저장 가능', '언제든 종료 가능']
+const trustMessages = ['개인 대화 공간', '대화 이력 저장', '내 마음 AI 레포트']
 
 export default function Page() {
   const router = useRouter()
@@ -160,10 +160,8 @@ export default function Page() {
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">AI 마음대화 · 따뜻한 개인 멘탈 케어</p>
-            <h1 id="main-heading">말하기 어려운 마음부터 천천히 시작합니다</h1>
-            <p className="hero-description">
-              대화는 진단이나 치료가 아니라, 내 생각을 안전하게 정리하는 개인 공간입니다. 필요한 만큼 짧게 말해도 됩니다.
-            </p>
+            <h1 id="main-heading">Haru Mind</h1>
+            <p className="hero-description">조언보다는 마음의 정리를 먼저 돕습니다.</p>
             <ul className="trust-list" aria-label="AI 마음대화 신뢰 안내">
               {trustMessages.map((message) => (
                 <li key={message}>
@@ -187,8 +185,8 @@ export default function Page() {
       <section className="prompt-section" aria-labelledby="prompt-heading">
         <div className="section-heading">
           <p className="eyebrow">체크인으로 시작하기</p>
-          <h2 id="prompt-heading">지금 필요한 방식으로 바로 시작하세요</h2>
-          <p>기존 체크인 모달로 이어져 짧게 상태를 고른 뒤, 같은 흐름에서 AI 마음대화를 시작합니다.</p>
+          <h2 id="prompt-heading">Check In 방식으로 시작하세요!</h2>
+          <p>체크인 기능으로 간단히 마음 상태를 고른 뒤, AI와 대화를 시작합니다.</p>
         </div>
         <div className="prompt-grid">
           {CHECK_IN_TEMPLATES.map((template) => (
