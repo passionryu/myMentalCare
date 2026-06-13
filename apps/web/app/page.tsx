@@ -218,7 +218,7 @@ export default function Page() {
           ) : (
             <div className="nav-actions">
               <SettingsButton onClick={() => setSettingsOpen(true)} />
-              <button className="ghost-button" type="button" onClick={() => setAuthMode('login')}>
+              <button className="ghost-button mobile-login-button" type="button" onClick={() => setAuthMode('login')}>
                 로그인
               </button>
               <button className="primary-button" type="button" onClick={() => setAuthMode('signup')}>

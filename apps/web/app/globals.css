@@ -2347,6 +2347,18 @@ h3 {
     display: none;
   }
 
+  .top-nav .mobile-login-button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 44px;
+    border-radius: 999px;
+    background: var(--theme-primary);
+    color: #fffdf7;
+    padding: 0 16px;
+    box-shadow: none;
+  }
+
   .settings-shell {
     width: auto;
   }
