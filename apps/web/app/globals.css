@@ -2603,7 +2603,7 @@ h3 {
   }
 
   .home-page-shell .hero-section {
-    padding-top: clamp(40px, 12vh, 82px);
+    padding-top: clamp(24px, 6vh, 52px);
   }
 
   .cta-band {
