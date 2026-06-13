@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ArrowRight, BookOpen, HeartHandshake, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
+import { ArrowLeft, ArrowRight, BookOpen, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useRef, useState } from 'react'
 
@@ -36,6 +36,12 @@ const safetyGuides = [
   '위급 상황 알림이나 의료 대응을 대신하지 않습니다.',
   '대화는 언제든 멈출 수 있습니다.',
 ]
+
+const flowSteps = [
+  { step: '1', title: '체크인으로 시작', description: '지금 상태를 가볍게 고르고 대화의 출발점을 만듭니다.' },
+  { step: '2', title: '오늘의 대화 이어가기', description: '마음이는 오늘의 흐름 안에서 생각과 감정을 차분히 정리합니다.' },
+  { step: '3', title: '마음 리포트로 남기기', description: '대화가 충분하면 확인된 내용을 바탕으로 오늘의 기록을 남깁니다.' },
+] as const
 
 export default function ServicePage() {
   const router = useRouter()
@@ -125,10 +131,7 @@ export default function ServicePage() {
   return (
     <main className="page-shell service-page-shell" data-theme-tone={themeTone}>
       <nav className="top-nav service-top-nav" aria-label="서비스 소개 메뉴">
-        <div className="brand-mark">
-          <span className="brand-icon">
-            <HeartHandshake size={20} aria-hidden="true" />
-          </span>
+        <div className="brand-mark service-text-brand">
           <span>Haru Mind</span>
         </div>
         <div className="nav-actions">
@@ -136,24 +139,38 @@ export default function ServicePage() {
             <ArrowLeft size={18} aria-hidden="true" />
             홈으로
           </button>
-          <button className="primary-button" type="button" onClick={handleOpenAiChat}>
-            대화 시작
-            <ArrowRight size={18} aria-hidden="true" />
+          <button className="ghost-button nav-outline-button" type="button" onClick={handleOpenMyPage}>
+            <UserRound size={18} aria-hidden="true" />
+            마이페이지
           </button>
         </div>
       </nav>
 
-      <section className="service-intro-section" aria-labelledby="service-intro-heading">
-        <p className="eyebrow">서비스 소개</p>
-        <h1 id="service-intro-heading">Haru Mind가 마음을 정리하는 방식</h1>
-        <p>메인에서는 바로 시작하고, 이곳에서는 서비스가 어떤 범위와 방식으로 도움을 주는지 확인합니다.</p>
+      <section className="service-intro-section service-brand-intro" aria-labelledby="service-intro-heading">
+        <div className="service-brand-copy">
+          <p className="eyebrow">서비스 소개</p>
+          <h1 className="hero-brand-logo service-hero-logo" id="service-intro-heading">Haru Mind</h1>
+          <p>체크인으로 지금 상태를 가볍게 고르고, 마음이는 오늘의 대화를 이어가며 생각과 감정을 정리해줍니다.</p>
+        </div>
+        <div className="service-hero-note" aria-hidden="true">
+          지금 떠오르는 말부터 시작해도 괜찮아요.
+        </div>
       </section>
 
       <section className="dialogue-section" aria-labelledby="dialogue-heading">
         <div className="section-heading">
           <p className="eyebrow">서비스 설명</p>
-          <h2 id="dialogue-heading">마음속 문장이 천천히 선명해집니다</h2>
-          <p>복잡한 감정을 기능 카드로 나열하지 않고, 실제 대화가 정리로 바뀌는 흐름을 보여줍니다.</p>
+          <h2 id="dialogue-heading">오늘 마음이 정리되는 흐름</h2>
+          <p>체크인에서 시작해 오늘의 대화를 이어가고, 충분한 대화는 마음 리포트로 남깁니다.</p>
+        </div>
+        <div className="flow-grid" aria-label="마음 정리 흐름">
+          {flowSteps.map((flow) => (
+            <article className="flow-card" key={flow.step}>
+              <span className="flow-card-index">{flow.step}</span>
+              <strong>{flow.title}</strong>
+              <p>{flow.description}</p>
+            </article>
+          ))}
         </div>
         <div className={`story-rail ${storyInView ? 'is-visible' : ''}`} ref={storyRailRef}>
           {storyMessages.map((story) => (
@@ -167,7 +184,7 @@ export default function ServicePage() {
       <section className="example-section" aria-labelledby="example-heading">
         <div className="section-heading">
           <p className="eyebrow">대화 예시</p>
-          <h2 id="example-heading">짧게 말해도 흐름을 잡아줍니다</h2>
+          <h2 id="example-heading">마음이와 함께 마음을 정리하세요</h2>
         </div>
         <div className="example-card">
           <div className="example-bubble-window" aria-label="AI 마음대화 예시">
@@ -215,7 +232,7 @@ export default function ServicePage() {
       <section className="cta-band" aria-labelledby="cta-heading">
         <div>
           <p className="eyebrow">지금 시작</p>
-          <h2 id="cta-heading">지금 한 문장으로 마음을 정리해보세요</h2>
+          <h2 id="cta-heading">마음이와 대화 시작하기</h2>
           <p>길게 설명하지 않아도 됩니다. 떠오르는 문장부터 시작하면 됩니다.</p>
         </div>
         <button className="primary-button large" type="button" onClick={handleOpenAiChat}>
