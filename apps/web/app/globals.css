@@ -2359,6 +2359,16 @@ h3 {
     box-shadow: none;
   }
 
+  .top-nav .logout-button {
+    display: inline-flex;
+    min-height: 44px;
+    border-radius: 999px;
+    background: var(--theme-primary);
+    color: #fffdf7;
+    padding: 0 16px;
+    box-shadow: none;
+  }
+
   .settings-shell {
     width: auto;
   }
