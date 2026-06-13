@@ -109,6 +109,41 @@ button {
   margin: 0 auto;
 }
 
+.service-top-nav,
+.service-intro-section {
+  width: min(1120px, 100%);
+  margin: 0 auto;
+}
+
+.service-page-shell {
+  display: grid;
+  gap: 20px;
+}
+
+.service-intro-section {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--theme-border);
+  border-radius: 28px;
+  background: var(--theme-panel);
+  padding: 34px;
+  box-shadow: 0 24px 70px rgba(56, 43, 28, 0.1);
+  backdrop-filter: blur(12px);
+}
+
+.service-intro-section h1 {
+  margin: 0;
+  font-size: clamp(38px, 6vw, 70px);
+}
+
+.service-intro-section p:last-child {
+  max-width: 760px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 18px;
+  line-height: 1.7;
+}
+
 .hero-section {
   min-height: min(760px, calc(100vh - 56px));
   display: flex;
@@ -2382,6 +2417,11 @@ h3 {
     box-shadow: none;
   }
 
+  .service-top-nav .ghost-button,
+  .service-top-nav .primary-button {
+    display: inline-flex;
+  }
+
   .settings-shell {
     width: auto;
   }
@@ -2482,6 +2522,11 @@ h3 {
   .example-section,
   .prompt-section {
     padding: 56px 0;
+  }
+
+  .service-intro-section {
+    border-radius: 22px;
+    padding: 24px;
   }
 
   .prompt-grid {
