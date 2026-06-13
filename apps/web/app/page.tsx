@@ -141,7 +141,7 @@ export default function Page() {
         <div className="hero-grid">
           <div className="hero-copy">
             <p className="eyebrow">AI 마음대화 · 따뜻한 개인 멘탈 케어</p>
-            <h1 id="main-heading">Haru Mind</h1>
+            <h1 className="hero-brand-logo" id="main-heading">Haru Mind</h1>
             <p className="hero-description">조언보다는 마음의 정리를 먼저 돕습니다.</p>
             <ul className="trust-list" aria-label="AI 마음대화 신뢰 안내">
               {trustMessages.map((message) => (
