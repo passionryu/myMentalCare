@@ -1,0 +1,52 @@
+<svg width="620" height="360" viewBox="0 0 620 360" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="620" height="360" rx="44" fill="url(#bg)"/>
+  <path d="M494 278C532 244 552 199 549 143" stroke="#D5E5D7" stroke-width="16" stroke-linecap="round"/>
+  <path d="M523 222C556 211 574 194 583 171C550 174 532 190 523 222Z" fill="#D5E5D7"/>
+  <path d="M531 168C561 151 573 131 574 105C544 115 530 135 531 168Z" fill="#D5E5D7"/>
+  <path d="M488 254C455 241 437 221 430 195C462 201 481 218 488 254Z" fill="#D5E5D7"/>
+  <path d="M482 202C451 190 435 171 431 144C462 151 479 170 482 202Z" fill="#D5E5D7"/>
+  <g filter="url(#bubbleShadow)">
+    <path d="M48 72C48 50.461 65.461 33 87 33H205C226.539 33 244 50.461 244 72V161C244 182.539 226.539 200 205 200H180L212 239L150 200H87C65.461 200 48 182.539 48 161V72Z" fill="#FFFDF7" stroke="#DCD6C9" stroke-width="3"/>
+    <text fill="#20241F" xml:space="preserve" style="white-space: pre" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="800" letter-spacing="0">
+      <tspan x="78" y="89">지금 떠오르는</tspan>
+      <tspan x="78" y="126">말부터 시작해도</tspan>
+      <tspan x="78" y="163">괜찮아요.</tspan>
+    </text>
+  </g>
+  <circle cx="377" cy="182" r="126" fill="#FFFFFF" fill-opacity="0.64"/>
+  <g filter="url(#mascotShadow)">
+    <path d="M366 84C318 84 279 121 279 171V260C279 295 307 323 342 323H422C457 323 485 295 485 260V171C485 121 446 84 398 84H366Z" fill="#BFD4C4" stroke="#2D4334" stroke-width="5"/>
+    <path d="M346 72C363 55 389 61 398 84C371 83 354 79 346 72Z" fill="#6F936F" stroke="#2D4334" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M395 61C407 36 434 45 430 70C426 94 399 90 395 61Z" fill="#6F936F" stroke="#2D4334" stroke-width="5" stroke-linejoin="round"/>
+    <path d="M393 84C399 59 401 39 401 24" stroke="#2D4334" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="382" cy="173" r="76" fill="#FFF8EC" stroke="#2D4334" stroke-width="5"/>
+    <circle cx="349" cy="173" r="8" fill="#20241F"/>
+    <circle cx="416" cy="173" r="8" fill="#20241F"/>
+    <path d="M363 201C374 211 391 211 402 201" stroke="#20241F" stroke-width="5" stroke-linecap="round"/>
+    <circle cx="323" cy="200" r="12" fill="#F5B6A7" fill-opacity="0.68"/>
+    <circle cx="442" cy="200" r="12" fill="#F5B6A7" fill-opacity="0.68"/>
+    <rect x="269" y="133" width="35" height="80" rx="17.5" fill="#8EB9F0" stroke="#385E91" stroke-width="5"/>
+    <rect x="462" y="133" width="35" height="80" rx="17.5" fill="#8EB9F0" stroke="#385E91" stroke-width="5"/>
+    <path d="M306 128C322 100 349 84 382 84C415 84 443 100 459 128" stroke="#2D4334" stroke-width="5" stroke-linecap="round"/>
+    <path d="M285 236C250 222 229 246 236 273C245 303 285 288 304 263" fill="#FFF8EC"/>
+    <path d="M285 236C250 222 229 246 236 273C245 303 285 288 304 263" stroke="#2D4334" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <path d="M270 243C268 260 276 273 291 281" stroke="#2D4334" stroke-width="5" stroke-linecap="round"/>
+    <path d="M468 255C493 258 505 280 494 301C482 323 450 312 438 288" fill="#FFF8EC"/>
+    <path d="M468 255C493 258 505 280 494 301C482 323 450 312 438 288" stroke="#2D4334" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="383" cy="266" r="31" fill="#FFF8EC"/>
+    <path d="M383 280C371 270 363 262 363 252C363 243 373 238 383 247C393 238 403 243 403 252C403 262 395 270 383 280Z" fill="#5F865F"/>
+  </g>
+  <defs>
+    <linearGradient id="bg" x1="22" y1="19" x2="592" y2="330" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFDF7"/>
+      <stop offset="0.52" stop-color="#FBF8EF"/>
+      <stop offset="1" stop-color="#EFF5EC"/>
+    </linearGradient>
+    <filter id="bubbleShadow" x="28" y="17" width="240" height="246" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="13" stdDeviation="12" flood-color="#382B1C" flood-opacity="0.12"/>
+    </filter>
+    <filter id="mascotShadow" x="215" y="12" width="308" height="331" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+      <feDropShadow dx="0" dy="18" stdDeviation="18" flood-color="#35543D" flood-opacity="0.16"/>
+    </filter>
+  </defs>
+</svg>
