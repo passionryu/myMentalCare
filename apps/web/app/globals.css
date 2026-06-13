@@ -2441,22 +2441,32 @@ h3 {
     flex: 0 0 auto;
   }
 
-  .story-rail::before {
-    left: 18px;
-  }
-
-  .story-bubble,
   .preview-bubble {
     max-width: calc(100% - 28px);
+  }
+
+  .story-bubble {
+    max-width: calc(50% - 16px);
+  }
+
+  .story-bubble.user {
+    transform: translateX(12px);
+  }
+
+  .story-bubble.ai {
+    transform: translateX(-12px);
   }
 
   .example-bubble-window {
     min-height: 336px;
   }
 
-  .story-bubble.user,
-  .story-bubble.ai {
+  .story-bubble.user {
     justify-self: end;
+  }
+
+  .story-bubble.ai {
+    justify-self: start;
   }
 
   .theme-options {
