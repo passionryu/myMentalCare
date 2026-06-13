@@ -1,6 +1,6 @@
 'use client'
 
-import { ArrowLeft, ArrowRight, BookOpen, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
+import { ArrowRight, BookOpen, ClipboardCheck, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 
@@ -113,117 +113,148 @@ export default function ServicePage() {
 
   return (
     <main className="page-shell service-page-shell" data-theme-tone={themeTone}>
-      <nav className="top-nav service-top-nav" aria-label="서비스 소개 메뉴">
-        <div className="brand-mark service-text-brand">
-          <span>Haru Mind</span>
-        </div>
-        <div className="nav-actions">
-          <button className="ghost-button nav-outline-button" type="button" onClick={() => router.push('/')}>
-            <ArrowLeft size={18} aria-hidden="true" />
-            홈으로
-          </button>
-          <button className="ghost-button nav-outline-button" type="button" onClick={handleOpenMyPage}>
-            <UserRound size={18} aria-hidden="true" />
-            마이페이지
-          </button>
-        </div>
-      </nav>
-
-      <section className="service-intro-section service-brand-intro" aria-labelledby="service-intro-heading">
-        <div className="service-brand-copy">
-          <p className="eyebrow">서비스 소개</p>
-          <h1 className="hero-brand-logo service-hero-logo" id="service-intro-heading">Haru Mind</h1>
-          <p>체크인으로 지금 상태를 가볍게 고르고, 마음이는 오늘의 대화를 이어가며 생각과 감정을 정리해줍니다.</p>
-        </div>
-        <div className="service-mascot-card" aria-hidden="true">
-          <div className="service-hero-note">
-            지금 떠오르는 말부터 시작해도 괜찮아요.
+      <div className="service-page-frame">
+        <nav className="top-nav service-top-nav" aria-label="서비스 소개 메뉴">
+          <div className="brand-mark service-text-brand">
+            <span>Haru Mind</span>
           </div>
-          <img src="/maeumi-avatar.svg" alt="" />
-        </div>
-      </section>
+          <div className="nav-actions">
+            <button className="ghost-button nav-outline-button" type="button" onClick={() => router.push('/')}>
+              <Home size={18} aria-hidden="true" />
+              홈으로
+            </button>
+            <button className="ghost-button nav-outline-button" type="button" onClick={handleOpenMyPage}>
+              <UserRound size={18} aria-hidden="true" />
+              마이페이지
+            </button>
+          </div>
+        </nav>
 
-      <section className="dialogue-section" aria-labelledby="dialogue-heading">
-        <div className="section-heading">
-          <p className="eyebrow">서비스 설명</p>
-          <h2 id="dialogue-heading">오늘 마음이 정리되는 흐름</h2>
-          <p>체크인에서 시작해 오늘의 대화를 이어가고, 충분한 대화는 마음 리포트로 남깁니다.</p>
-        </div>
-        <div className="flow-grid" aria-label="마음 정리 흐름">
-          {flowSteps.map((flow) => (
-            <article className="flow-card" key={flow.step}>
-              <span className="flow-card-index">{flow.step}</span>
-              <strong>{flow.title}</strong>
-              <p>{flow.description}</p>
-              <div className="flow-card-tags" aria-hidden="true">
-                {flow.meta.map((item) => (
-                  <span key={item}>{item}</span>
-                ))}
+        <section className="service-intro-section service-brand-intro" aria-labelledby="service-intro-heading">
+          <div className="service-brand-copy">
+            <p className="eyebrow">서비스 소개</p>
+            <h1 className="hero-brand-logo service-hero-logo" id="service-intro-heading">Haru Mind</h1>
+            <p>체크인으로 지금 상태를 가볍게 고르고, 마음이는 오늘의 대화를 이어가며 생각과 감정을 정리해줍니다.</p>
+          </div>
+          <div className="service-mascot-card" aria-hidden="true">
+            <img className="service-mascot-illustration" src="/maeumi-service-hero.svg" alt="" />
+          </div>
+        </section>
+
+        <section className="dialogue-section" aria-labelledby="dialogue-heading">
+          <div className="section-heading">
+            <h2 id="dialogue-heading">오늘 마음이 정리되는 흐름</h2>
+          </div>
+          <div className="flow-grid" aria-label="마음 정리 흐름">
+            {flowSteps.map((flow, index) => (
+              <div className="flow-step-group" key={flow.step}>
+                <article className={`flow-card flow-card-${flow.step}`}>
+                  <div className="flow-card-heading">
+                    <span className="flow-card-index">{flow.step}</span>
+                    <div>
+                      <strong>{flow.title}</strong>
+                      <p>{flow.description}</p>
+                    </div>
+                  </div>
+                  {flow.step === '1' && (
+                    <div className="flow-card-tags" aria-hidden="true">
+                      {flow.meta.map((item) => (
+                        <span key={item}>{item}</span>
+                      ))}
+                    </div>
+                  )}
+                  {flow.step === '2' && (
+                    <div className="flow-chat-preview" aria-hidden="true">
+                      <span className="flow-avatar">
+                        <img src="/maeumi-avatar.svg" alt="" />
+                      </span>
+                      <span className="flow-ai-bubble">무슨 일이 있었는지 조금 더 이야기해볼까요?</span>
+                      <span className="flow-user-bubble">오늘 일이 많아서 많이 지쳤어요.</span>
+                    </div>
+                  )}
+                  {flow.step === '3' && (
+                    <div className="flow-report-preview" aria-hidden="true">
+                      <div>
+                        <strong>오늘 마음 요약</strong>
+                        <p>오늘은 업무 과부하로 지쳤지만, 하루를 마무리하려는 의지가 보였어요.</p>
+                      </div>
+                      <span>
+                        <ClipboardCheck size={42} aria-hidden="true" />
+                      </span>
+                    </div>
+                  )}
+                </article>
+                {index < flowSteps.length - 1 && (
+                  <span className="flow-arrow" aria-hidden="true">
+                    <ArrowRight size={28} />
+                  </span>
+                )}
               </div>
-            </article>
-          ))}
-        </div>
-      </section>
-
-      <section className="example-section" aria-labelledby="example-heading">
-        <div className="section-heading">
-          <p className="eyebrow">대화 예시</p>
-          <h2 id="example-heading">마음이와 함께 마음을 정리하세요</h2>
-        </div>
-        <div className="example-card">
-          <div className="example-bubble-window" aria-label="AI 마음대화 예시">
-            {[0, 1, 2].map((offset) => {
-              const message = exampleConversationMessages[(exampleWindowIndex + offset) % exampleConversationMessages.length]
-              return (
-                <div
-                  className={`preview-bubble ${message.speaker === 'ai' ? 'is-ai' : 'is-user'}`}
-                  key={`${exampleWindowIndex}-${message.id}`}
-                >
-                  {message.message}
-                </div>
-              )
-            })}
+            ))}
           </div>
-          <div className="topic-tags" aria-label="추천 대화 주제">
-            <span>생각 정리하기</span>
-            <span>불안 낮추기</span>
-            <span>잠들기 전 대화</span>
-          </div>
-          <div className="decorative-chat-input" aria-hidden="true">
-            <span>지금 마음에 떠오르는 말을 적어보세요.</span>
-            <span className="decorative-send-button">
-              <SendHorizontal size={18} aria-hidden="true" />
-            </span>
-          </div>
-        </div>
-      </section>
+        </section>
 
-      <section className="safety-section" aria-labelledby="safety-heading">
-        <div>
-          <p className="eyebrow">안전 안내</p>
-          <h2 id="safety-heading">AI 마음대화가 도울 수 있는 범위를 분명히 합니다</h2>
-        </div>
-        <ul className="safety-list">
-          {safetyGuides.map((guide) => (
-            <li key={guide}>
-              <ShieldCheck size={18} aria-hidden="true" />
-              <span>{guide}</span>
-            </li>
-          ))}
-        </ul>
-      </section>
+        <div className="service-detail-grid">
+          <section className="example-section" aria-labelledby="example-heading">
+            <div className="section-heading">
+              <h2 id="example-heading">마음이와 함께 마음을 정리하세요</h2>
+            </div>
+            <div className="example-card">
+              <div className="example-bubble-window" aria-label="AI 마음대화 예시">
+                {[0, 1, 2].map((offset) => {
+                  const message = exampleConversationMessages[(exampleWindowIndex + offset) % exampleConversationMessages.length]
+                  return (
+                    <div
+                      className={`preview-bubble ${message.speaker === 'ai' ? 'is-ai' : 'is-user'}`}
+                      key={`${exampleWindowIndex}-${message.id}`}
+                    >
+                      {message.message}
+                    </div>
+                  )
+                })}
+              </div>
+              <div className="topic-tags" aria-label="추천 대화 주제">
+                <span>업무/학교</span>
+                <span>인간관계</span>
+                <span>가족</span>
+                <span>건강</span>
+                <span>기타</span>
+              </div>
+              <div className="decorative-chat-input" aria-hidden="true">
+                <span>지금 마음에 떠오르는 말을 적어보세요.</span>
+                <span className="decorative-send-button">
+                  <SendHorizontal size={18} aria-hidden="true" />
+                </span>
+              </div>
+            </div>
+          </section>
 
-      <section className="cta-band" aria-labelledby="cta-heading">
-        <div>
-          <p className="eyebrow">지금 시작</p>
-          <h2 id="cta-heading">마음이와 대화 시작하기</h2>
-          <p>길게 설명하지 않아도 됩니다. 떠오르는 문장부터 시작하면 됩니다.</p>
+          <section className="safety-section" aria-labelledby="safety-heading">
+            <div>
+              <h2 id="safety-heading">안전 안내</h2>
+            </div>
+            <ul className="safety-list">
+              {safetyGuides.map((guide) => (
+                <li key={guide}>
+                  <ShieldCheck size={18} aria-hidden="true" />
+                  <span>{guide}</span>
+                </li>
+              ))}
+            </ul>
+          </section>
         </div>
-        <button className="primary-button large" type="button" onClick={handleOpenAiChat}>
-          AI 마음대화 시작
-          <ArrowRight size={18} aria-hidden="true" />
-        </button>
-      </section>
+
+        <section className="cta-band" aria-labelledby="cta-heading">
+          <div>
+            <h2 id="cta-heading">마음이와 대화 시작하기</h2>
+            <p>길게 설명하지 않아도 됩니다. 떠오르는 문장부터 시작하면 됩니다.</p>
+          </div>
+          <button className="primary-button large" type="button" onClick={handleOpenAiChat}>
+            AI 마음대화 시작
+            <ArrowRight size={18} aria-hidden="true" />
+          </button>
+        </section>
+      </div>
 
       <nav className="mobile-bottom-nav" aria-label="모바일 주요 메뉴">
         <button className="mobile-tab-button" type="button" onClick={() => router.push('/')}>
