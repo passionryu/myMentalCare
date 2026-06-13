@@ -229,18 +229,20 @@ export default function ServicePage() {
             </div>
           </section>
 
-          <section className="safety-section" aria-labelledby="safety-heading">
-            <div>
+          <section className="safety-panel-section" aria-labelledby="safety-heading">
+            <div className="section-heading">
               <h2 id="safety-heading">안전 안내</h2>
             </div>
-            <ul className="safety-list">
-              {safetyGuides.map((guide) => (
-                <li key={guide}>
-                  <ShieldCheck size={18} aria-hidden="true" />
-                  <span>{guide}</span>
-                </li>
-              ))}
-            </ul>
+            <div className="safety-section safety-card">
+              <ul className="safety-list">
+                {safetyGuides.map((guide) => (
+                  <li key={guide}>
+                    <ShieldCheck size={18} aria-hidden="true" />
+                    <span>{guide}</span>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </section>
         </div>
 
