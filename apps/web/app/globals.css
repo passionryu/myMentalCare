@@ -848,10 +848,17 @@ h3 {
 }
 
 .checkin-prompt-card {
+  position: relative;
   align-items: center;
   justify-content: center;
   min-height: 128px;
   text-align: center;
+}
+
+.checkin-prompt-card > svg {
+  position: absolute;
+  top: 22px;
+  left: 22px;
 }
 
 .checkin-prompt-card > span {
@@ -2596,7 +2603,7 @@ h3 {
   }
 
   .home-page-shell .hero-section {
-    padding-top: clamp(48px, 14vh, 96px);
+    padding-top: clamp(40px, 12vh, 82px);
   }
 
   .cta-band {
