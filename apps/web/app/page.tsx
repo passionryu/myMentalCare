@@ -201,6 +201,19 @@ export default function Page() {
         </div>
       </section>
 
+      <footer className="site-footer" aria-label="서비스 정보">
+        <div>
+          <strong>Haru Mind</strong>
+          <p>Haru Mind는 의료 진단이나 치료를 대신하지 않습니다.</p>
+        </div>
+        <nav aria-label="푸터 링크">
+          <a href="/service">서비스 소개</a>
+          <span>개인정보처리방침</span>
+          <span>이용약관</span>
+          <span>© 2026 Haru Mind</span>
+        </nav>
+      </footer>
+
       {authMode && (
         <AuthModal
           mode={authMode}
