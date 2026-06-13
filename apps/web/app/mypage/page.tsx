@@ -113,12 +113,12 @@ export default function MyPage() {
 
   const profileRows = useMemo(
     () => [
-      { label: '이름', value: profile?.name ?? '불러오는 중' },
-      { label: '로그인 아이디', value: profile?.loginId ?? '불러오는 중' },
+      { label: '이름', value: profile?.name ?? (profileMessage ? '확인 필요' : '불러오는 중') },
+      { label: '로그인 아이디', value: profile?.loginId ?? (profileMessage ? '확인 필요' : '불러오는 중') },
       { label: '이메일', value: profile?.email || '등록하지 않음' },
       { label: '전화번호', value: profile?.phone || '등록하지 않음' },
     ],
-    [profile],
+    [profile, profileMessage],
   )
 
   const handleThemeChange = (nextThemeTone: ThemeTone) => {
@@ -186,7 +186,7 @@ export default function MyPage() {
             </span>
             <div>
               <strong>{profile?.name ?? '내 마음'}</strong>
-              <span>{profile?.loginId ?? '프로필 확인 중'}</span>
+              <span>{profile?.loginId ?? (profileMessage ? '프로필 확인 필요' : '프로필 확인 중')}</span>
             </div>
           </div>
 

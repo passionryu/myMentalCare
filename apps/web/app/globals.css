@@ -3061,10 +3061,30 @@ h3 {
 
   .mypage-sidebar {
     position: static;
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
   }
 
   .mypage-section-nav {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-column: 1 / -1;
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 3px;
+  }
+
+  .mypage-section-nav button {
+    flex: 0 0 auto;
+    width: auto;
+    min-width: 132px;
+    justify-content: center;
+    text-align: center;
+  }
+
+  .mypage-profile-card {
+    margin: 0;
   }
 
   .mypage-hero-card {
@@ -3073,6 +3093,20 @@ h3 {
 
   .mypage-hero-actions {
     align-items: stretch;
+  }
+}
+
+@media (max-width: 760px) {
+  .mypage-sidebar {
+    grid-template-columns: 1fr;
+  }
+
+  .mypage-back-button {
+    justify-self: start;
+  }
+
+  .mypage-section-nav button {
+    min-width: 124px;
   }
 }
 
@@ -3104,6 +3138,10 @@ h3 {
   .mypage-profile-list,
   .mypage-theme-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mypage-section-nav {
+    display: flex;
   }
 
   .mypage-history-item {
