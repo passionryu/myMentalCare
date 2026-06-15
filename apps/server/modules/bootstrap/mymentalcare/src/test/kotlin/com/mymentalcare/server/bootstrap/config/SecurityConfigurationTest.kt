@@ -48,6 +48,18 @@ class SecurityConfigurationTest {
     }
 
     @Test
+    fun `kakao login endpoints are permitted without authentication`() {
+        mockMvc.perform(get("/api/auth/kakao/login"))
+            .andExpect(status().isOk)
+
+        mockMvc.perform(get("/api/auth/kakao/callback"))
+            .andExpect(status().isOk)
+
+        mockMvc.perform(post("/api/auth/kakao/exchange"))
+            .andExpect(status().isOk)
+    }
+
+    @Test
     fun `protected api requires authentication`() {
         mockMvc.perform(get("/api/protected-resource"))
             .andExpect(status().isUnauthorized)
@@ -99,6 +111,18 @@ class SecurityConfigurationTest {
 class SecurityTestController {
     @PostMapping("/api/members/signup")
     fun signup() {
+    }
+
+    @GetMapping("/api/auth/kakao/login")
+    fun kakaoLogin() {
+    }
+
+    @GetMapping("/api/auth/kakao/callback")
+    fun kakaoCallback() {
+    }
+
+    @PostMapping("/api/auth/kakao/exchange")
+    fun kakaoExchange() {
     }
 
     @GetMapping("/api/protected-resource")

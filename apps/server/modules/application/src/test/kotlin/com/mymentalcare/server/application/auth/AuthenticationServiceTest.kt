@@ -107,6 +107,8 @@ class AuthenticationServiceTest {
     ) : MemberRepository {
         override fun findByLoginIdOrEmail(identifier: String): Member? = member
 
+        override fun findByEmail(email: String): Member? = member?.takeIf { it.email == email }
+
         override fun findById(memberId: Long): Member? = member?.takeIf { it.id == memberId }
 
         override fun existsByLoginId(loginId: String): Boolean = false

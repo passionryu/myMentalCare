@@ -36,6 +36,10 @@ export type ReissueTokenRequest = {
   refreshToken: string
 }
 
+export type KakaoExchangeRequest = {
+  code: string
+}
+
 export class LoginApiError extends Error {
   constructor(message: string) {
     super(message)
@@ -83,6 +87,30 @@ export async function loginMember(request: LoginRequest): Promise<LoginResponse>
 
   if (!response.ok) {
     throw new LoginApiError(body?.message ?? '로그인 처리 중 문제가 발생했습니다.')
+  }
+
+  return body as LoginResponse
+}
+
+export function buildKakaoLoginUrl(redirectTo = '/') {
+  const params = new URLSearchParams()
+  params.set('redirectTo', redirectTo)
+  return `${apiBaseUrl}/api/auth/kakao/login?${params.toString()}`
+}
+
+export async function exchangeKakaoLoginCode(request: KakaoExchangeRequest): Promise<LoginResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/kakao/exchange`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '카카오 로그인 처리 중 문제가 발생했습니다.')
   }
 
   return body as LoginResponse
