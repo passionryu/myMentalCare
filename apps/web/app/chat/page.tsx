@@ -33,7 +33,7 @@ import {
   startDirectAiChatSegment,
 } from '@/lib/ai-chat-api'
 import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
-import type { CheckInOption, CheckInTemplateDefinition } from '@/lib/check-in-templates'
+import type { CheckInOption, CheckInStep, CheckInTemplateDefinition } from '@/lib/check-in-templates'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
 type ThemeTone = 'sunset' | 'cream' | 'wood'
