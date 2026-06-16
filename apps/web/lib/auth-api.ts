@@ -33,6 +33,27 @@ export type WithdrawMemberResponse = {
   withdrawn: boolean
 }
 
+export type LoginMethodSocialAccount = {
+  provider: string
+  email?: string | null
+  linkedAt: string
+}
+
+export type LoginMethodsResponse = {
+  passwordLoginEnabled: boolean
+  canChangePassword: boolean
+  socialAccounts: LoginMethodSocialAccount[]
+}
+
+export type ChangePasswordRequest = {
+  currentPassword: string
+  newPassword: string
+}
+
+export type ChangePasswordResponse = {
+  changed: boolean
+}
+
 export type SignupRequest = {
   loginId: string
   email?: string
@@ -281,6 +302,41 @@ export async function withdrawMyAccount(request: WithdrawMemberRequest): Promise
 
   clearLoginTokens()
   return body as WithdrawMemberResponse
+}
+
+export async function readLoginMethods(): Promise<LoginMethodsResponse> {
+  const response = await requestWithAuth('/api/members/me/login-methods')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '로그인 방식을 불러오지 못했습니다.')
+  }
+
+  return body as LoginMethodsResponse
+}
+
+export async function changeMyPassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  const response = await requestWithAuth('/api/members/me/password', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '비밀번호를 변경하지 못했습니다.')
+  }
+
+  clearLoginTokens()
+  return body as ChangePasswordResponse
 }
 
 export async function signupMember(request: SignupRequest): Promise<SignupResponse> {

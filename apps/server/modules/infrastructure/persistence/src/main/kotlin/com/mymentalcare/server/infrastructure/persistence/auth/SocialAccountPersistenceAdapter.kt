@@ -13,6 +13,10 @@ class SocialAccountPersistenceAdapter(
         return jpaSocialAccountRepository.findByProviderAndProviderUserId(provider, providerUserId)?.toDomain()
     }
 
+    override fun findByMemberId(memberId: Long): List<SocialAccount> {
+        return jpaSocialAccountRepository.findByMemberId(memberId).map { it.toDomain() }
+    }
+
     override fun save(socialAccount: SocialAccount): SocialAccount {
         return jpaSocialAccountRepository.save(socialAccount.toEntity()).toDomain()
     }

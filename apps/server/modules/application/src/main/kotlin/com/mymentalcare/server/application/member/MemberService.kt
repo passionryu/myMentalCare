@@ -4,6 +4,8 @@ import com.mymentalcare.server.application.common.extension.logWarn
 import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
 import com.mymentalcare.server.application.port.RefreshTokenStore
+import com.mymentalcare.server.application.port.SocialAccountRepository
+import com.mymentalcare.server.domain.auth.SocialAccount
 import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import com.mymentalcare.server.domain.member.Member
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -16,6 +18,7 @@ internal class MemberService(
     private val memberRepository: MemberRepository,
     private val notificationSettingRepository: MemberNotificationSettingRepository,
     private val refreshTokenStore: RefreshTokenStore,
+    private val socialAccountRepository: SocialAccountRepository,
     private val passwordEncoder: PasswordEncoder,
 ) : MemberInputPort {
     // 회원가입
@@ -129,6 +132,51 @@ internal class MemberService(
         return WithdrawMemberResponse(withdrawn = true)
     }
 
+    @Transactional(readOnly = true)
+    override fun readLoginMethods(memberId: Long): MemberLoginMethodsResponse {
+        val member = memberRepository.findById(memberId)
+            ?: throw MemberNotFoundException()
+        val socialAccounts = socialAccountRepository.findByMemberId(memberId)
+        val passwordLoginEnabled = member.isPasswordLoginEnabled(socialAccounts)
+
+        return MemberLoginMethodsResponse(
+            passwordLoginEnabled = passwordLoginEnabled,
+            canChangePassword = passwordLoginEnabled,
+            socialAccounts = socialAccounts.map {
+                MemberSocialAccountResponse(
+                    provider = it.provider.name,
+                    email = it.email,
+                    linkedAt = it.linkedAt.toString(),
+                )
+            },
+        )
+    }
+
+    @Transactional
+    override fun changePassword(memberId: Long, request: ChangeMemberPasswordRequest): ChangeMemberPasswordResponse {
+        val member = memberRepository.findById(memberId)
+            ?: throw MemberNotFoundException()
+        val socialAccounts = socialAccountRepository.findByMemberId(memberId)
+
+        if (!member.isPasswordLoginEnabled(socialAccounts)) {
+            throw MemberPasswordChangeFailedException("카카오 로그인 전용 계정은 이 화면에서 비밀번호를 변경할 수 없습니다.")
+        }
+
+        if (!passwordEncoder.matches(request.currentPassword, member.password)) {
+            throw MemberPasswordChangeFailedException("현재 비밀번호가 일치하지 않습니다.")
+        }
+
+        val normalizedNewPassword = request.newPassword.trim()
+        if (normalizedNewPassword.length < 8) {
+            throw MemberPasswordChangeFailedException("새 비밀번호는 8자 이상 입력해주세요.")
+        }
+
+        memberRepository.save(member.copy(password = passwordEncoder.encode(normalizedNewPassword)))
+        refreshTokenStore.deleteRefreshToken(memberId)
+
+        return ChangeMemberPasswordResponse(changed = true)
+    }
+
     private fun Member.toMyProfileResponse(): MyProfileResponse {
         return MyProfileResponse(
             memberId = id,
@@ -158,6 +206,10 @@ internal class MemberService(
     }
 
     private fun String?.normalizeBlank(): String? = this?.trim()?.takeIf { it.isNotBlank() }
+
+    private fun Member.isPasswordLoginEnabled(socialAccounts: List<SocialAccount>): Boolean {
+        return socialAccounts.isEmpty() || !loginId.startsWith("kakao_")
+    }
 
     private companion object {
         const val MEMBER_WITHDRAWAL_CONFIRMATION_TEXT = "회원 탈퇴"
