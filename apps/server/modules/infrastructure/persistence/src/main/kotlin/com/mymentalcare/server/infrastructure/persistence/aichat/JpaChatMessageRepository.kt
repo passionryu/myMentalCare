@@ -10,5 +10,7 @@ interface JpaChatMessageRepository : JpaRepository<ChatMessageEntity, Long> {
 
     fun findByRoomIdOrderByMessageOrderDesc(roomId: Long, pageable: Pageable): List<ChatMessageEntity>
 
+    fun findTopByRoomIdOrderByCreatedAtDesc(roomId: Long): ChatMessageEntity?
+
     fun countByRoomId(roomId: Long): Int
 }

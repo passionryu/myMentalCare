@@ -5,6 +5,10 @@ import org.springframework.data.jpa.repository.JpaRepository
 interface JpaAiChatReportRepository : JpaRepository<AiChatReportEntity, Long> {
     fun findTopByRoomIdOrderByCreatedAtDesc(roomId: Long): AiChatReportEntity?
 
+    fun findTopByMemberIdOrderByCreatedAtDesc(memberId: Long): AiChatReportEntity?
+
+    fun countByMemberId(memberId: Long): Int
+
     fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReportEntity?
 }
 

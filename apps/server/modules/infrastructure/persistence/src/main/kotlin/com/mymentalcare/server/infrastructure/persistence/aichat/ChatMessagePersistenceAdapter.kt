@@ -29,6 +29,10 @@ class ChatMessagePersistenceAdapter(
         return jpaChatMessageRepository.countByRoomId(roomId)
     }
 
+    override fun findLatestByRoomId(roomId: Long): ChatMessage? {
+        return jpaChatMessageRepository.findTopByRoomIdOrderByCreatedAtDesc(roomId)?.toDomain()
+    }
+
     override fun save(message: ChatMessage): ChatMessage {
         return jpaChatMessageRepository.save(message.toEntity()).toDomain()
     }

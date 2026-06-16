@@ -24,6 +24,7 @@ import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
+import { MyPageSummaryResponse, readMyPageSummary } from '@/lib/mypage-api'
 import {
   NotificationWeekday,
   readNotificationSetting,
@@ -102,6 +103,8 @@ export default function MyPage() {
   const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
   const [isNotificationSaving, setIsNotificationSaving] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
+  const [summary, setSummary] = useState<MyPageSummaryResponse | null>(null)
+  const [summaryMessage, setSummaryMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -141,6 +144,15 @@ export default function MyPage() {
       })
       .catch((error) => {
         setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 불러오지 못했습니다.')
+      })
+
+    readMyPageSummary()
+      .then((nextSummary) => {
+        setSummary(nextSummary)
+        setSummaryMessage('')
+      })
+      .catch((error) => {
+        setSummaryMessage(error instanceof LoginApiError ? error.message : '마이페이지 요약을 불러오지 못했습니다.')
       })
   }, [])
 
@@ -193,6 +205,15 @@ export default function MyPage() {
       setNotificationTime(setting.notificationTime)
       setNotificationWeekdayValues(setting.weekdays)
       localStorage.setItem(NOTIFICATION_STORAGE_KEY, setting.enabled ? '1' : '0')
+      setSummary((currentSummary) =>
+        currentSummary
+          ? {
+              ...currentSummary,
+              notificationEnabled: setting.enabled,
+              notificationTime: setting.notificationTime,
+            }
+          : currentSummary,
+      )
       setToastMessage('마음 체크 알림 설정이 저장되었습니다.')
     } catch (error) {
       setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 저장하지 못했습니다.')
@@ -220,6 +241,19 @@ export default function MyPage() {
     const nextProfile = await updateMyProfile(request)
     setProfile(nextProfile)
     setProfileMessage('')
+  }
+
+  const formatShortDateTime = (dateTime?: string | null) => {
+    if (!dateTime) {
+      return null
+    }
+
+    return new Date(dateTime).toLocaleString('ko-KR', {
+      month: 'numeric',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    })
   }
 
   if (!isAuthenticated) {
@@ -329,19 +363,49 @@ export default function MyPage() {
             <article className="mypage-mini-card">
               <MessageCircle size={21} aria-hidden="true" />
               <strong>채팅</strong>
-              <span>오늘 대화방 중심</span>
+              <span>
+                {summaryMessage
+                  ? '확인 필요'
+                  : summary
+                    ? summary.hasTodayChat
+                      ? `오늘 ${summary.todayMessageCount}개`
+                      : '오늘 대화 없음'
+                    : '불러오는 중'}
+              </span>
             </article>
             <article className="mypage-mini-card">
               <FileText size={21} aria-hidden="true" />
               <strong>리포트</strong>
-              <span>생성 즉시 저장</span>
+              <span>
+                {summaryMessage
+                  ? '확인 필요'
+                  : summary
+                    ? summary.reportCount > 0
+                      ? `${summary.reportCount}개 저장`
+                      : '저장된 리포트 없음'
+                    : '불러오는 중'}
+              </span>
             </article>
             <article className="mypage-mini-card">
               <Bell size={21} aria-hidden="true" />
               <strong>알림</strong>
-              <span>{notificationEnabled ? '켜짐' : '꺼짐'}</span>
+              <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
             </article>
           </section>
+
+          {summary && (
+            <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
+              <span>최근 대화: {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}</span>
+              <span>최근 리포트: {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}</span>
+            </section>
+          )}
+
+          {summaryMessage && (
+            <div className="mypage-alert" role="status">
+              <AlertTriangle size={18} aria-hidden="true" />
+              <span>{summaryMessage}</span>
+            </div>
+          )}
 
           {(activeSection === 'overview' || activeSection === 'profile') && (
             <section className="mypage-panel" aria-labelledby="profile-section-title">
