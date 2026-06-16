@@ -9,6 +9,10 @@ interface JpaAiChatReportRepository : JpaRepository<AiChatReportEntity, Long> {
 
     fun countByMemberId(memberId: Long): Int
 
+    fun findByMemberIdOrderByCreatedAtDesc(memberId: Long): List<AiChatReportEntity>
+
+    fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReportEntity?
+
     fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReportEntity?
 }
 

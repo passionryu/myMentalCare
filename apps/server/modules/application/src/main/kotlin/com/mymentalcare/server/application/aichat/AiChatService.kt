@@ -71,6 +71,16 @@ internal class AiChatService(
         )
     }
 
+    @Transactional(readOnly = true)
+    override fun readReports(memberId: Long): List<AiChatReportResponse> {
+        return aiChatReportRepository.findByMemberId(memberId).map { it.toResponse() }
+    }
+
+    @Transactional(readOnly = true)
+    override fun readReport(memberId: Long, reportId: Long): AiChatReportResponse? {
+        return aiChatReportRepository.findByIdAndMemberId(reportId = reportId, memberId = memberId)?.toResponse()
+    }
+
     // 체크인 없이 오늘 대화방 안에 새 주제 구간을 시작한다.
     @Transactional
     override fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse {

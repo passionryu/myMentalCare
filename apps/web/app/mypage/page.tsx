@@ -22,7 +22,15 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { AiChatHistoryRoom, AiChatHistoryRoomDetail, readAiChatHistoryRoom, readAiChatHistoryRooms } from '@/lib/ai-chat-api'
+import {
+  AiChatHistoryRoom,
+  AiChatHistoryRoomDetail,
+  AiChatReport,
+  readAiChatHistoryRoom,
+  readAiChatHistoryRooms,
+  readAiChatReport,
+  readAiChatReports,
+} from '@/lib/ai-chat-api'
 import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
 import { MyPageSummaryResponse, readMyPageSummary } from '@/lib/mypage-api'
@@ -108,7 +116,10 @@ export default function MyPage() {
   const [summaryMessage, setSummaryMessage] = useState('')
   const [chatHistoryRooms, setChatHistoryRooms] = useState<AiChatHistoryRoom[]>([])
   const [selectedChatHistory, setSelectedChatHistory] = useState<AiChatHistoryRoomDetail | null>(null)
+  const [reports, setReports] = useState<AiChatReport[]>([])
+  const [selectedReport, setSelectedReport] = useState<AiChatReport | null>(null)
   const [historyMessage, setHistoryMessage] = useState('')
+  const [reportMessage, setReportMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -166,6 +177,15 @@ export default function MyPage() {
       })
       .catch((error) => {
         setHistoryMessage(error instanceof LoginApiError ? error.message : '채팅 이력을 불러오지 못했습니다.')
+      })
+
+    readAiChatReports()
+      .then((nextReports) => {
+        setReports(nextReports)
+        setReportMessage('')
+      })
+      .catch((error) => {
+        setReportMessage(error instanceof LoginApiError ? error.message : '마음 리포트 보관함을 불러오지 못했습니다.')
       })
   }, [])
 
@@ -257,6 +277,16 @@ export default function MyPage() {
       setSelectedChatHistory(detail)
     } catch (error) {
       setHistoryMessage(error instanceof LoginApiError ? error.message : '채팅 상세 이력을 불러오지 못했습니다.')
+    }
+  }
+
+  const handleReportDetail = async (reportId: number) => {
+    setReportMessage('')
+    try {
+      const report = await readAiChatReport(reportId)
+      setSelectedReport(report)
+    } catch (error) {
+      setReportMessage(error instanceof LoginApiError ? error.message : '마음 리포트를 불러오지 못했습니다.')
     }
   }
 
@@ -511,6 +541,33 @@ export default function MyPage() {
                   )
                 })}
               </div>
+              <div className="mypage-report-list">
+                {reportMessage && (
+                  <div className="mypage-alert" role="status">
+                    <AlertTriangle size={18} aria-hidden="true" />
+                    <span>{reportMessage}</span>
+                  </div>
+                )}
+                {!reportMessage && reports.length === 0 && (
+                  <div className="mypage-empty-state">
+                    <strong>저장된 마음 리포트가 없습니다</strong>
+                    <span>오늘 대화를 마무리하면 리포트가 이곳에 저장됩니다.</span>
+                  </div>
+                )}
+                {reports.map((report) => (
+                  <article className="mypage-report-item" key={report.reportId}>
+                    <div>
+                      <strong>{new Date(report.conversationDate).toLocaleDateString('ko-KR')} 마음 리포트</strong>
+                      <p>{report.summary}</p>
+                      <small>{report.primaryEmotion} · {report.reportType === 'FULL' ? '충분한 대화' : '짧은 대화'}</small>
+                    </div>
+                    <button type="button" onClick={() => handleReportDetail(report.reportId)}>
+                      리포트 보기
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </button>
+                  </article>
+                ))}
+              </div>
               <div className="mypage-action-row">
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('deleteHistory')}>
                   <Trash2 size={17} aria-hidden="true" />
@@ -670,6 +727,10 @@ export default function MyPage() {
       {selectedChatHistory && (
         <ChatHistoryDialog detail={selectedChatHistory} onClose={() => setSelectedChatHistory(null)} />
       )}
+
+      {selectedReport && (
+        <ReportDialog report={selectedReport} onClose={() => setSelectedReport(null)} />
+      )}
     </main>
   )
 }
@@ -697,6 +758,59 @@ function ChatHistoryDialog({ detail, onClose }: { detail: AiChatHistoryRoomDetai
               <p>{message.content}</p>
             </article>
           ))}
+        </div>
+      </section>
+    </div>
+  )
+}
+
+function ReportDialog({ report, onClose }: { report: AiChatReport; onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal mypage-dialog mypage-report-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="report-dialog-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="리포트 모달 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">마음 리포트</p>
+        <h2 id="report-dialog-title">{new Date(report.conversationDate).toLocaleDateString('ko-KR')} 마음 리포트</h2>
+        <div className="mypage-report-detail">
+          <section>
+            <strong>오늘 마음 요약</strong>
+            <p>{report.summary}</p>
+          </section>
+          <section>
+            <strong>주요 감정</strong>
+            <p>{report.primaryEmotion}{report.emotionIntensity ? ` · 강도 ${report.emotionIntensity}/5` : ''}</p>
+          </section>
+          <section>
+            <strong>마음 흐름</strong>
+            <p>{report.emotionalFlow}</p>
+          </section>
+          <section>
+            <strong>오늘의 문장</strong>
+            <p>{report.todaySentence}</p>
+          </section>
+          <section>
+            <strong>추천 노래</strong>
+            <div className="mypage-report-songs">
+              {report.songs.length === 0 ? (
+                <span>추천 노래가 없습니다.</span>
+              ) : (
+                report.songs.map((song) => (
+                  <a href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.title}-${song.artist}`}>
+                    <b>{song.title}</b>
+                    <small>{song.artist} · {song.reason}</small>
+                  </a>
+                ))
+              )}
+            </div>
+          </section>
         </div>
       </section>
     </div>

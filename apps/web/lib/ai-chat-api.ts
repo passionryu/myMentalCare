@@ -159,6 +159,28 @@ export async function readAiChatHistoryRoom(roomId: number): Promise<AiChatHisto
   return body as AiChatHistoryRoomDetail
 }
 
+export async function readAiChatReports(): Promise<AiChatReport[]> {
+  const response = await requestWithAuth('/api/ai-chat/reports')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '마음 리포트 보관함을 불러오지 못했습니다.')
+  }
+
+  return body as AiChatReport[]
+}
+
+export async function readAiChatReport(reportId: number): Promise<AiChatReport> {
+  const response = await requestWithAuth(`/api/ai-chat/reports/${reportId}`)
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '마음 리포트를 불러오지 못했습니다.')
+  }
+
+  return body as AiChatReport
+}
+
 export async function startDirectAiChatSegment(clientRequestId: string): Promise<StartAiChatSegmentResponse> {
   const response = await requestWithAuth('/api/ai-chat/rooms/today/segments', {
     method: 'POST',

@@ -67,6 +67,34 @@ class AiChatController(
     }
 
     @Operation(
+        summary = "내 마음 리포트 목록 조회",
+        description = "로그인한 사용자의 저장된 마음 리포트 목록을 최신순으로 조회합니다.",
+    )
+    @GetMapping("/reports")
+    fun readReports(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatReportResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readReports(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
+        summary = "내 마음 리포트 상세 조회",
+        description = "로그인한 사용자의 특정 마음 리포트 상세와 추천 노래를 조회합니다.",
+    )
+    @GetMapping("/reports/{reportId}")
+    fun readReport(
+        @AuthenticationPrincipal memberId: Long,
+        @PathVariable reportId: Long,
+    ): ResponseEntity<AiChatReportResponse> {
+        val response = aiChatInputPort.readReport(memberId = memberId, reportId = reportId)
+
+        return response?.let { ResponseEntity.ok(it.toBootstrapResponse()) }
+            ?: ResponseEntity.notFound().build()
+    }
+
+    @Operation(
         summary = "오늘 대화방 새 주제 시작",
         description = "체크인 없이 오늘 대화방 안에 새 주제 구간을 만들고 마음이의 첫 메시지를 반환합니다.",
     )
