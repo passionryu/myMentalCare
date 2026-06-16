@@ -3,6 +3,7 @@ package com.mymentalcare.server.bootstrap.member
 import com.mymentalcare.server.application.member.DuplicateEmailException
 import com.mymentalcare.server.application.member.DuplicateLoginIdException
 import com.mymentalcare.server.application.member.MemberNotFoundException
+import com.mymentalcare.server.application.member.MemberWithdrawalFailedException
 import com.mymentalcare.server.bootstrap.auth.ApiErrorResponse
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
@@ -28,6 +29,12 @@ class MemberExceptionHandler {
     fun handleMemberNotFound(exception: MemberNotFoundException): ResponseEntity<ApiErrorResponse> {
         return ResponseEntity.status(HttpStatus.NOT_FOUND)
             .body(ApiErrorResponse(code = "MEMBER_NOT_FOUND", message = exception.message ?: "회원 정보를 찾을 수 없습니다."))
+    }
+
+    @ExceptionHandler(MemberWithdrawalFailedException::class)
+    fun handleMemberWithdrawalFailed(exception: MemberWithdrawalFailedException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.badRequest()
+            .body(ApiErrorResponse(code = "MEMBER_WITHDRAWAL_FAILED", message = exception.message ?: "회원 탈퇴 확인 정보를 다시 확인해주세요."))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)

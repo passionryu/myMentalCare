@@ -4,10 +4,12 @@ import com.mymentalcare.server.application.member.MemberInputPort
 import com.mymentalcare.server.application.member.MemberNotificationSettingRequest
 import com.mymentalcare.server.application.member.SignUpMemberRequest
 import com.mymentalcare.server.application.member.UpdateMyProfileRequest
+import com.mymentalcare.server.application.member.WithdrawMemberRequest
 import io.swagger.v3.oas.annotations.Operation
 import jakarta.validation.Valid
 import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
+import org.springframework.web.bind.annotation.DeleteMapping
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
 import org.springframework.web.bind.annotation.PatchMapping
@@ -144,5 +146,25 @@ class MemberController(
                 weekdays = response.weekdays,
             )
         )
+    }
+
+    @Operation(
+        summary = "회원 탈퇴",
+        description = "로그인한 사용자가 비밀번호와 확인 문구를 입력해 계정을 탈퇴 처리합니다.",
+    )
+    @DeleteMapping("/me")
+    fun withdrawMyAccount(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody payload: MemberWithdrawalPayload,
+    ): ResponseEntity<MemberWithdrawalResponse> {
+        val response = memberInputPort.withdrawMyAccount(
+            memberId = memberId,
+            request = WithdrawMemberRequest(
+                password = payload.password,
+                confirmationText = payload.confirmationText,
+            ),
+        )
+
+        return ResponseEntity.ok(MemberWithdrawalResponse(withdrawn = response.withdrawn))
     }
 }

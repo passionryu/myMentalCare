@@ -10,4 +10,6 @@ interface MemberInputPort {
     fun readNotificationSetting(memberId: Long): MemberNotificationSettingResponse
 
     fun updateNotificationSetting(memberId: Long, request: MemberNotificationSettingRequest): MemberNotificationSettingResponse
+
+    fun withdrawMyAccount(memberId: Long, request: WithdrawMemberRequest): WithdrawMemberResponse
 }

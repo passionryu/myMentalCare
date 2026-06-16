@@ -2,8 +2,10 @@ package com.mymentalcare.server.application.member
 
 import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
+import com.mymentalcare.server.application.port.RefreshTokenStore
 import com.mymentalcare.server.domain.member.Member
 import com.mymentalcare.server.domain.member.MemberNotificationSetting
+import com.mymentalcare.server.domain.member.MemberStatus
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -11,6 +13,8 @@ import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 
 class MemberServiceTest {
+    private val passwordEncoder = BCryptPasswordEncoder()
+
     @Test
     fun `내 프로필을 수정하면 이름 이메일 전화번호가 갱신된다`() {
         val repository = FakeMemberRepository(
@@ -76,16 +80,50 @@ class MemberServiceTest {
         }
     }
 
+    @Test
+    fun `비밀번호와 확인 문구가 맞으면 회원을 탈퇴 처리하고 리프레시 토큰을 제거한다`() {
+        val repository = FakeMemberRepository(
+            members = mutableMapOf(1L to testMember(password = passwordEncoder.encode("password123"))),
+        )
+        val refreshTokenStore = FakeRefreshTokenStore(mutableMapOf(1L to "refresh-token"))
+        val service = memberService(repository = repository, refreshTokenStore = refreshTokenStore)
+
+        val response = service.withdrawMyAccount(
+            memberId = 1L,
+            request = WithdrawMemberRequest(password = "password123", confirmationText = "회원 탈퇴"),
+        )
+
+        assertEquals(true, response.withdrawn)
+        assertEquals(MemberStatus.WITHDRAWN, repository.members[1L]?.status)
+        assertNull(refreshTokenStore.readRefreshToken(1L))
+    }
+
+    @Test
+    fun `비밀번호가 틀리면 회원 탈퇴를 거부한다`() {
+        val repository = FakeMemberRepository(
+            members = mutableMapOf(1L to testMember(password = passwordEncoder.encode("password123"))),
+        )
+        val service = memberService(repository)
+
+        assertThrows(MemberWithdrawalFailedException::class.java) {
+            service.withdrawMyAccount(
+                memberId = 1L,
+                request = WithdrawMemberRequest(password = "wrong-password", confirmationText = "회원 탈퇴"),
+            )
+        }
+    }
+
     private fun testMember(
         id: Long = 1L,
         loginId: String = "test1",
         email: String? = "test1@example.com",
+        password: String = "encoded-password",
     ): Member {
         return Member(
             id = id,
             loginId = loginId,
             email = email,
-            password = "encoded-password",
+            password = password,
             name = "테스트회원",
             phone = "01012345678",
         )
@@ -94,16 +132,18 @@ class MemberServiceTest {
     private fun memberService(
         repository: MemberRepository,
         notificationSettingRepository: MemberNotificationSettingRepository = FakeMemberNotificationSettingRepository(),
+        refreshTokenStore: RefreshTokenStore = FakeRefreshTokenStore(mutableMapOf()),
     ): MemberService {
         return MemberService(
             memberRepository = repository,
             notificationSettingRepository = notificationSettingRepository,
+            refreshTokenStore = refreshTokenStore,
             passwordEncoder = BCryptPasswordEncoder(),
         )
     }
 
     private class FakeMemberRepository(
-        private val members: MutableMap<Long, Member>,
+        val members: MutableMap<Long, Member>,
     ) : MemberRepository {
         override fun findByLoginIdOrEmail(identifier: String): Member? {
             return members.values.firstOrNull { it.loginId == identifier || it.email == identifier }
@@ -120,11 +160,33 @@ class MemberServiceTest {
             members[savedMember.id] = savedMember
             return savedMember
         }
+
+        override fun withdraw(member: Member): Member {
+            val withdrawnMember = member.copy(status = MemberStatus.WITHDRAWN)
+            members[withdrawnMember.id] = withdrawnMember
+            return withdrawnMember
+        }
     }
 
     private class FakeMemberNotificationSettingRepository : MemberNotificationSettingRepository {
         override fun findByMemberId(memberId: Long): MemberNotificationSetting? = null
 
         override fun save(setting: MemberNotificationSetting): MemberNotificationSetting = setting
+    }
+
+    private class FakeRefreshTokenStore(
+        private val storedTokens: MutableMap<Long, String>,
+    ) : RefreshTokenStore {
+        override fun storeRefreshToken(memberId: Long, refreshToken: String) {
+            storedTokens[memberId] = refreshToken
+        }
+
+        override fun readRefreshToken(memberId: Long): String? {
+            return storedTokens[memberId]
+        }
+
+        override fun deleteRefreshToken(memberId: Long) {
+            storedTokens.remove(memberId)
+        }
     }
 }

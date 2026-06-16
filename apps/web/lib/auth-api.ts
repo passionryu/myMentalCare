@@ -24,6 +24,15 @@ export type UpdateMyProfileRequest = {
   phone?: string | null
 }
 
+export type WithdrawMemberRequest = {
+  password: string
+  confirmationText: string
+}
+
+export type WithdrawMemberResponse = {
+  withdrawn: boolean
+}
+
 export type SignupRequest = {
   loginId: string
   email?: string
@@ -71,7 +80,7 @@ function storeLoginTokens(tokens: LoginResponse) {
   localStorage.setItem(refreshTokenKey, tokens.refreshToken)
 }
 
-function clearLoginTokens() {
+export function clearLoginTokens() {
   localStorage.removeItem(accessTokenKey)
   localStorage.removeItem(refreshTokenKey)
 }
@@ -251,6 +260,27 @@ export async function updateMyProfile(request: UpdateMyProfileRequest): Promise<
   }
 
   return body as MyProfileResponse
+}
+
+export async function withdrawMyAccount(request: WithdrawMemberRequest): Promise<WithdrawMemberResponse> {
+  const response = await requestWithAuth('/api/members/me', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '회원 탈퇴를 처리하지 못했습니다.')
+  }
+
+  clearLoginTokens()
+  return body as WithdrawMemberResponse
 }
 
 export async function signupMember(request: SignupRequest): Promise<SignupResponse> {

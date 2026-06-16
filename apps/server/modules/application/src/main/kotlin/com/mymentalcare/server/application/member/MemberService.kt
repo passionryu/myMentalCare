@@ -3,6 +3,7 @@ package com.mymentalcare.server.application.member
 import com.mymentalcare.server.application.common.extension.logWarn
 import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
+import com.mymentalcare.server.application.port.RefreshTokenStore
 import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import com.mymentalcare.server.domain.member.Member
 import org.springframework.security.crypto.password.PasswordEncoder
@@ -14,6 +15,7 @@ import java.time.LocalTime
 internal class MemberService(
     private val memberRepository: MemberRepository,
     private val notificationSettingRepository: MemberNotificationSettingRepository,
+    private val refreshTokenStore: RefreshTokenStore,
     private val passwordEncoder: PasswordEncoder,
 ) : MemberInputPort {
     // 회원가입
@@ -108,6 +110,25 @@ internal class MemberService(
         return savedSetting.toNotificationSettingResponse()
     }
 
+    @Transactional
+    override fun withdrawMyAccount(memberId: Long, request: WithdrawMemberRequest): WithdrawMemberResponse {
+        val member = memberRepository.findById(memberId)
+            ?: throw MemberNotFoundException()
+
+        if (request.confirmationText.trim() != MEMBER_WITHDRAWAL_CONFIRMATION_TEXT) {
+            throw MemberWithdrawalFailedException("회원 탈퇴 확인 문구를 정확히 입력해주세요.")
+        }
+
+        if (!passwordEncoder.matches(request.password, member.password)) {
+            throw MemberWithdrawalFailedException("비밀번호가 일치하지 않습니다.")
+        }
+
+        memberRepository.withdraw(member)
+        refreshTokenStore.deleteRefreshToken(memberId)
+
+        return WithdrawMemberResponse(withdrawn = true)
+    }
+
     private fun Member.toMyProfileResponse(): MyProfileResponse {
         return MyProfileResponse(
             memberId = id,
@@ -137,4 +158,8 @@ internal class MemberService(
     }
 
     private fun String?.normalizeBlank(): String? = this?.trim()?.takeIf { it.isNotBlank() }
+
+    private companion object {
+        const val MEMBER_WITHDRAWAL_CONFIRMATION_TEXT = "회원 탈퇴"
+    }
 }
