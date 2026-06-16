@@ -3,6 +3,9 @@ package com.mymentalcare.server.application.member
 import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
 import com.mymentalcare.server.application.port.RefreshTokenStore
+import com.mymentalcare.server.application.port.SocialAccountRepository
+import com.mymentalcare.server.domain.auth.OAuthProvider
+import com.mymentalcare.server.domain.auth.SocialAccount
 import com.mymentalcare.server.domain.member.Member
 import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import com.mymentalcare.server.domain.member.MemberStatus
@@ -11,6 +14,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
+import java.time.LocalDateTime
 
 class MemberServiceTest {
     private val passwordEncoder = BCryptPasswordEncoder()
@@ -113,6 +117,63 @@ class MemberServiceTest {
         }
     }
 
+    @Test
+    fun `일반 계정은 로그인 방식 조회에서 비밀번호 변경 가능 상태를 반환한다`() {
+        val service = memberService(
+            repository = FakeMemberRepository(mutableMapOf(1L to testMember())),
+        )
+
+        val response = service.readLoginMethods(1L)
+
+        assertEquals(true, response.passwordLoginEnabled)
+        assertEquals(true, response.canChangePassword)
+        assertEquals(0, response.socialAccounts.size)
+    }
+
+    @Test
+    fun `카카오 계정은 소셜 연결 상태를 반환하고 비밀번호 변경을 막는다`() {
+        val socialAccountRepository = FakeSocialAccountRepository(
+            accounts = listOf(
+                SocialAccount(
+                    id = 1L,
+                    memberId = 1L,
+                    provider = OAuthProvider.KAKAO,
+                    providerUserId = "kakao-1",
+                    email = "kakao@example.com",
+                    linkedAt = LocalDateTime.parse("2026-06-17T10:00:00"),
+                )
+            )
+        )
+        val service = memberService(
+            repository = FakeMemberRepository(mutableMapOf(1L to testMember(loginId = "kakao_1234567890123"))),
+            socialAccountRepository = socialAccountRepository,
+        )
+
+        val response = service.readLoginMethods(1L)
+
+        assertEquals(false, response.passwordLoginEnabled)
+        assertEquals(false, response.canChangePassword)
+        assertEquals("KAKAO", response.socialAccounts.single().provider)
+    }
+
+    @Test
+    fun `현재 비밀번호가 맞으면 새 비밀번호로 변경하고 리프레시 토큰을 제거한다`() {
+        val repository = FakeMemberRepository(
+            members = mutableMapOf(1L to testMember(password = passwordEncoder.encode("old-password"))),
+        )
+        val refreshTokenStore = FakeRefreshTokenStore(mutableMapOf(1L to "refresh-token"))
+        val service = memberService(repository = repository, refreshTokenStore = refreshTokenStore)
+
+        val response = service.changePassword(
+            memberId = 1L,
+            request = ChangeMemberPasswordRequest(currentPassword = "old-password", newPassword = "new-password"),
+        )
+
+        assertEquals(true, response.changed)
+        assertEquals(true, passwordEncoder.matches("new-password", repository.members[1L]!!.password))
+        assertNull(refreshTokenStore.readRefreshToken(1L))
+    }
+
     private fun testMember(
         id: Long = 1L,
         loginId: String = "test1",
@@ -133,11 +194,13 @@ class MemberServiceTest {
         repository: MemberRepository,
         notificationSettingRepository: MemberNotificationSettingRepository = FakeMemberNotificationSettingRepository(),
         refreshTokenStore: RefreshTokenStore = FakeRefreshTokenStore(mutableMapOf()),
+        socialAccountRepository: SocialAccountRepository = FakeSocialAccountRepository(),
     ): MemberService {
         return MemberService(
             memberRepository = repository,
             notificationSettingRepository = notificationSettingRepository,
             refreshTokenStore = refreshTokenStore,
+            socialAccountRepository = socialAccountRepository,
             passwordEncoder = BCryptPasswordEncoder(),
         )
     }
@@ -187,6 +250,22 @@ class MemberServiceTest {
 
         override fun deleteRefreshToken(memberId: Long) {
             storedTokens.remove(memberId)
+        }
+    }
+
+    private class FakeSocialAccountRepository(
+        private val accounts: List<SocialAccount> = emptyList(),
+    ) : SocialAccountRepository {
+        override fun findByProviderAndProviderUserId(provider: OAuthProvider, providerUserId: String): SocialAccount? {
+            return accounts.firstOrNull { it.provider == provider && it.providerUserId == providerUserId }
+        }
+
+        override fun findByMemberId(memberId: Long): List<SocialAccount> {
+            return accounts.filter { it.memberId == memberId }
+        }
+
+        override fun save(socialAccount: SocialAccount): SocialAccount {
+            return socialAccount
         }
     }
 }

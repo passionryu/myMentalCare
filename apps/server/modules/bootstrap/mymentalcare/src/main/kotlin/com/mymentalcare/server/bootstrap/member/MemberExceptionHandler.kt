@@ -3,6 +3,7 @@ package com.mymentalcare.server.bootstrap.member
 import com.mymentalcare.server.application.member.DuplicateEmailException
 import com.mymentalcare.server.application.member.DuplicateLoginIdException
 import com.mymentalcare.server.application.member.MemberNotFoundException
+import com.mymentalcare.server.application.member.MemberPasswordChangeFailedException
 import com.mymentalcare.server.application.member.MemberWithdrawalFailedException
 import com.mymentalcare.server.bootstrap.auth.ApiErrorResponse
 import org.springframework.http.HttpStatus
@@ -35,6 +36,12 @@ class MemberExceptionHandler {
     fun handleMemberWithdrawalFailed(exception: MemberWithdrawalFailedException): ResponseEntity<ApiErrorResponse> {
         return ResponseEntity.badRequest()
             .body(ApiErrorResponse(code = "MEMBER_WITHDRAWAL_FAILED", message = exception.message ?: "회원 탈퇴 확인 정보를 다시 확인해주세요."))
+    }
+
+    @ExceptionHandler(MemberPasswordChangeFailedException::class)
+    fun handleMemberPasswordChangeFailed(exception: MemberPasswordChangeFailedException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.badRequest()
+            .body(ApiErrorResponse(code = "MEMBER_PASSWORD_CHANGE_FAILED", message = exception.message ?: "비밀번호 변경 정보를 다시 확인해주세요."))
     }
 
     @ExceptionHandler(MethodArgumentNotValidException::class)

@@ -11,6 +11,8 @@ import {
   FileText,
   HeartHandshake,
   Home,
+  KeyRound,
+  Link2,
   LogOut,
   Mail,
   MessageCircle,
@@ -37,9 +39,12 @@ import {
 } from '@/lib/ai-chat-api'
 import {
   LoginApiError,
+  LoginMethodsResponse,
   MyProfileResponse,
   UpdateMyProfileRequest,
   WithdrawMemberRequest,
+  changeMyPassword,
+  readLoginMethods,
   readMyProfile,
   updateMyProfile,
   withdrawMyAccount,
@@ -136,6 +141,10 @@ export default function MyPage() {
   const [checkInMessage, setCheckInMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
+  const [loginMethods, setLoginMethods] = useState<LoginMethodsResponse | null>(null)
+  const [securityMessage, setSecurityMessage] = useState('')
+  const [passwordMessage, setPasswordMessage] = useState('')
+  const [isPasswordSaving, setIsPasswordSaving] = useState(false)
 
   useEffect(() => {
     const accessToken = localStorage.getItem('myMentalCare.accessToken')
@@ -209,6 +218,15 @@ export default function MyPage() {
       })
       .catch((error) => {
         setCheckInMessage(error instanceof LoginApiError ? error.message : '체크인 기록을 불러오지 못했습니다.')
+      })
+
+    readLoginMethods()
+      .then((methods) => {
+        setLoginMethods(methods)
+        setSecurityMessage('')
+      })
+      .catch((error) => {
+        setSecurityMessage(error instanceof LoginApiError ? error.message : '계정 보안 정보를 불러오지 못했습니다.')
       })
   }, [])
 
@@ -372,6 +390,42 @@ export default function MyPage() {
   const handleWithdrawAccount = async (request: WithdrawMemberRequest) => {
     await withdrawMyAccount(request)
     router.push('/')
+  }
+
+  const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+    setPasswordMessage('')
+    const formData = new FormData(event.currentTarget)
+    const currentPassword = String(formData.get('currentPassword') ?? '')
+    const newPassword = String(formData.get('newPassword') ?? '')
+    const newPasswordConfirm = String(formData.get('newPasswordConfirm') ?? '')
+
+    if (!currentPassword || !newPassword || !newPasswordConfirm) {
+      setPasswordMessage('현재 비밀번호와 새 비밀번호를 모두 입력해주세요.')
+      return
+    }
+
+    if (newPassword !== newPasswordConfirm) {
+      setPasswordMessage('새 비밀번호 확인이 일치하지 않습니다.')
+      return
+    }
+
+    if (newPassword.length < 8) {
+      setPasswordMessage('새 비밀번호는 8자 이상 입력해주세요.')
+      return
+    }
+
+    setIsPasswordSaving(true)
+    try {
+      await changeMyPassword({ currentPassword, newPassword })
+      event.currentTarget.reset()
+      setToastMessage('비밀번호가 변경되었습니다. 다시 로그인해주세요.')
+      router.push('/')
+    } catch (error) {
+      setPasswordMessage(error instanceof LoginApiError ? error.message : '비밀번호를 변경하지 못했습니다.')
+    } finally {
+      setIsPasswordSaving(false)
+    }
   }
 
   const formatShortDateTime = (dateTime?: string | null) => {
@@ -813,10 +867,72 @@ export default function MyPage() {
             <section className="mypage-panel" aria-labelledby="security-section-title">
               <PanelHeader
                 eyebrow="계정"
-                title="로그아웃 및 계정 관리"
-                description="로그아웃은 여기에서 진행하고, 회원 탈퇴는 데이터 보관 안내와 본인 확인을 거친 뒤 진행합니다."
+                title="로그인 방식과 계정 보안"
+                description="현재 계정의 로그인 방식을 확인하고 비밀번호를 변경할 수 있습니다."
                 icon={ShieldCheck}
               />
+              {securityMessage && (
+                <div className="mypage-alert" role="status">
+                  <AlertTriangle size={18} aria-hidden="true" />
+                  <span>{securityMessage}</span>
+                </div>
+              )}
+              <div className="mypage-login-method-grid">
+                <article className="mypage-login-method-card">
+                  <span className="mypage-history-icon">
+                    <KeyRound size={19} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <strong>일반 로그인</strong>
+                    <p>{loginMethods?.passwordLoginEnabled ? '아이디와 비밀번호 로그인을 사용할 수 있습니다.' : '카카오 로그인 전용 계정입니다.'}</p>
+                    <small>{loginMethods ? (loginMethods.canChangePassword ? '비밀번호 변경 가능' : '비밀번호 변경 불가') : '확인 중'}</small>
+                  </div>
+                </article>
+                <article className="mypage-login-method-card">
+                  <span className="mypage-history-icon">
+                    <Link2 size={19} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <strong>카카오 로그인</strong>
+                    <p>{loginMethods?.socialAccounts.some((account) => account.provider === 'KAKAO') ? '카카오 계정이 연결되어 있습니다.' : '연결된 카카오 계정이 없습니다.'}</p>
+                    <small>
+                      {loginMethods?.socialAccounts.find((account) => account.provider === 'KAKAO')?.email ||
+                        (loginMethods ? '미연결' : '확인 중')}
+                    </small>
+                  </div>
+                </article>
+              </div>
+              <form className="mypage-password-form" onSubmit={handlePasswordChange}>
+                <div>
+                  <strong>비밀번호 변경</strong>
+                  <span>변경 후 보안을 위해 현재 로그인 상태가 종료됩니다.</span>
+                </div>
+                {!loginMethods ? (
+                  <p className="mypage-setting-message">로그인 방식 정보를 확인하는 중입니다.</p>
+                ) : !loginMethods.canChangePassword ? (
+                  <p className="mypage-setting-message">카카오 로그인 전용 계정은 현재 비밀번호 변경을 지원하지 않습니다.</p>
+                ) : (
+                  <>
+                    <label>
+                      현재 비밀번호
+                      <input name="currentPassword" type="password" placeholder="현재 비밀번호" disabled={isPasswordSaving} />
+                    </label>
+                    <label>
+                      새 비밀번호
+                      <input name="newPassword" type="password" placeholder="8자 이상" disabled={isPasswordSaving} />
+                    </label>
+                    <label>
+                      새 비밀번호 확인
+                      <input name="newPasswordConfirm" type="password" placeholder="새 비밀번호 다시 입력" disabled={isPasswordSaving} />
+                    </label>
+                    {passwordMessage && <p className="mypage-setting-message">{passwordMessage}</p>}
+                    <button className="soft-button" type="submit" disabled={isPasswordSaving}>
+                      {isPasswordSaving ? '변경 중...' : '비밀번호 변경'}
+                      <CheckCircle2 size={17} aria-hidden="true" />
+                    </button>
+                  </>
+                )}
+              </form>
               <div className="mypage-security-actions">
                 <button className="soft-button" type="button" onClick={handleLogout}>
                   <LogOut size={17} aria-hidden="true" />
