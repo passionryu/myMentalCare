@@ -7,6 +7,10 @@ interface AiChatInputPort {
 
     fun readHistoryRoom(memberId: Long, roomId: Long): AiChatHistoryRoomDetailResponse?
 
+    fun readReports(memberId: Long): List<AiChatReportResponse>
+
+    fun readReport(memberId: Long, reportId: Long): AiChatReportResponse?
+
     fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse
 
     fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse

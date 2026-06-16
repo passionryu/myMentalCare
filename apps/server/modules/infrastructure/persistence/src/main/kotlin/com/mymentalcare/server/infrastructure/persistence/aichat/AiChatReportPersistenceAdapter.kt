@@ -23,6 +23,16 @@ class AiChatReportPersistenceAdapter(
         return jpaAiChatReportRepository.countByMemberId(memberId)
     }
 
+    override fun findByMemberId(memberId: Long): List<AiChatReport> {
+        return jpaAiChatReportRepository.findByMemberIdOrderByCreatedAtDesc(memberId)
+            .map { it.toDomain(readSongs(it.id)) }
+    }
+
+    override fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport? {
+        return jpaAiChatReportRepository.findByIdAndMemberId(reportId, memberId)
+            ?.let { it.toDomain(readSongs(it.id)) }
+    }
+
     override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport? {
         return jpaAiChatReportRepository.findByRoomIdAndClientRequestId(roomId, clientRequestId)
             ?.let { it.toDomain(readSongs(it.id)) }

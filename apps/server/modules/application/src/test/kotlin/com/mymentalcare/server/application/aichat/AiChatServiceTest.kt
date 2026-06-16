@@ -643,6 +643,14 @@ class AiChatServiceTest {
             return reports.count { it.memberId == memberId }
         }
 
+        override fun findByMemberId(memberId: Long): List<AiChatReport> {
+            return reports.filter { it.memberId == memberId }.sortedByDescending { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport? {
+            return reports.firstOrNull { it.id == reportId && it.memberId == memberId }
+        }
+
         override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport? {
             return reports.firstOrNull { it.roomId == roomId && it.clientRequestId == clientRequestId }
         }
