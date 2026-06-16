@@ -8,11 +8,26 @@ import { exchangeKakaoLoginCode, LoginApiError } from '@/lib/auth-api'
 type CallbackStatus = 'loading' | 'success' | 'error'
 
 const kakaoErrorMessages: Record<string, string> = {
-  KAKAO_AUTH_CANCELLED: '카카오 로그인이 취소되었습니다.',
-  KAKAO_AUTH_FAILED: '카카오 로그인 처리 중 문제가 발생했습니다. 다시 시도해주세요.',
-  KAKAO_STATE_INVALID: '로그인 요청 시간이 만료되었습니다. 다시 시도해주세요.',
+  KAKAO_AUTH_CANCELLED: '카카오 로그인이 취소되었습니다. 필요할 때 다시 이어갈 수 있어요.',
+  KAKAO_AUTH_FAILED: '카카오 로그인 처리 중 문제가 발생했습니다. 잠시 후 다시 시도해주세요.',
+  KAKAO_STATE_INVALID: '로그인 요청 시간이 만료되었습니다. 처음 화면에서 다시 시작해주세요.',
   KAKAO_ACCOUNT_CONFLICT: '이미 같은 이메일로 가입된 계정이 있습니다. 기존 방식으로 로그인해주세요.',
-  KAKAO_EXCHANGE_CODE_INVALID: '카카오 로그인 결과를 확인할 수 없습니다. 다시 시도해주세요.',
+  KAKAO_EXCHANGE_CODE_INVALID: '카카오 로그인 결과를 확인할 수 없습니다. 처음 화면에서 다시 시도해주세요.',
+}
+
+const callbackText: Record<CallbackStatus, { eyebrow: string; title: string }> = {
+  loading: {
+    eyebrow: 'Kakao Login',
+    title: '안전하게 확인하고 있어요',
+  },
+  success: {
+    eyebrow: '로그인 완료',
+    title: 'Haru Mind로 돌아가고 있어요',
+  },
+  error: {
+    eyebrow: '로그인 확인 필요',
+    title: '로그인을 완료하지 못했어요',
+  },
 }
 
 function normalizeRedirectTo(redirectTo: string | null) {
@@ -26,8 +41,9 @@ export default function KakaoCallbackClient() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [status, setStatus] = useState<CallbackStatus>('loading')
-  const [message, setMessage] = useState('카카오 로그인 결과를 확인하고 있습니다.')
+  const [message, setMessage] = useState('카카오 계정과 Haru Mind를 안전하게 연결하고 있습니다.')
   const redirectTo = useMemo(() => normalizeRedirectTo(searchParams.get('redirectTo')), [searchParams])
+  const currentText = callbackText[status]
 
   useEffect(() => {
     const error = searchParams.get('error')
@@ -53,7 +69,7 @@ export default function KakaoCallbackClient() {
         localStorage.setItem('myMentalCare.accessToken', tokens.accessToken)
         localStorage.setItem('myMentalCare.refreshToken', tokens.refreshToken)
         setStatus('success')
-        setMessage('카카오 로그인이 완료되었습니다. 잠시 후 이동합니다.')
+        setMessage('내 대화 공간으로 이동합니다. 잠시만 기다려주세요.')
         window.setTimeout(() => router.replace(redirectTo), 900)
       })
       .catch((error) => {
@@ -77,8 +93,8 @@ export default function KakaoCallbackClient() {
           {status === 'success' && <CheckCircle2 size={28} aria-hidden="true" />}
           {status === 'error' && <AlertCircle size={28} aria-hidden="true" />}
         </div>
-        <p className="eyebrow">Kakao Login</p>
-        <h1>카카오 로그인</h1>
+        <p className="eyebrow">{currentText.eyebrow}</p>
+        <h1>{currentText.title}</h1>
         <p>{message}</p>
         {status === 'error' && (
           <div className="callback-actions">
