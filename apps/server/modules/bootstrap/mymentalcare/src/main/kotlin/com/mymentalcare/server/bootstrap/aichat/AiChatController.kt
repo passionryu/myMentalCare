@@ -3,6 +3,7 @@ package com.mymentalcare.server.bootstrap.aichat
 import com.mymentalcare.server.application.aichat.AiChatInputPort
 import com.mymentalcare.server.application.aichat.AiChatInvalidRequestException
 import com.mymentalcare.server.application.aichat.CreateAiChatReportRequest
+import com.mymentalcare.server.application.aichat.DeleteAiChatHistoryRequest
 import com.mymentalcare.server.application.aichat.SendAiChatMessageRequest
 import com.mymentalcare.server.application.aichat.StartAiChatCheckInRequest
 import com.mymentalcare.server.application.aichat.StartAiChatSegmentRequest
@@ -105,6 +106,26 @@ class AiChatController(
         return ResponseEntity.ok(
             aiChatInputPort.readCheckIns(memberId).map { it.toBootstrapResponse() }
         )
+    }
+
+    @Operation(
+        summary = "내 AI 마음 이력 삭제",
+        description = "로그인한 사용자의 채팅방, 리포트, 체크인 기록 중 선택한 이력을 삭제합니다.",
+    )
+    @PostMapping("/history/delete")
+    fun deleteHistory(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody payload: DeleteAiChatHistoryPayload,
+    ): ResponseEntity<DeleteAiChatHistoryResponse> {
+        val response = aiChatInputPort.deleteHistory(
+            memberId = memberId,
+            request = DeleteAiChatHistoryRequest(
+                targetType = payload.targetType,
+                targetId = payload.targetId,
+            ),
+        )
+
+        return ResponseEntity.ok(DeleteAiChatHistoryResponse(deletedCount = response.deletedCount))
     }
 
     @Operation(

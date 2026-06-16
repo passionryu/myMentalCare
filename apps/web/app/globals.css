@@ -4108,10 +4108,19 @@ h3 {
   font-weight: 800;
 }
 
+.mypage-item-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 8px;
+}
+
 .mypage-chat-history-item button,
-.mypage-report-item button {
+.mypage-report-item button,
+.mypage-checkin-item button {
   display: inline-flex;
   align-items: center;
+  justify-content: center;
   gap: 6px;
   flex: 0 0 auto;
   border: 1px solid var(--theme-border-strong);
@@ -4120,6 +4129,14 @@ h3 {
   color: var(--theme-primary);
   padding: 10px 12px;
   font-weight: 900;
+}
+
+.mypage-chat-history-item .mypage-inline-danger-button,
+.mypage-report-item .mypage-inline-danger-button,
+.mypage-checkin-item .mypage-inline-danger-button {
+  border-color: rgba(184, 111, 84, 0.34);
+  background: rgba(255, 238, 225, 0.72);
+  color: #7a412f;
 }
 
 .mypage-history-item {
@@ -4667,6 +4684,21 @@ h3 {
     grid-column: 1 / -1;
     justify-content: center;
     width: 100%;
+  }
+
+  .mypage-chat-history-item,
+  .mypage-report-item,
+  .mypage-checkin-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .mypage-item-actions {
+    width: 100%;
+  }
+
+  .mypage-item-actions button {
+    flex: 1;
   }
 
   .mypage-hero-actions,

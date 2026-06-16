@@ -140,6 +140,12 @@ export type AiChatCheckInHistoryAnswer = {
   freeText?: string | null
 }
 
+export type DeleteAiChatHistoryTargetType = 'CHAT_ROOM' | 'REPORT' | 'CHECK_IN'
+
+export type DeleteAiChatHistoryResponse = {
+  deletedCount: number
+}
+
 async function readJson(response: Response) {
   return response.json().catch(() => null)
 }
@@ -208,6 +214,26 @@ export async function readAiChatReport(reportId: number): Promise<AiChatReport> 
   }
 
   return body as AiChatReport
+}
+
+export async function deleteAiChatHistory(
+  targetType: DeleteAiChatHistoryTargetType,
+  targetId: number,
+): Promise<DeleteAiChatHistoryResponse> {
+  const response = await requestWithAuth('/api/ai-chat/history/delete', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ targetType, targetId }),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '선택한 이력을 삭제하지 못했습니다.')
+  }
+
+  return body as DeleteAiChatHistoryResponse
 }
 
 export async function startDirectAiChatSegment(clientRequestId: string): Promise<StartAiChatSegmentResponse> {

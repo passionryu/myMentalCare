@@ -1,6 +1,7 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatCheckInRepository
+import com.mymentalcare.server.application.port.AiChatHistoryDeletionRepository
 import com.mymentalcare.server.application.port.AiChatReportRepository
 import com.mymentalcare.server.application.port.AiChatRoomRepository
 import com.mymentalcare.server.application.port.AiChatSegmentRepository
@@ -32,6 +33,7 @@ internal class AiChatService(
     private val aiChatRoomRepository: AiChatRoomRepository,
     private val aiChatSegmentRepository: AiChatSegmentRepository,
     private val aiChatCheckInRepository: AiChatCheckInRepository,
+    private val aiChatHistoryDeletionRepository: AiChatHistoryDeletionRepository,
     private val chatMessageRepository: ChatMessageRepository,
     private val aiChatReportRepository: AiChatReportRepository,
     private val aiChatReportReadinessDecider: AiChatReportReadinessDecider,
@@ -113,6 +115,18 @@ internal class AiChatService(
                     createdAt = checkIn.createdAt ?: segmentById[checkIn.segmentId]?.startedAt,
                 )
             }
+    }
+
+    @Transactional
+    override fun deleteHistory(memberId: Long, request: DeleteAiChatHistoryRequest): DeleteAiChatHistoryResponse {
+        val deletedCount = when (request.targetType) {
+            "CHAT_ROOM" -> aiChatHistoryDeletionRepository.deleteChatRoom(memberId, request.targetId)
+            "REPORT" -> aiChatHistoryDeletionRepository.deleteReport(memberId, request.targetId)
+            "CHECK_IN" -> aiChatHistoryDeletionRepository.deleteCheckIn(memberId, request.targetId)
+            else -> throw AiChatInvalidRequestException("지원하지 않는 삭제 대상입니다.")
+        }
+
+        return DeleteAiChatHistoryResponse(deletedCount = deletedCount)
     }
 
     // 체크인 없이 오늘 대화방 안에 새 주제 구간을 시작한다.

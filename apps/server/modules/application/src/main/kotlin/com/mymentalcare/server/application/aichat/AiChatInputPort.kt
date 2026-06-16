@@ -13,6 +13,8 @@ interface AiChatInputPort {
 
     fun readCheckIns(memberId: Long): List<AiChatCheckInHistoryResponse>
 
+    fun deleteHistory(memberId: Long, request: DeleteAiChatHistoryRequest): DeleteAiChatHistoryResponse
+
     fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse
 
     fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse
