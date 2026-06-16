@@ -420,16 +420,16 @@ function AuthModal({
         <h2 id="auth-modal-title">{isSignup ? '회원가입' : '로그인'}</h2>
         <p className="modal-description">
           {isSignup
-            ? '이름과 로그인 정보를 입력해 마음 케어 공간을 준비합니다.'
-            : '계정 정보를 입력해 나의 마음 기록 공간으로 돌아갑니다.'}
+            ? '처음 남기는 대화도 안전하게 이어질 수 있도록 공간을 준비합니다.'
+            : '나의 대화와 마음 기록을 안전하게 이어갈게요.'}
         </p>
 
         <div className="auth-social-stack" aria-label="간편 로그인">
           <button className="kakao-login-button" type="button" onClick={handleKakaoLogin}>
             <span className="kakao-login-icon" aria-hidden="true">K</span>
-            <span>{isSignup ? '카카오로 3초 만에 시작하기' : '카카오로 바로 계속하기'}</span>
+            <span>{isSignup ? '카카오로 Haru Mind 시작하기' : '카카오로 내 공간 이어가기'}</span>
           </button>
-          <p className="auth-method-note">별도 비밀번호 없이 카카오 계정으로 안전하게 이어갑니다.</p>
+          <p className="auth-method-note">필요한 정보만 연결해 대화 흐름을 안전하게 보관합니다.</p>
         </div>
         <div className="auth-divider" role="separator">
           <span>아이디로 계속하기</span>
