@@ -1,7 +1,9 @@
 package com.mymentalcare.server.application.member
 
+import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
 import com.mymentalcare.server.domain.member.Member
+import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertThrows
@@ -14,7 +16,7 @@ class MemberServiceTest {
         val repository = FakeMemberRepository(
             members = mutableMapOf(1L to testMember()),
         )
-        val service = MemberService(repository, BCryptPasswordEncoder())
+        val service = memberService(repository)
 
         val response = service.updateMyProfile(
             memberId = 1L,
@@ -37,7 +39,7 @@ class MemberServiceTest {
         val repository = FakeMemberRepository(
             members = mutableMapOf(1L to testMember()),
         )
-        val service = MemberService(repository, BCryptPasswordEncoder())
+        val service = memberService(repository)
 
         val response = service.updateMyProfile(
             memberId = 1L,
@@ -60,7 +62,7 @@ class MemberServiceTest {
                 2L to testMember(id = 2L, loginId = "test2", email = "used@example.com"),
             ),
         )
-        val service = MemberService(repository, BCryptPasswordEncoder())
+        val service = memberService(repository)
 
         assertThrows(DuplicateEmailException::class.java) {
             service.updateMyProfile(
@@ -89,6 +91,17 @@ class MemberServiceTest {
         )
     }
 
+    private fun memberService(
+        repository: MemberRepository,
+        notificationSettingRepository: MemberNotificationSettingRepository = FakeMemberNotificationSettingRepository(),
+    ): MemberService {
+        return MemberService(
+            memberRepository = repository,
+            notificationSettingRepository = notificationSettingRepository,
+            passwordEncoder = BCryptPasswordEncoder(),
+        )
+    }
+
     private class FakeMemberRepository(
         private val members: MutableMap<Long, Member>,
     ) : MemberRepository {
@@ -107,5 +120,11 @@ class MemberServiceTest {
             members[savedMember.id] = savedMember
             return savedMember
         }
+    }
+
+    private class FakeMemberNotificationSettingRepository : MemberNotificationSettingRepository {
+        override fun findByMemberId(memberId: Long): MemberNotificationSetting? = null
+
+        override fun save(setting: MemberNotificationSetting): MemberNotificationSetting = setting
     }
 }

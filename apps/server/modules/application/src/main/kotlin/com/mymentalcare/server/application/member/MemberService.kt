@@ -1,15 +1,19 @@
 package com.mymentalcare.server.application.member
 
 import com.mymentalcare.server.application.common.extension.logWarn
+import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.application.port.MemberRepository
+import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import com.mymentalcare.server.domain.member.Member
 import org.springframework.security.crypto.password.PasswordEncoder
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
+import java.time.LocalTime
 
 @Service
 internal class MemberService(
     private val memberRepository: MemberRepository,
+    private val notificationSettingRepository: MemberNotificationSettingRepository,
     private val passwordEncoder: PasswordEncoder,
 ) : MemberInputPort {
     // 회원가입
@@ -78,6 +82,32 @@ internal class MemberService(
         return updatedMember.toMyProfileResponse()
     }
 
+    @Transactional(readOnly = true)
+    override fun readNotificationSetting(memberId: Long): MemberNotificationSettingResponse {
+        memberRepository.findById(memberId) ?: throw MemberNotFoundException()
+
+        return (notificationSettingRepository.findByMemberId(memberId) ?: defaultNotificationSetting(memberId))
+            .toNotificationSettingResponse()
+    }
+
+    @Transactional
+    override fun updateNotificationSetting(memberId: Long, request: MemberNotificationSettingRequest): MemberNotificationSettingResponse {
+        memberRepository.findById(memberId) ?: throw MemberNotFoundException()
+
+        val currentSetting = notificationSettingRepository.findByMemberId(memberId)
+        val savedSetting = notificationSettingRepository.save(
+            MemberNotificationSetting(
+                id = currentSetting?.id ?: 0,
+                memberId = memberId,
+                enabled = request.enabled,
+                notificationTime = request.notificationTime,
+                weekdays = request.weekdays.distinct(),
+            )
+        )
+
+        return savedSetting.toNotificationSettingResponse()
+    }
+
     private fun Member.toMyProfileResponse(): MyProfileResponse {
         return MyProfileResponse(
             memberId = id,
@@ -85,6 +115,24 @@ internal class MemberService(
             email = email,
             name = name,
             phone = phone,
+        )
+    }
+
+    private fun defaultNotificationSetting(memberId: Long): MemberNotificationSetting {
+        return MemberNotificationSetting(
+            id = 0,
+            memberId = memberId,
+            enabled = false,
+            notificationTime = LocalTime.of(21, 0),
+            weekdays = listOf("MON", "TUE", "WED", "THU", "FRI"),
+        )
+    }
+
+    private fun MemberNotificationSetting.toNotificationSettingResponse(): MemberNotificationSettingResponse {
+        return MemberNotificationSettingResponse(
+            enabled = enabled,
+            notificationTime = notificationTime.toString(),
+            weekdays = weekdays,
         )
     }
 
