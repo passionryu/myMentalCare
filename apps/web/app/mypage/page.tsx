@@ -35,7 +35,15 @@ import {
   readAiChatReport,
   readAiChatReports,
 } from '@/lib/ai-chat-api'
-import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
+import {
+  LoginApiError,
+  MyProfileResponse,
+  UpdateMyProfileRequest,
+  WithdrawMemberRequest,
+  readMyProfile,
+  updateMyProfile,
+  withdrawMyAccount,
+} from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
 import { MyPageSummaryResponse, readMyPageSummary } from '@/lib/mypage-api'
 import {
@@ -359,6 +367,11 @@ export default function MyPage() {
     const nextProfile = await updateMyProfile(request)
     setProfile(nextProfile)
     setProfileMessage('')
+  }
+
+  const handleWithdrawAccount = async (request: WithdrawMemberRequest) => {
+    await withdrawMyAccount(request)
+    router.push('/')
   }
 
   const formatShortDateTime = (dateTime?: string | null) => {
@@ -834,6 +847,7 @@ export default function MyPage() {
           type={dialogType}
           profile={profile}
           onProfileUpdate={handleProfileUpdate}
+          onWithdrawAccount={handleWithdrawAccount}
           onClose={() => setDialogType(null)}
           onDone={(message) => {
             setDialogType(null)
@@ -1044,12 +1058,14 @@ function MyPageDialog({
   type,
   profile,
   onProfileUpdate,
+  onWithdrawAccount,
   onClose,
   onDone,
 }: {
   type: Exclude<DialogType, null>
   profile: MyProfileResponse | null
   onProfileUpdate: (request: UpdateMyProfileRequest) => Promise<void>
+  onWithdrawAccount: (request: WithdrawMemberRequest) => Promise<void>
   onClose: () => void
   onDone: (message: string) => void
 }) {
@@ -1059,13 +1075,13 @@ function MyPageDialog({
   const titleByType = {
     editProfile: '개인정보 수정',
     deleteHistory: '이력 삭제 요청',
-    withdraw: '회원 탈퇴 안내',
+    withdraw: '회원 탈퇴',
   }
 
   const descriptionByType = {
     editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
     deleteHistory: '채팅, 리포트, 체크인 카드의 삭제 버튼으로 선택한 이력을 삭제합니다.',
-    withdraw: '회원 탈퇴는 보관 데이터 안내와 본인 확인이 필요합니다. 지금은 안내 흐름만 확인합니다.',
+    withdraw: '탈퇴 후 계정은 비활성화되며, 현재 로그인 상태가 종료됩니다. 계속하려면 비밀번호와 확인 문구를 입력해주세요.',
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1102,7 +1118,30 @@ function MyPageDialog({
       onDone('각 이력 카드의 삭제 버튼으로 선택 삭제를 진행할 수 있습니다.')
       return
     }
-    onDone('회원 탈퇴 API가 연결되면 본인 확인 후 진행됩니다.')
+
+    const formData = new FormData(event.currentTarget)
+    const password = String(formData.get('password') ?? '')
+    const confirmationText = String(formData.get('confirmationText') ?? '').trim()
+
+    if (!password) {
+      setFormMessage('비밀번호를 입력해주세요.')
+      return
+    }
+
+    if (confirmationText !== '회원 탈퇴') {
+      setFormMessage('확인 문구로 "회원 탈퇴"를 입력해주세요.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      await onWithdrawAccount({ password, confirmationText })
+      onDone('회원 탈퇴가 완료되었습니다.')
+    } catch (error) {
+      setFormMessage(error instanceof LoginApiError ? error.message : '회원 탈퇴를 처리하지 못했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -1137,10 +1176,25 @@ function MyPageDialog({
                 <input name="phone" defaultValue={profile?.phone ?? ''} placeholder="010-0000-0000" disabled={isSubmitting} />
               </label>
             </>
+          ) : type === 'withdraw' ? (
+            <>
+              <div className="mypage-dialog-warning">
+                <AlertTriangle size={20} aria-hidden="true" />
+                <span>탈퇴하면 현재 토큰이 무효화되고 마이페이지 접근이 중단됩니다. 저장 데이터 처리는 추후 정책에 따라 별도 관리됩니다.</span>
+              </div>
+              <label>
+                비밀번호
+                <input name="password" type="password" placeholder="현재 비밀번호" disabled={isSubmitting} />
+              </label>
+              <label>
+                확인 문구
+                <input name="confirmationText" placeholder="회원 탈퇴" disabled={isSubmitting} />
+              </label>
+            </>
           ) : (
             <div className="mypage-dialog-warning">
               <AlertTriangle size={20} aria-hidden="true" />
-              <span>{type === 'deleteHistory' ? '삭제는 카드별로 진행되며, 삭제한 이력은 복구할 수 없습니다.' : '탈퇴 전 저장된 대화와 리포트의 처리 방침을 명확히 안내해야 합니다.'}</span>
+              <span>삭제는 카드별로 진행되며, 삭제한 이력은 복구할 수 없습니다.</span>
             </div>
           )}
           {formMessage && (
@@ -1153,7 +1207,7 @@ function MyPageDialog({
               취소
             </button>
             <button className={type === 'editProfile' ? 'primary-button' : 'danger-button'} type="submit" disabled={isSubmitting}>
-              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : '확인했습니다'}
+              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : type === 'withdraw' ? (isSubmitting ? '탈퇴 처리 중...' : '회원 탈퇴하기') : '확인했습니다'}
             </button>
           </div>
         </form>

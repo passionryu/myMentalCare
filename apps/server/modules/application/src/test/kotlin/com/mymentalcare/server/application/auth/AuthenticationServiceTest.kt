@@ -100,6 +100,10 @@ class AuthenticationServiceTest {
         override fun readRefreshToken(memberId: Long): String? {
             return storedTokens[memberId]
         }
+
+        override fun deleteRefreshToken(memberId: Long) {
+            storedTokens.remove(memberId)
+        }
     }
 
     private class FakeMemberRepository(
@@ -114,5 +118,7 @@ class AuthenticationServiceTest {
         override fun existsByLoginId(loginId: String): Boolean = false
 
         override fun save(member: Member): Member = member
+
+        override fun withdraw(member: Member): Member = member
     }
 }

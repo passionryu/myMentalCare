@@ -21,4 +21,8 @@ class RedisRefreshTokenAdapter(
     override fun readRefreshToken(memberId: Long): String? {
         return redisTemplate.opsForValue().get("auth:refresh-token:$memberId")
     }
+
+    override fun deleteRefreshToken(memberId: Long) {
+        redisTemplate.delete("auth:refresh-token:$memberId")
+    }
 }
