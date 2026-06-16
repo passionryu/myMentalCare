@@ -57,6 +57,9 @@ class SecurityConfiguration(
                     .requestMatchers(HttpMethod.POST, "/api/members/signup").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/login").permitAll()
                     .requestMatchers(HttpMethod.POST, "/api/auth/reissue").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/auth/kakao/login").permitAll()
+                    .requestMatchers(HttpMethod.GET, "/api/auth/kakao/callback").permitAll()
+                    .requestMatchers(HttpMethod.POST, "/api/auth/kakao/exchange").permitAll()
                     .requestMatchers(
                         "/swagger-ui/**",
                         "/v3/api-docs/**",
