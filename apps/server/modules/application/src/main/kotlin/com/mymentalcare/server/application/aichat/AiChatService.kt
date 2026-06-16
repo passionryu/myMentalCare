@@ -1,11 +1,14 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatReportRepository
+import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.port.ChatMessageRepository
 import com.mymentalcare.server.domain.aichat.AiChatReport
 import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatReportType
 import com.mymentalcare.server.domain.aichat.AiChatCheckInTemplateType
 import com.mymentalcare.server.domain.aichat.AiChatSegmentStartType
+import com.mymentalcare.server.domain.aichat.ChatMessage
 import com.mymentalcare.server.domain.aichat.CrisisRiskLevel
 import org.springframework.stereotype.Service
 import org.springframework.transaction.annotation.Transactional
@@ -24,6 +27,8 @@ internal class AiChatService(
     private val aiChatSegmentContextReader: AiChatSegmentContextReader,
     private val crisisDetectionRecorder: CrisisDetectionRecorder,
     private val aiChatResponseAssembler: AiChatResponseAssembler,
+    private val aiChatRoomRepository: AiChatRoomRepository,
+    private val chatMessageRepository: ChatMessageRepository,
     private val aiChatReportRepository: AiChatReportRepository,
     private val aiChatReportReadinessDecider: AiChatReportReadinessDecider,
     private val aiChatReportGenerator: AiChatReportGenerator,
@@ -36,6 +41,34 @@ internal class AiChatService(
         val room = todayAiChatRoomReader.readOrCreateTodayRoom(memberId)
 
         return aiChatResponseAssembler.toTodayRoomResponse(room)
+    }
+
+    @Transactional(readOnly = true)
+    override fun readHistoryRooms(memberId: Long): List<AiChatHistoryRoomResponse> {
+        return aiChatRoomRepository.findByMemberId(memberId).map { room ->
+            val latestMessage = chatMessageRepository.findLatestByRoomId(room.id)
+            AiChatHistoryRoomResponse(
+                roomId = room.id,
+                conversationDate = room.conversationDate,
+                status = room.status.name,
+                messageCount = chatMessageRepository.countByRoomId(room.id),
+                latestMessage = latestMessage?.content,
+                latestMessageAt = latestMessage?.createdAt,
+            )
+        }
+    }
+
+    @Transactional(readOnly = true)
+    override fun readHistoryRoom(memberId: Long, roomId: Long): AiChatHistoryRoomDetailResponse? {
+        val room = aiChatRoomRepository.findByIdAndMemberId(roomId = roomId, memberId = memberId) ?: return null
+        return AiChatHistoryRoomDetailResponse(
+            roomId = room.id,
+            chatbotCode = room.chatbotCode,
+            chatbotName = "마음이",
+            conversationDate = room.conversationDate,
+            status = room.status.name,
+            messages = chatMessageRepository.findByRoomId(room.id).map { it.toResponse() },
+        )
     }
 
     // 체크인 없이 오늘 대화방 안에 새 주제 구간을 시작한다.
@@ -303,6 +336,18 @@ internal class AiChatService(
             artist = artist,
             reason = reason,
             youtubeUrl = youtubeUrl,
+        )
+    }
+
+    private fun ChatMessage.toResponse(): AiChatMessageResponse {
+        return AiChatMessageResponse(
+            messageId = id,
+            segmentId = segmentId,
+            senderType = senderType.name,
+            content = content,
+            messageOrder = messageOrder,
+            isCrisisDetected = isCrisisDetected,
+            createdAt = createdAt,
         )
     }
 }

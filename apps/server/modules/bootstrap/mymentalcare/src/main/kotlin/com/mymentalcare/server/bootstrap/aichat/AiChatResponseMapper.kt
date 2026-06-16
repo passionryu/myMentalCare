@@ -1,6 +1,8 @@
 package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatCheckInResponse as ApplicationAiChatCheckInResponse
+import com.mymentalcare.server.application.aichat.AiChatHistoryRoomDetailResponse as ApplicationAiChatHistoryRoomDetailResponse
+import com.mymentalcare.server.application.aichat.AiChatHistoryRoomResponse as ApplicationAiChatHistoryRoomResponse
 import com.mymentalcare.server.application.aichat.AiChatMessageResponse as ApplicationAiChatMessageResponse
 import com.mymentalcare.server.application.aichat.AiChatReportReadinessResponse as ApplicationAiChatReportReadinessResponse
 import com.mymentalcare.server.application.aichat.AiChatReportResponse as ApplicationAiChatReportResponse
@@ -20,6 +22,28 @@ fun ApplicationTodayAiChatRoomResponse.toBootstrapResponse(): TodayAiChatRoomRes
         hasConversation = hasConversation,
         activeSegmentId = activeSegmentId,
         segments = segments.map { it.toBootstrapResponse() },
+        messages = messages.map { it.toBootstrapResponse() },
+    )
+}
+
+fun ApplicationAiChatHistoryRoomResponse.toBootstrapResponse(): AiChatHistoryRoomResponse {
+    return AiChatHistoryRoomResponse(
+        roomId = roomId,
+        conversationDate = conversationDate,
+        status = status,
+        messageCount = messageCount,
+        latestMessage = latestMessage,
+        latestMessageAt = latestMessageAt,
+    )
+}
+
+fun ApplicationAiChatHistoryRoomDetailResponse.toBootstrapResponse(): AiChatHistoryRoomDetailResponse {
+    return AiChatHistoryRoomDetailResponse(
+        roomId = roomId,
+        chatbotCode = chatbotCode,
+        chatbotName = chatbotName,
+        conversationDate = conversationDate,
+        status = status,
         messages = messages.map { it.toBootstrapResponse() },
     )
 }

@@ -104,6 +104,24 @@ export type AiChatReportSong = {
   youtubeUrl: string
 }
 
+export type AiChatHistoryRoom = {
+  roomId: number
+  conversationDate: string
+  status: string
+  messageCount: number
+  latestMessage?: string | null
+  latestMessageAt?: string | null
+}
+
+export type AiChatHistoryRoomDetail = {
+  roomId: number
+  chatbotCode: string
+  chatbotName: string
+  conversationDate: string
+  status: string
+  messages: AiChatMessage[]
+}
+
 async function readJson(response: Response) {
   return response.json().catch(() => null)
 }
@@ -117,6 +135,28 @@ export async function readTodayAiChatRoom(): Promise<TodayAiChatRoom> {
   }
 
   return body as TodayAiChatRoom
+}
+
+export async function readAiChatHistoryRooms(): Promise<AiChatHistoryRoom[]> {
+  const response = await requestWithAuth('/api/ai-chat/rooms')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '채팅 이력을 불러오지 못했습니다.')
+  }
+
+  return body as AiChatHistoryRoom[]
+}
+
+export async function readAiChatHistoryRoom(roomId: number): Promise<AiChatHistoryRoomDetail> {
+  const response = await requestWithAuth(`/api/ai-chat/rooms/${roomId}`)
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '채팅 상세 이력을 불러오지 못했습니다.')
+  }
+
+  return body as AiChatHistoryRoomDetail
 }
 
 export async function startDirectAiChatSegment(clientRequestId: string): Promise<StartAiChatSegmentResponse> {

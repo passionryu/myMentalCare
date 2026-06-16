@@ -6,5 +6,9 @@ import java.time.LocalDate
 interface AiChatRoomRepository {
     fun findTodayRoom(memberId: Long, chatbotCode: String, conversationDate: LocalDate): AiChatRoom?
 
+    fun findByMemberId(memberId: Long): List<AiChatRoom>
+
+    fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom?
+
     fun save(room: AiChatRoom): AiChatRoom
 }
