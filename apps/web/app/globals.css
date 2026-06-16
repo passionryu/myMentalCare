@@ -4163,6 +4163,33 @@ h3 {
   resize: vertical;
 }
 
+.mypage-inquiry-result {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border: 1px solid rgba(49, 91, 63, 0.18);
+  border-radius: 18px;
+  background: rgba(237, 246, 236, 0.72);
+  color: var(--theme-primary);
+  padding: 13px 14px;
+}
+
+.mypage-inquiry-result div {
+  display: grid;
+  gap: 3px;
+}
+
+.mypage-inquiry-result strong {
+  font-size: 15px;
+  font-weight: 900;
+}
+
+.mypage-inquiry-result span {
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .mypage-inquiry-form select:focus,
 .mypage-inquiry-form textarea:focus,
 .mypage-dialog-form input:focus {
