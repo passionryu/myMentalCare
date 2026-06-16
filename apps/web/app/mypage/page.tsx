@@ -123,8 +123,10 @@ export default function MyPage() {
   )
 
   const handleThemeChange = (nextThemeTone: ThemeTone) => {
+    const nextTheme = themes.find((theme) => theme.value === nextThemeTone)
     setThemeTone(nextThemeTone)
     localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
+    setToastMessage(`${nextTheme?.label ?? '선택한'} 테마가 이 기기에 적용되었습니다.`)
   }
 
   const handleNotificationToggle = () => {
@@ -356,20 +358,30 @@ export default function MyPage() {
                     <span />
                   </button>
                 </div>
-                <div className="mypage-theme-grid" aria-label="화면 색상 선택">
-                  {themes.map((theme) => (
-                    <button
-                      className={`mypage-theme-option mypage-theme-option-${theme.value} ${themeTone === theme.value ? 'is-selected' : ''}`}
-                      type="button"
-                      key={theme.value}
-                      aria-pressed={themeTone === theme.value}
-                      onClick={() => handleThemeChange(theme.value)}
-                    >
-                      <span className="theme-swatch" aria-hidden="true" />
-                      <strong>{theme.label}</strong>
-                      <small>{theme.description}</small>
-                    </button>
-                  ))}
+                <div className="mypage-theme-setting">
+                  <div>
+                    <strong>화면 색상</strong>
+                    <span>선택한 색상은 현재 기기에 저장됩니다. 다른 기기에서는 다시 선택할 수 있습니다.</span>
+                  </div>
+                  <div className="mypage-theme-grid" aria-label="화면 색상 선택">
+                    {themes.map((theme) => {
+                      const isSelected = themeTone === theme.value
+                      return (
+                        <button
+                          className={`mypage-theme-option mypage-theme-option-${theme.value} ${isSelected ? 'is-selected' : ''}`}
+                          type="button"
+                          key={theme.value}
+                          aria-pressed={isSelected}
+                          onClick={() => handleThemeChange(theme.value)}
+                        >
+                          <span className="theme-swatch" aria-hidden="true" />
+                          <strong>{theme.label}</strong>
+                          <small>{theme.description}</small>
+                          {isSelected && <span className="mypage-theme-selected">적용 중</span>}
+                        </button>
+                      )
+                    })}
+                  </div>
                 </div>
               </div>
             </section>
