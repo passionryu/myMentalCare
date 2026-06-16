@@ -495,6 +495,8 @@ class AiChatServiceTest {
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
             aiChatRoomRepository = roomRepository,
+            aiChatSegmentRepository = segmentRepository,
+            aiChatCheckInRepository = checkInRepository,
             chatMessageRepository = messageRepository,
             aiChatReportRepository = reportRepository,
             aiChatReportReadinessDecider = AiChatReportReadinessDecider(),

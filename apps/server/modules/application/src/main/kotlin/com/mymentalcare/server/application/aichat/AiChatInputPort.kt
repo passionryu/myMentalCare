@@ -11,6 +11,8 @@ interface AiChatInputPort {
 
     fun readReport(memberId: Long, reportId: Long): AiChatReportResponse?
 
+    fun readCheckIns(memberId: Long): List<AiChatCheckInHistoryResponse>
+
     fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse
 
     fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse

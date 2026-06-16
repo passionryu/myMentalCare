@@ -4040,6 +4040,12 @@ h3 {
   margin-top: 14px;
 }
 
+.mypage-checkin-list {
+  display: grid;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 .mypage-empty-state {
   display: grid;
   gap: 6px;
@@ -4055,7 +4061,8 @@ h3 {
 }
 
 .mypage-chat-history-item,
-.mypage-report-item {
+.mypage-report-item,
+.mypage-checkin-item {
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -4067,7 +4074,8 @@ h3 {
 }
 
 .mypage-chat-history-item div,
-.mypage-report-item div {
+.mypage-report-item div,
+.mypage-checkin-item div {
   min-width: 0;
 }
 
@@ -4076,12 +4084,16 @@ h3 {
 .mypage-chat-history-item small,
 .mypage-report-item strong,
 .mypage-report-item p,
-.mypage-report-item small {
+.mypage-report-item small,
+.mypage-checkin-item strong,
+.mypage-checkin-item p,
+.mypage-checkin-item small {
   display: block;
 }
 
 .mypage-chat-history-item p,
-.mypage-report-item p {
+.mypage-report-item p,
+.mypage-checkin-item p {
   overflow: hidden;
   margin: 6px 0;
   color: var(--foreground);
@@ -4090,7 +4102,8 @@ h3 {
 }
 
 .mypage-chat-history-item small,
-.mypage-report-item small {
+.mypage-report-item small,
+.mypage-checkin-item small {
   color: var(--muted);
   font-weight: 800;
 }

@@ -26,8 +26,10 @@ import {
   AiChatHistoryRoom,
   AiChatHistoryRoomDetail,
   AiChatReport,
+  AiChatCheckInHistory,
   readAiChatHistoryRoom,
   readAiChatHistoryRooms,
+  readAiChatCheckIns,
   readAiChatReport,
   readAiChatReports,
 } from '@/lib/ai-chat-api'
@@ -118,8 +120,10 @@ export default function MyPage() {
   const [selectedChatHistory, setSelectedChatHistory] = useState<AiChatHistoryRoomDetail | null>(null)
   const [reports, setReports] = useState<AiChatReport[]>([])
   const [selectedReport, setSelectedReport] = useState<AiChatReport | null>(null)
+  const [checkIns, setCheckIns] = useState<AiChatCheckInHistory[]>([])
   const [historyMessage, setHistoryMessage] = useState('')
   const [reportMessage, setReportMessage] = useState('')
+  const [checkInMessage, setCheckInMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -186,6 +190,15 @@ export default function MyPage() {
       })
       .catch((error) => {
         setReportMessage(error instanceof LoginApiError ? error.message : '마음 리포트 보관함을 불러오지 못했습니다.')
+      })
+
+    readAiChatCheckIns()
+      .then((nextCheckIns) => {
+        setCheckIns(nextCheckIns)
+        setCheckInMessage('')
+      })
+      .catch((error) => {
+        setCheckInMessage(error instanceof LoginApiError ? error.message : '체크인 기록을 불러오지 못했습니다.')
       })
   }, [])
 
@@ -565,6 +578,29 @@ export default function MyPage() {
                       리포트 보기
                       <ChevronRight size={16} aria-hidden="true" />
                     </button>
+                  </article>
+                ))}
+              </div>
+              <div className="mypage-checkin-list">
+                {checkInMessage && (
+                  <div className="mypage-alert" role="status">
+                    <AlertTriangle size={18} aria-hidden="true" />
+                    <span>{checkInMessage}</span>
+                  </div>
+                )}
+                {!checkInMessage && checkIns.length === 0 && (
+                  <div className="mypage-empty-state">
+                    <strong>저장된 체크인 기록이 없습니다</strong>
+                    <span>체크인으로 대화를 시작하면 선택한 답변이 이곳에 저장됩니다.</span>
+                  </div>
+                )}
+                {checkIns.map((checkIn) => (
+                  <article className="mypage-checkin-item" key={checkIn.checkInId}>
+                    <div>
+                      <strong>{checkIn.summaryText}</strong>
+                      <p>{checkIn.answers.map((answer) => answer.freeText || answer.label || answer.value).filter(Boolean).join(' · ')}</p>
+                      <small>{checkIn.templateType} · {checkIn.createdAt ? formatShortDateTime(checkIn.createdAt) : '시각 없음'}</small>
+                    </div>
                   </article>
                 ))}
               </div>

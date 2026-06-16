@@ -122,6 +122,24 @@ export type AiChatHistoryRoomDetail = {
   messages: AiChatMessage[]
 }
 
+export type AiChatCheckInHistory = {
+  checkInId: number
+  roomId: number
+  segmentId: number
+  templateType: CheckInTemplateType
+  summaryText: string
+  answers: AiChatCheckInHistoryAnswer[]
+  createdAt?: string | null
+}
+
+export type AiChatCheckInHistoryAnswer = {
+  stepKey: string
+  optionKey?: string | null
+  label?: string | null
+  value?: number | null
+  freeText?: string | null
+}
+
 async function readJson(response: Response) {
   return response.json().catch(() => null)
 }
@@ -168,6 +186,17 @@ export async function readAiChatReports(): Promise<AiChatReport[]> {
   }
 
   return body as AiChatReport[]
+}
+
+export async function readAiChatCheckIns(): Promise<AiChatCheckInHistory[]> {
+  const response = await requestWithAuth('/api/ai-chat/check-ins')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '체크인 기록을 불러오지 못했습니다.')
+  }
+
+  return body as AiChatCheckInHistory[]
 }
 
 export async function readAiChatReport(reportId: number): Promise<AiChatReport> {
