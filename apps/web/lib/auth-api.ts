@@ -18,6 +18,42 @@ export type MyProfileResponse = {
   phone?: string | null
 }
 
+export type UpdateMyProfileRequest = {
+  name: string
+  email?: string | null
+  phone?: string | null
+}
+
+export type WithdrawMemberRequest = {
+  password: string
+  confirmationText: string
+}
+
+export type WithdrawMemberResponse = {
+  withdrawn: boolean
+}
+
+export type LoginMethodSocialAccount = {
+  provider: string
+  email?: string | null
+  linkedAt: string
+}
+
+export type LoginMethodsResponse = {
+  passwordLoginEnabled: boolean
+  canChangePassword: boolean
+  socialAccounts: LoginMethodSocialAccount[]
+}
+
+export type ChangePasswordRequest = {
+  currentPassword: string
+  newPassword: string
+}
+
+export type ChangePasswordResponse = {
+  changed: boolean
+}
+
 export type SignupRequest = {
   loginId: string
   email?: string
@@ -65,7 +101,7 @@ function storeLoginTokens(tokens: LoginResponse) {
   localStorage.setItem(refreshTokenKey, tokens.refreshToken)
 }
 
-function clearLoginTokens() {
+export function clearLoginTokens() {
   localStorage.removeItem(accessTokenKey)
   localStorage.removeItem(refreshTokenKey)
 }
@@ -225,6 +261,82 @@ export async function readMyProfile(accessToken?: string): Promise<MyProfileResp
   }
 
   return body as MyProfileResponse
+}
+
+export async function updateMyProfile(request: UpdateMyProfileRequest): Promise<MyProfileResponse> {
+  const response = await requestWithAuth('/api/members/me', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '개인정보를 저장하지 못했습니다.')
+  }
+
+  return body as MyProfileResponse
+}
+
+export async function withdrawMyAccount(request: WithdrawMemberRequest): Promise<WithdrawMemberResponse> {
+  const response = await requestWithAuth('/api/members/me', {
+    method: 'DELETE',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '회원 탈퇴를 처리하지 못했습니다.')
+  }
+
+  clearLoginTokens()
+  return body as WithdrawMemberResponse
+}
+
+export async function readLoginMethods(): Promise<LoginMethodsResponse> {
+  const response = await requestWithAuth('/api/members/me/login-methods')
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '로그인 방식을 불러오지 못했습니다.')
+  }
+
+  return body as LoginMethodsResponse
+}
+
+export async function changeMyPassword(request: ChangePasswordRequest): Promise<ChangePasswordResponse> {
+  const response = await requestWithAuth('/api/members/me/password', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '비밀번호를 변경하지 못했습니다.')
+  }
+
+  clearLoginTokens()
+  return body as ChangePasswordResponse
 }
 
 export async function signupMember(request: SignupRequest): Promise<SignupResponse> {

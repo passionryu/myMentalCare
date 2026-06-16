@@ -3,6 +3,7 @@ package com.mymentalcare.server.bootstrap.aichat
 import com.mymentalcare.server.application.aichat.AiChatInputPort
 import com.mymentalcare.server.application.aichat.AiChatInvalidRequestException
 import com.mymentalcare.server.application.aichat.CreateAiChatReportRequest
+import com.mymentalcare.server.application.aichat.DeleteAiChatHistoryRequest
 import com.mymentalcare.server.application.aichat.SendAiChatMessageRequest
 import com.mymentalcare.server.application.aichat.StartAiChatCheckInRequest
 import com.mymentalcare.server.application.aichat.StartAiChatSegmentRequest
@@ -14,6 +15,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,6 +37,95 @@ class AiChatController(
         val response = aiChatInputPort.readTodayRoom(memberId)
 
         return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
+        summary = "내 AI 마음 대화방 이력 목록 조회",
+        description = "로그인한 사용자의 날짜별 대화방 목록과 최신 메시지 요약을 조회합니다.",
+    )
+    @GetMapping("/rooms")
+    fun readHistoryRooms(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatHistoryRoomResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readHistoryRooms(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
+        summary = "내 AI 마음 대화방 상세 조회",
+        description = "로그인한 사용자의 특정 대화방 메시지 이력을 조회합니다.",
+    )
+    @GetMapping("/rooms/{roomId}")
+    fun readHistoryRoom(
+        @AuthenticationPrincipal memberId: Long,
+        @PathVariable roomId: Long,
+    ): ResponseEntity<AiChatHistoryRoomDetailResponse> {
+        val response = aiChatInputPort.readHistoryRoom(memberId = memberId, roomId = roomId)
+
+        return response?.let { ResponseEntity.ok(it.toBootstrapResponse()) }
+            ?: ResponseEntity.notFound().build()
+    }
+
+    @Operation(
+        summary = "내 마음 리포트 목록 조회",
+        description = "로그인한 사용자의 저장된 마음 리포트 목록을 최신순으로 조회합니다.",
+    )
+    @GetMapping("/reports")
+    fun readReports(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatReportResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readReports(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
+        summary = "내 마음 리포트 상세 조회",
+        description = "로그인한 사용자의 특정 마음 리포트 상세와 추천 노래를 조회합니다.",
+    )
+    @GetMapping("/reports/{reportId}")
+    fun readReport(
+        @AuthenticationPrincipal memberId: Long,
+        @PathVariable reportId: Long,
+    ): ResponseEntity<AiChatReportResponse> {
+        val response = aiChatInputPort.readReport(memberId = memberId, reportId = reportId)
+
+        return response?.let { ResponseEntity.ok(it.toBootstrapResponse()) }
+            ?: ResponseEntity.notFound().build()
+    }
+
+    @Operation(
+        summary = "내 마음 체크인 기록 조회",
+        description = "로그인한 사용자의 체크인 기록과 답변을 최신순으로 조회합니다.",
+    )
+    @GetMapping("/check-ins")
+    fun readCheckIns(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatCheckInHistoryResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readCheckIns(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
+        summary = "내 AI 마음 이력 삭제",
+        description = "로그인한 사용자의 채팅방, 리포트, 체크인 기록 중 선택한 이력을 삭제합니다.",
+    )
+    @PostMapping("/history/delete")
+    fun deleteHistory(
+        @AuthenticationPrincipal memberId: Long,
+        @Valid @RequestBody payload: DeleteAiChatHistoryPayload,
+    ): ResponseEntity<DeleteAiChatHistoryResponse> {
+        val response = aiChatInputPort.deleteHistory(
+            memberId = memberId,
+            request = DeleteAiChatHistoryRequest(
+                targetType = payload.targetType,
+                targetId = payload.targetId,
+            ),
+        )
+
+        return ResponseEntity.ok(DeleteAiChatHistoryResponse(deletedCount = response.deletedCount))
     }
 
     @Operation(

@@ -1,8 +1,11 @@
 package com.mymentalcare.server.infrastructure.persistence.member
 
 import com.mymentalcare.server.domain.member.Member
+import com.mymentalcare.server.domain.member.MemberStatus
 import jakarta.persistence.Column
 import jakarta.persistence.Entity
+import jakarta.persistence.EnumType
+import jakarta.persistence.Enumerated
 import jakarta.persistence.GeneratedValue
 import jakarta.persistence.GenerationType
 import jakarta.persistence.Id
@@ -31,6 +34,13 @@ class MemberEntity(
     @Column(name = "phone", nullable = true)
     val phone: String?,
 
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    val status: MemberStatus = MemberStatus.ACTIVE,
+
+    @Column(name = "deleted_at", nullable = true)
+    val deletedAt: LocalDateTime? = null,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 
@@ -45,11 +55,16 @@ class MemberEntity(
             password = password,
             name = name,
             phone = phone,
+            status = status,
         )
     }
 }
 
-fun Member.toEntity(): MemberEntity {
+fun Member.toEntity(
+    createdAt: LocalDateTime = LocalDateTime.now(),
+    updatedAt: LocalDateTime = LocalDateTime.now(),
+    deletedAt: LocalDateTime? = null,
+): MemberEntity {
     return MemberEntity(
         id = id,
         loginId = loginId,
@@ -57,5 +72,9 @@ fun Member.toEntity(): MemberEntity {
         password = password,
         name = name,
         phone = phone,
+        status = status,
+        deletedAt = deletedAt,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
     )
 }

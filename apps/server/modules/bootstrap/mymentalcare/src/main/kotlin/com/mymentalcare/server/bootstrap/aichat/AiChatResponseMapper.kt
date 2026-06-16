@@ -1,6 +1,10 @@
 package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatCheckInResponse as ApplicationAiChatCheckInResponse
+import com.mymentalcare.server.application.aichat.AiChatCheckInAnswerResponse as ApplicationAiChatCheckInAnswerResponse
+import com.mymentalcare.server.application.aichat.AiChatCheckInHistoryResponse as ApplicationAiChatCheckInHistoryResponse
+import com.mymentalcare.server.application.aichat.AiChatHistoryRoomDetailResponse as ApplicationAiChatHistoryRoomDetailResponse
+import com.mymentalcare.server.application.aichat.AiChatHistoryRoomResponse as ApplicationAiChatHistoryRoomResponse
 import com.mymentalcare.server.application.aichat.AiChatMessageResponse as ApplicationAiChatMessageResponse
 import com.mymentalcare.server.application.aichat.AiChatReportReadinessResponse as ApplicationAiChatReportReadinessResponse
 import com.mymentalcare.server.application.aichat.AiChatReportResponse as ApplicationAiChatReportResponse
@@ -21,6 +25,40 @@ fun ApplicationTodayAiChatRoomResponse.toBootstrapResponse(): TodayAiChatRoomRes
         activeSegmentId = activeSegmentId,
         segments = segments.map { it.toBootstrapResponse() },
         messages = messages.map { it.toBootstrapResponse() },
+    )
+}
+
+fun ApplicationAiChatHistoryRoomResponse.toBootstrapResponse(): AiChatHistoryRoomResponse {
+    return AiChatHistoryRoomResponse(
+        roomId = roomId,
+        conversationDate = conversationDate,
+        status = status,
+        messageCount = messageCount,
+        latestMessage = latestMessage,
+        latestMessageAt = latestMessageAt,
+    )
+}
+
+fun ApplicationAiChatHistoryRoomDetailResponse.toBootstrapResponse(): AiChatHistoryRoomDetailResponse {
+    return AiChatHistoryRoomDetailResponse(
+        roomId = roomId,
+        chatbotCode = chatbotCode,
+        chatbotName = chatbotName,
+        conversationDate = conversationDate,
+        status = status,
+        messages = messages.map { it.toBootstrapResponse() },
+    )
+}
+
+fun ApplicationAiChatCheckInHistoryResponse.toBootstrapResponse(): AiChatCheckInHistoryResponse {
+    return AiChatCheckInHistoryResponse(
+        checkInId = checkInId,
+        roomId = roomId,
+        segmentId = segmentId,
+        templateType = templateType,
+        summaryText = summaryText,
+        answers = answers.map { it.toBootstrapResponse() },
+        createdAt = createdAt,
     )
 }
 
@@ -105,6 +143,16 @@ private fun ApplicationAiChatCheckInResponse.toBootstrapResponse(): AiChatCheckI
         checkInId = checkInId,
         templateType = templateType,
         summaryText = summaryText,
+    )
+}
+
+private fun ApplicationAiChatCheckInAnswerResponse.toBootstrapResponse(): AiChatCheckInAnswerResponse {
+    return AiChatCheckInAnswerResponse(
+        stepKey = stepKey,
+        optionKey = optionKey,
+        label = label,
+        value = value,
+        freeText = freeText,
     )
 }
 

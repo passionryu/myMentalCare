@@ -1,6 +1,7 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatCheckInRepository
+import com.mymentalcare.server.application.port.AiChatHistoryDeletionRepository
 import com.mymentalcare.server.application.port.AiChatRecentMessageCache
 import com.mymentalcare.server.application.port.AiChatReportRepository
 import com.mymentalcare.server.application.port.AiChatRoomRepository
@@ -469,6 +470,7 @@ class AiChatServiceTest {
         checkInRepository: FakeAiChatCheckInRepository = FakeAiChatCheckInRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
         reportRepository: FakeAiChatReportRepository = FakeAiChatReportRepository(),
+        historyDeletionRepository: FakeAiChatHistoryDeletionRepository = FakeAiChatHistoryDeletionRepository(),
         summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
         recentMessageCache: FakeAiChatRecentMessageCache = FakeAiChatRecentMessageCache(),
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
@@ -494,6 +496,11 @@ class AiChatServiceTest {
             aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
+            aiChatRoomRepository = roomRepository,
+            aiChatSegmentRepository = segmentRepository,
+            aiChatCheckInRepository = checkInRepository,
+            aiChatHistoryDeletionRepository = historyDeletionRepository,
+            chatMessageRepository = messageRepository,
             aiChatReportRepository = reportRepository,
             aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
             aiChatReportGenerator = DefaultAiChatReportGenerator(),
@@ -511,6 +518,14 @@ class AiChatServiceTest {
                     it.chatbotCode == chatbotCode &&
                     it.conversationDate == conversationDate
             }
+        }
+
+        override fun findByMemberId(memberId: Long): List<AiChatRoom> {
+            return rooms.filter { it.memberId == memberId }.sortedWith(compareByDescending<AiChatRoom> { it.conversationDate }.thenByDescending { it.id })
+        }
+
+        override fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom? {
+            return rooms.firstOrNull { it.id == roomId && it.memberId == memberId }
         }
 
         override fun save(room: AiChatRoom): AiChatRoom {
@@ -607,6 +622,10 @@ class AiChatServiceTest {
             return messages.count { it.roomId == roomId }
         }
 
+        override fun findLatestByRoomId(roomId: Long): ChatMessage? {
+            return findByRoomId(roomId).maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
         override fun save(message: ChatMessage): ChatMessage {
             val savedMessage = message.copy(id = (messages.size + 1).toLong())
             messages.add(savedMessage)
@@ -619,6 +638,22 @@ class AiChatServiceTest {
 
         override fun findLatestByRoomId(roomId: Long): AiChatReport? {
             return reports.filter { it.roomId == roomId }.maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findLatestByMemberId(memberId: Long): AiChatReport? {
+            return reports.filter { it.memberId == memberId }.maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun countByMemberId(memberId: Long): Int {
+            return reports.count { it.memberId == memberId }
+        }
+
+        override fun findByMemberId(memberId: Long): List<AiChatReport> {
+            return reports.filter { it.memberId == memberId }.sortedByDescending { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport? {
+            return reports.firstOrNull { it.id == reportId && it.memberId == memberId }
         }
 
         override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport? {
@@ -635,6 +670,20 @@ class AiChatServiceTest {
             )
             reports.add(savedReport)
             return savedReport
+        }
+    }
+
+    private class FakeAiChatHistoryDeletionRepository : AiChatHistoryDeletionRepository {
+        override fun deleteChatRoom(memberId: Long, roomId: Long): Int {
+            return 1
+        }
+
+        override fun deleteReport(memberId: Long, reportId: Long): Int {
+            return 1
+        }
+
+        override fun deleteCheckIn(memberId: Long, checkInId: Long): Int {
+            return 1
         }
     }
 

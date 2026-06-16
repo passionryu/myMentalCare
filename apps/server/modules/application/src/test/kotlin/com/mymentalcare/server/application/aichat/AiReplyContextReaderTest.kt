@@ -124,6 +124,10 @@ class AiReplyContextReaderTest {
             return messages.count { it.roomId == roomId }
         }
 
+        override fun findLatestByRoomId(roomId: Long): ChatMessage? {
+            return findByRoomId(roomId).maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
         override fun save(message: ChatMessage): ChatMessage {
             messages.add(message)
             return message

@@ -17,6 +17,15 @@ class AiChatRoomPersistenceAdapter(
         )?.toDomain()
     }
 
+    override fun findByMemberId(memberId: Long): List<AiChatRoom> {
+        return jpaAiChatRoomRepository.findByMemberIdOrderByConversationDateDescIdDesc(memberId)
+            .map { it.toDomain() }
+    }
+
+    override fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom? {
+        return jpaAiChatRoomRepository.findByIdAndMemberId(roomId, memberId)?.toDomain()
+    }
+
     override fun save(room: AiChatRoom): AiChatRoom {
         return jpaAiChatRoomRepository.save(room.toEntity()).toDomain()
     }
