@@ -24,6 +24,11 @@ import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
+import {
+  NotificationWeekday,
+  readNotificationSetting,
+  updateNotificationSetting,
+} from '@/lib/notification-settings-api'
 
 type ThemeTone = 'sunset' | 'cream' | 'wood'
 type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support' | 'security'
@@ -32,6 +37,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const NOTIFICATION_STORAGE_KEY = 'myMentalCare.notificationEnabled'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
+const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
   { id: 'overview', label: '요약', icon: Home },
@@ -46,6 +52,16 @@ const themes: Array<{ value: ThemeTone; label: string; description: string }> = 
   { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
   { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
   { value: 'wood', label: '우드빛', description: '내추럴 우드와 아이보리 톤' },
+]
+
+const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }> = [
+  { value: 'MON', label: '월' },
+  { value: 'TUE', label: '화' },
+  { value: 'WED', label: '수' },
+  { value: 'THU', label: '목' },
+  { value: 'FRI', label: '금' },
+  { value: 'SAT', label: '토' },
+  { value: 'SUN', label: '일' },
 ]
 
 const historyItems = [
@@ -82,6 +98,10 @@ export default function MyPage() {
   const [profileMessage, setProfileMessage] = useState('')
   const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
   const [notificationEnabled, setNotificationEnabled] = useState(false)
+  const [notificationTime, setNotificationTime] = useState('21:00')
+  const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
+  const [isNotificationSaving, setIsNotificationSaving] = useState(false)
+  const [notificationMessage, setNotificationMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -111,6 +131,17 @@ export default function MyPage() {
       .catch((error) => {
         setProfileMessage(error instanceof LoginApiError ? error.message : '프로필 정보를 불러오지 못했습니다.')
       })
+
+    readNotificationSetting()
+      .then((setting) => {
+        setNotificationEnabled(setting.enabled)
+        setNotificationTime(setting.notificationTime)
+        setNotificationWeekdayValues(setting.weekdays.length > 0 ? setting.weekdays : defaultNotificationWeekdays)
+        localStorage.setItem(NOTIFICATION_STORAGE_KEY, setting.enabled ? '1' : '0')
+      })
+      .catch((error) => {
+        setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 불러오지 못했습니다.')
+      })
   }, [])
 
   const profileRows = useMemo(
@@ -130,10 +161,44 @@ export default function MyPage() {
     setToastMessage(`${nextTheme?.label ?? '선택한'} 테마가 이 기기에 적용되었습니다.`)
   }
 
-  const handleNotificationToggle = () => {
-    const nextValue = !notificationEnabled
-    setNotificationEnabled(nextValue)
-    localStorage.setItem(NOTIFICATION_STORAGE_KEY, nextValue ? '1' : '0')
+  const handleNotificationWeekdayToggle = (weekday: NotificationWeekday) => {
+    setNotificationWeekdayValues((currentWeekdays) => {
+      if (currentWeekdays.includes(weekday)) {
+        return currentWeekdays.filter((currentWeekday) => currentWeekday !== weekday)
+      }
+
+      return [...currentWeekdays, weekday]
+    })
+  }
+
+  const handleNotificationSave = async () => {
+    setNotificationMessage('')
+    if (notificationWeekdayValues.length === 0) {
+      setNotificationMessage('알림 요일을 1개 이상 선택해주세요.')
+      return
+    }
+
+    if (notificationEnabled && typeof Notification !== 'undefined' && Notification.permission === 'denied') {
+      setNotificationMessage('브라우저 알림 권한이 차단되어 있습니다. 설정은 저장되지만 알림은 표시되지 않을 수 있습니다.')
+    }
+
+    setIsNotificationSaving(true)
+    try {
+      const setting = await updateNotificationSetting({
+        enabled: notificationEnabled,
+        notificationTime,
+        weekdays: notificationWeekdayValues,
+      })
+      setNotificationEnabled(setting.enabled)
+      setNotificationTime(setting.notificationTime)
+      setNotificationWeekdayValues(setting.weekdays)
+      localStorage.setItem(NOTIFICATION_STORAGE_KEY, setting.enabled ? '1' : '0')
+      setToastMessage('마음 체크 알림 설정이 저장되었습니다.')
+    } catch (error) {
+      setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 저장하지 못했습니다.')
+    } finally {
+      setIsNotificationSaving(false)
+    }
   }
 
   const handleLogout = () => {
@@ -350,20 +415,56 @@ export default function MyPage() {
                 icon={Palette}
               />
               <div className="mypage-settings-list">
-                <div className="mypage-settings-row">
+                <div className="mypage-notification-setting">
                   <div>
                     <strong>마음 체크 알림</strong>
-                    <span>정해진 시간에 마음 체크를 떠올릴 수 있게 돕습니다.</span>
+                    <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕습니다.</span>
                   </div>
-                  <button
-                    className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
-                    type="button"
-                    role="switch"
-                    aria-checked={notificationEnabled}
-                    onClick={handleNotificationToggle}
-                  >
-                    <span />
-                  </button>
+                  <div className="mypage-notification-controls">
+                    <div className="mypage-notification-topline">
+                      <button
+                        className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
+                        type="button"
+                        role="switch"
+                        aria-checked={notificationEnabled}
+                        disabled={isNotificationSaving}
+                        onClick={() => setNotificationEnabled((currentValue) => !currentValue)}
+                      >
+                        <span />
+                      </button>
+                      <label>
+                        알림 시간
+                        <input
+                          type="time"
+                          value={notificationTime}
+                          disabled={isNotificationSaving}
+                          onChange={(event) => setNotificationTime(event.target.value)}
+                        />
+                      </label>
+                    </div>
+                    <div className="mypage-weekday-grid" aria-label="알림 요일 선택">
+                      {notificationWeekdays.map((weekday) => {
+                        const isSelected = notificationWeekdayValues.includes(weekday.value)
+                        return (
+                          <button
+                            className={isSelected ? 'is-selected' : ''}
+                            type="button"
+                            key={weekday.value}
+                            aria-pressed={isSelected}
+                            disabled={isNotificationSaving}
+                            onClick={() => handleNotificationWeekdayToggle(weekday.value)}
+                          >
+                            {weekday.label}
+                          </button>
+                        )
+                      })}
+                    </div>
+                    {notificationMessage && <p className="mypage-setting-message">{notificationMessage}</p>}
+                    <button className="soft-button" type="button" disabled={isNotificationSaving} onClick={handleNotificationSave}>
+                      {isNotificationSaving ? '저장 중...' : '알림 설정 저장'}
+                      <CheckCircle2 size={17} aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
                 <div className="mypage-theme-setting">
                   <div>

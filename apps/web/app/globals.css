@@ -4080,6 +4080,80 @@ h3 {
   padding: 16px;
 }
 
+.mypage-notification-setting {
+  display: grid;
+  gap: 14px;
+  border: 1px solid var(--theme-border);
+  border-radius: 20px;
+  background: rgba(255, 253, 247, 0.64);
+  padding: 16px;
+}
+
+.mypage-notification-setting > div:first-child {
+  display: grid;
+  gap: 4px;
+}
+
+.mypage-notification-controls {
+  display: grid;
+  gap: 12px;
+}
+
+.mypage-notification-topline {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.mypage-notification-topline label {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.mypage-notification-topline input {
+  border: 1px solid var(--theme-border-strong);
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.82);
+  color: var(--foreground);
+  padding: 10px 12px;
+  font-weight: 900;
+}
+
+.mypage-weekday-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.mypage-weekday-grid button {
+  min-height: 40px;
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: rgba(241, 250, 238, 0.6);
+  color: var(--theme-primary);
+  font-weight: 900;
+}
+
+.mypage-weekday-grid button.is-selected {
+  border-color: var(--theme-primary);
+  background: var(--theme-primary);
+  color: #fffdf7;
+}
+
+.mypage-setting-message {
+  border-radius: 14px;
+  background: rgba(255, 238, 225, 0.74);
+  color: #69402e;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 800;
+}
+
 .mypage-theme-setting > div:first-child {
   display: grid;
   gap: 4px;
