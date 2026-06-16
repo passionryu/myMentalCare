@@ -1,6 +1,7 @@
 package com.mymentalcare.server.application.aichat
 
 import com.mymentalcare.server.application.port.AiChatCheckInRepository
+import com.mymentalcare.server.application.port.AiChatHistoryDeletionRepository
 import com.mymentalcare.server.application.port.AiChatRecentMessageCache
 import com.mymentalcare.server.application.port.AiChatReportRepository
 import com.mymentalcare.server.application.port.AiChatRoomRepository
@@ -469,6 +470,7 @@ class AiChatServiceTest {
         checkInRepository: FakeAiChatCheckInRepository = FakeAiChatCheckInRepository(),
         messageRepository: FakeChatMessageRepository = FakeChatMessageRepository(),
         reportRepository: FakeAiChatReportRepository = FakeAiChatReportRepository(),
+        historyDeletionRepository: FakeAiChatHistoryDeletionRepository = FakeAiChatHistoryDeletionRepository(),
         summaryRepository: FakeAiChatRoomSummaryRepository = FakeAiChatRoomSummaryRepository(),
         recentMessageCache: FakeAiChatRecentMessageCache = FakeAiChatRecentMessageCache(),
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
@@ -497,6 +499,7 @@ class AiChatServiceTest {
             aiChatRoomRepository = roomRepository,
             aiChatSegmentRepository = segmentRepository,
             aiChatCheckInRepository = checkInRepository,
+            aiChatHistoryDeletionRepository = historyDeletionRepository,
             chatMessageRepository = messageRepository,
             aiChatReportRepository = reportRepository,
             aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
@@ -667,6 +670,20 @@ class AiChatServiceTest {
             )
             reports.add(savedReport)
             return savedReport
+        }
+    }
+
+    private class FakeAiChatHistoryDeletionRepository : AiChatHistoryDeletionRepository {
+        override fun deleteChatRoom(memberId: Long, roomId: Long): Int {
+            return 1
+        }
+
+        override fun deleteReport(memberId: Long, reportId: Long): Int {
+            return 1
+        }
+
+        override fun deleteCheckIn(memberId: Long, checkInId: Long): Int {
+            return 1
         }
     }
 

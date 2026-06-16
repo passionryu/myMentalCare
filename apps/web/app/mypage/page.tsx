@@ -27,6 +27,8 @@ import {
   AiChatHistoryRoomDetail,
   AiChatReport,
   AiChatCheckInHistory,
+  DeleteAiChatHistoryTargetType,
+  deleteAiChatHistory,
   readAiChatHistoryRoom,
   readAiChatHistoryRooms,
   readAiChatCheckIns,
@@ -303,6 +305,56 @@ export default function MyPage() {
     }
   }
 
+  const handleDeleteHistory = async (
+    targetType: DeleteAiChatHistoryTargetType,
+    targetId: number,
+    targetLabel: string,
+  ) => {
+    const confirmed = window.confirm(`${targetLabel}을 삭제할까요? 삭제한 이력은 되돌릴 수 없습니다.`)
+    if (!confirmed) {
+      return
+    }
+
+    setHistoryMessage('')
+    setReportMessage('')
+    setCheckInMessage('')
+
+    try {
+      const response = await deleteAiChatHistory(targetType, targetId)
+      if (response.deletedCount <= 0) {
+        setToastMessage('삭제할 수 있는 이력을 찾지 못했습니다.')
+        return
+      }
+
+      if (targetType === 'CHAT_ROOM') {
+        setChatHistoryRooms((currentRooms) => currentRooms.filter((room) => room.roomId !== targetId))
+        setSelectedChatHistory((currentDetail) => (currentDetail?.roomId === targetId ? null : currentDetail))
+      }
+
+      if (targetType === 'REPORT') {
+        setReports((currentReports) => currentReports.filter((report) => report.reportId !== targetId))
+        setSelectedReport((currentReport) => (currentReport?.reportId === targetId ? null : currentReport))
+      }
+
+      if (targetType === 'CHECK_IN') {
+        setCheckIns((currentCheckIns) => currentCheckIns.filter((checkIn) => checkIn.checkInId !== targetId))
+      }
+
+      setToastMessage(`${targetLabel}이 삭제되었습니다.`)
+    } catch (error) {
+      const message = error instanceof LoginApiError ? error.message : '선택한 이력을 삭제하지 못했습니다.'
+      if (targetType === 'REPORT') {
+        setReportMessage(message)
+        return
+      }
+      if (targetType === 'CHECK_IN') {
+        setCheckInMessage(message)
+        return
+      }
+      setHistoryMessage(message)
+    }
+  }
+
   const handleProfileUpdate = async (request: UpdateMyProfileRequest) => {
     const nextProfile = await updateMyProfile(request)
     setProfile(nextProfile)
@@ -526,10 +578,20 @@ export default function MyPage() {
                       <p>{room.latestMessage || '아직 메시지가 없습니다.'}</p>
                       <small>{room.messageCount}개 메시지 · {room.latestMessageAt ? formatShortDateTime(room.latestMessageAt) : '최근 메시지 없음'}</small>
                     </div>
-                    <button type="button" onClick={() => handleChatHistoryDetail(room.roomId)}>
-                      상세 보기
-                      <ChevronRight size={16} aria-hidden="true" />
-                    </button>
+                    <div className="mypage-item-actions">
+                      <button type="button" onClick={() => handleChatHistoryDetail(room.roomId)}>
+                        상세 보기
+                        <ChevronRight size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        className="mypage-inline-danger-button"
+                        type="button"
+                        onClick={() => handleDeleteHistory('CHAT_ROOM', room.roomId, '채팅 이력')}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                        삭제
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -574,10 +636,20 @@ export default function MyPage() {
                       <p>{report.summary}</p>
                       <small>{report.primaryEmotion} · {report.reportType === 'FULL' ? '충분한 대화' : '짧은 대화'}</small>
                     </div>
-                    <button type="button" onClick={() => handleReportDetail(report.reportId)}>
-                      리포트 보기
-                      <ChevronRight size={16} aria-hidden="true" />
-                    </button>
+                    <div className="mypage-item-actions">
+                      <button type="button" onClick={() => handleReportDetail(report.reportId)}>
+                        리포트 보기
+                        <ChevronRight size={16} aria-hidden="true" />
+                      </button>
+                      <button
+                        className="mypage-inline-danger-button"
+                        type="button"
+                        onClick={() => handleDeleteHistory('REPORT', report.reportId, '마음 리포트')}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                        삭제
+                      </button>
+                    </div>
                   </article>
                 ))}
               </div>
@@ -600,6 +672,16 @@ export default function MyPage() {
                       <strong>{checkIn.summaryText}</strong>
                       <p>{checkIn.answers.map((answer) => answer.freeText || answer.label || answer.value).filter(Boolean).join(' · ')}</p>
                       <small>{checkIn.templateType} · {checkIn.createdAt ? formatShortDateTime(checkIn.createdAt) : '시각 없음'}</small>
+                    </div>
+                    <div className="mypage-item-actions">
+                      <button
+                        className="mypage-inline-danger-button"
+                        type="button"
+                        onClick={() => handleDeleteHistory('CHECK_IN', checkIn.checkInId, '체크인 기록')}
+                      >
+                        <Trash2 size={15} aria-hidden="true" />
+                        삭제
+                      </button>
                     </div>
                   </article>
                 ))}
@@ -982,7 +1064,7 @@ function MyPageDialog({
 
   const descriptionByType = {
     editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
-    deleteHistory: '채팅과 리포트 삭제는 복구가 어려운 작업이므로, 삭제 API 연결 시 재확인 절차가 필요합니다.',
+    deleteHistory: '채팅, 리포트, 체크인 카드의 삭제 버튼으로 선택한 이력을 삭제합니다.',
     withdraw: '회원 탈퇴는 보관 데이터 안내와 본인 확인이 필요합니다. 지금은 안내 흐름만 확인합니다.',
   }
 
@@ -1017,7 +1099,7 @@ function MyPageDialog({
       return
     }
     if (type === 'deleteHistory') {
-      onDone('이력 삭제 API가 연결되면 선택한 이력을 삭제할 수 있습니다.')
+      onDone('각 이력 카드의 삭제 버튼으로 선택 삭제를 진행할 수 있습니다.')
       return
     }
     onDone('회원 탈퇴 API가 연결되면 본인 확인 후 진행됩니다.')
@@ -1058,7 +1140,7 @@ function MyPageDialog({
           ) : (
             <div className="mypage-dialog-warning">
               <AlertTriangle size={20} aria-hidden="true" />
-              <span>{type === 'deleteHistory' ? '삭제 전 보관 범위와 복구 불가 여부를 다시 안내해야 합니다.' : '탈퇴 전 저장된 대화와 리포트의 처리 방침을 명확히 안내해야 합니다.'}</span>
+              <span>{type === 'deleteHistory' ? '삭제는 카드별로 진행되며, 삭제한 이력은 복구할 수 없습니다.' : '탈퇴 전 저장된 대화와 리포트의 처리 방침을 명확히 안내해야 합니다.'}</span>
             </div>
           )}
           {formMessage && (
