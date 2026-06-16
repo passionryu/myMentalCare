@@ -35,7 +35,11 @@ class KakaoAuthController(
     fun login(
         @RequestParam(required = false) redirectTo: String?,
     ): ResponseEntity<Void> {
-        val response = kakaoAuthenticationInputPort.startLogin(KakaoLoginStartRequest(redirectTo = redirectTo))
+        val response = try {
+            kakaoAuthenticationInputPort.startLogin(KakaoLoginStartRequest(redirectTo = redirectTo))
+        } catch (e: KakaoAuthFailedException) {
+            return redirectToWebCallback(errorCode = "KAKAO_AUTH_FAILED")
+        }
 
         return ResponseEntity
             .status(HttpStatus.FOUND)

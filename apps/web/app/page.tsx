@@ -424,12 +424,15 @@ function AuthModal({
             : '계정 정보를 입력해 나의 마음 기록 공간으로 돌아갑니다.'}
         </p>
 
-        <button className="kakao-login-button" type="button" onClick={handleKakaoLogin}>
-          <span className="kakao-login-icon" aria-hidden="true">톡</span>
-          {isSignup ? '카카오로 시작하기' : '카카오로 계속하기'}
-        </button>
+        <div className="auth-social-stack" aria-label="간편 로그인">
+          <button className="kakao-login-button" type="button" onClick={handleKakaoLogin}>
+            <span className="kakao-login-icon" aria-hidden="true">K</span>
+            <span>{isSignup ? '카카오로 3초 만에 시작하기' : '카카오로 바로 계속하기'}</span>
+          </button>
+          <p className="auth-method-note">별도 비밀번호 없이 카카오 계정으로 안전하게 이어갑니다.</p>
+        </div>
         <div className="auth-divider" role="separator">
-          <span>또는 아이디로 로그인</span>
+          <span>아이디로 계속하기</span>
         </div>
 
         <form className="auth-form" onSubmit={handleSubmit}>
