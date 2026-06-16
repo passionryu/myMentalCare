@@ -22,7 +22,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
-import { LoginApiError, MyProfileResponse, readMyProfile } from '@/lib/auth-api'
+import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
 
 type ThemeTone = 'sunset' | 'cream' | 'wood'
 type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support' | 'security'
@@ -148,6 +148,12 @@ export default function MyPage() {
       return
     }
     setToastMessage('이력 상세 조회 API가 연결되면 이 화면에서 바로 확인할 수 있습니다.')
+  }
+
+  const handleProfileUpdate = async (request: UpdateMyProfileRequest) => {
+    const nextProfile = await updateMyProfile(request)
+    setProfile(nextProfile)
+    setProfileMessage('')
   }
 
   if (!isAuthenticated) {
@@ -436,6 +442,7 @@ export default function MyPage() {
         <MyPageDialog
           type={dialogType}
           profile={profile}
+          onProfileUpdate={handleProfileUpdate}
           onClose={() => setDialogType(null)}
           onDone={(message) => {
             setDialogType(null)
@@ -507,14 +514,19 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
 function MyPageDialog({
   type,
   profile,
+  onProfileUpdate,
   onClose,
   onDone,
 }: {
   type: Exclude<DialogType, null>
   profile: MyProfileResponse | null
+  onProfileUpdate: (request: UpdateMyProfileRequest) => Promise<void>
   onClose: () => void
   onDone: (message: string) => void
 }) {
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formMessage, setFormMessage] = useState('')
+
   const titleByType = {
     editProfile: '개인정보 수정',
     deleteHistory: '이력 삭제 요청',
@@ -522,15 +534,39 @@ function MyPageDialog({
   }
 
   const descriptionByType = {
-    editProfile: '현재는 수정 화면과 검증 흐름만 제공합니다. 저장 API 연결 후 실제 반영됩니다.',
+    editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
     deleteHistory: '채팅과 리포트 삭제는 복구가 어려운 작업이므로, 삭제 API 연결 시 재확인 절차가 필요합니다.',
     withdraw: '회원 탈퇴는 보관 데이터 안내와 본인 확인이 필요합니다. 지금은 안내 흐름만 확인합니다.',
   }
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    setFormMessage('')
+
     if (type === 'editProfile') {
-      onDone('개인정보 수정 API가 연결되면 저장됩니다.')
+      const formData = new FormData(event.currentTarget)
+      const name = String(formData.get('name') ?? '').trim()
+      const email = String(formData.get('email') ?? '').trim()
+      const phone = String(formData.get('phone') ?? '').trim()
+
+      if (!name) {
+        setFormMessage('이름을 입력해주세요.')
+        return
+      }
+
+      setIsSubmitting(true)
+      try {
+        await onProfileUpdate({
+          name,
+          email: email || null,
+          phone: phone || null,
+        })
+        onDone('개인정보가 저장되었습니다.')
+      } catch (error) {
+        setFormMessage(error instanceof LoginApiError ? error.message : '개인정보를 저장하지 못했습니다.')
+      } finally {
+        setIsSubmitting(false)
+      }
       return
     }
     if (type === 'deleteHistory') {
@@ -561,15 +597,15 @@ function MyPageDialog({
             <>
               <label>
                 이름
-                <input name="name" defaultValue={profile?.name ?? ''} placeholder="이름" />
+                <input name="name" defaultValue={profile?.name ?? ''} placeholder="이름" disabled={isSubmitting} />
               </label>
               <label>
                 이메일
-                <input name="email" defaultValue={profile?.email ?? ''} placeholder="example@email.com" />
+                <input name="email" defaultValue={profile?.email ?? ''} placeholder="example@email.com" disabled={isSubmitting} />
               </label>
               <label>
                 전화번호
-                <input name="phone" defaultValue={profile?.phone ?? ''} placeholder="010-0000-0000" />
+                <input name="phone" defaultValue={profile?.phone ?? ''} placeholder="010-0000-0000" disabled={isSubmitting} />
               </label>
             </>
           ) : (
@@ -578,12 +614,17 @@ function MyPageDialog({
               <span>{type === 'deleteHistory' ? '삭제 전 보관 범위와 복구 불가 여부를 다시 안내해야 합니다.' : '탈퇴 전 저장된 대화와 리포트의 처리 방침을 명확히 안내해야 합니다.'}</span>
             </div>
           )}
+          {formMessage && (
+            <p className="mypage-dialog-message" role="alert">
+              {formMessage}
+            </p>
+          )}
           <div className="modal-actions">
-            <button className="ghost-button" type="button" onClick={onClose}>
+            <button className="ghost-button" type="button" onClick={onClose} disabled={isSubmitting}>
               취소
             </button>
-            <button className={type === 'editProfile' ? 'primary-button' : 'danger-button'} type="submit">
-              {type === 'editProfile' ? '저장하기' : '확인했습니다'}
+            <button className={type === 'editProfile' ? 'primary-button' : 'danger-button'} type="submit" disabled={isSubmitting}>
+              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : '확인했습니다'}
             </button>
           </div>
         </form>

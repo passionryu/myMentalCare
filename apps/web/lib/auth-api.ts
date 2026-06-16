@@ -18,6 +18,12 @@ export type MyProfileResponse = {
   phone?: string | null
 }
 
+export type UpdateMyProfileRequest = {
+  name: string
+  email?: string | null
+  phone?: string | null
+}
+
 export type SignupRequest = {
   loginId: string
   email?: string
@@ -222,6 +228,26 @@ export async function readMyProfile(accessToken?: string): Promise<MyProfileResp
       clearLoginTokens()
     }
     throw new LoginApiError(body?.message ?? '프로필 정보를 불러오지 못했습니다.')
+  }
+
+  return body as MyProfileResponse
+}
+
+export async function updateMyProfile(request: UpdateMyProfileRequest): Promise<MyProfileResponse> {
+  const response = await requestWithAuth('/api/members/me', {
+    method: 'PATCH',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    if (response.status === 401) {
+      clearLoginTokens()
+    }
+    throw new LoginApiError(body?.message ?? '개인정보를 저장하지 못했습니다.')
   }
 
   return body as MyProfileResponse
