@@ -30,6 +30,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const NOTIFICATION_STORAGE_KEY = 'myMentalCare.notificationEnabled'
+const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
   { id: 'overview', label: '요약', icon: Home },
@@ -135,6 +136,7 @@ export default function MyPage() {
   const handleLogout = () => {
     localStorage.removeItem('myMentalCare.accessToken')
     localStorage.removeItem('myMentalCare.refreshToken')
+    sessionStorage.setItem(LOGOUT_NOTICE_REQUEST_KEY, '1')
     router.push('/')
   }
 
