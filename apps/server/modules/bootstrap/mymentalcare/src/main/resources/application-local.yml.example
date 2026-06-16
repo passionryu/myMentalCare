@@ -1,4 +1,10 @@
 mymentalcare:
+  auth:
+    kakao:
+      client-id: "replace-with-kakao-client-id"
+      client-secret: "replace-with-kakao-client-secret"
+      redirect-uri: "http://localhost:3001/api/auth/kakao/callback"
+      web-callback-url: "http://localhost:3000/auth/kakao/callback"
   ai:
     openai:
       api-key: "replace-with-openai-api-key"

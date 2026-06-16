@@ -36,6 +36,10 @@ export type ReissueTokenRequest = {
   refreshToken: string
 }
 
+export type KakaoExchangeRequest = {
+  code: string
+}
+
 export class LoginApiError extends Error {
   constructor(message: string) {
     super(message)
@@ -46,6 +50,7 @@ export class LoginApiError extends Error {
 const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
 const accessTokenKey = 'myMentalCare.accessToken'
 const refreshTokenKey = 'myMentalCare.refreshToken'
+let tokenReissueRequest: { refreshToken: string; promise: Promise<LoginResponse> } | null = null
 
 function readStoredAccessToken(): string | null {
   return localStorage.getItem(accessTokenKey)
@@ -87,6 +92,30 @@ export async function loginMember(request: LoginRequest): Promise<LoginResponse>
   return body as LoginResponse
 }
 
+export function buildKakaoLoginUrl(redirectTo = '/') {
+  const params = new URLSearchParams()
+  params.set('redirectTo', redirectTo)
+  return `${apiBaseUrl}/api/auth/kakao/login?${params.toString()}`
+}
+
+export async function exchangeKakaoLoginCode(request: KakaoExchangeRequest): Promise<LoginResponse> {
+  const response = await fetch(`${apiBaseUrl}/api/auth/kakao/exchange`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify(request),
+  })
+
+  const body = await readJson(response)
+
+  if (!response.ok) {
+    throw new LoginApiError(body?.message ?? '카카오 로그인 처리 중 문제가 발생했습니다.')
+  }
+
+  return body as LoginResponse
+}
+
 export async function reissueToken(request: ReissueTokenRequest): Promise<LoginResponse> {
   const response = await fetch(`${apiBaseUrl}/api/auth/reissue`, {
     method: 'POST',
@@ -103,6 +132,35 @@ export async function reissueToken(request: ReissueTokenRequest): Promise<LoginR
   }
 
   return body as LoginResponse
+}
+
+async function reissueStoredLoginTokens(refreshToken: string): Promise<LoginResponse> {
+  if (!tokenReissueRequest || tokenReissueRequest.refreshToken !== refreshToken) {
+    const promise = reissueToken({ refreshToken })
+      .then((tokens) => {
+        storeLoginTokens(tokens)
+        return tokens
+      })
+      .finally(() => {
+        if (tokenReissueRequest?.refreshToken === refreshToken) {
+          tokenReissueRequest = null
+        }
+      })
+
+    tokenReissueRequest = { refreshToken, promise }
+  }
+
+  return tokenReissueRequest.promise
+}
+
+async function retryRequestWithLatestToken(path: string, init: RequestInit): Promise<Response> {
+  const retryAccessToken = readStoredAccessToken()
+  const retryResponse = await requestWithAuth(path, init, false)
+  if (retryResponse.status === 401 && readStoredAccessToken() === retryAccessToken) {
+    clearLoginTokens()
+  }
+
+  return retryResponse
 }
 
 export async function requestWithAuth(path: string, init: RequestInit = {}, retryOnUnauthorized = true): Promise<Response> {
@@ -123,6 +181,11 @@ export async function requestWithAuth(path: string, init: RequestInit = {}, retr
     return response
   }
 
+  const latestAccessToken = readStoredAccessToken()
+  if (latestAccessToken && latestAccessToken !== accessToken) {
+    return retryRequestWithLatestToken(path, init)
+  }
+
   const refreshToken = readStoredRefreshToken()
   if (!refreshToken) {
     clearLoginTokens()
@@ -130,8 +193,12 @@ export async function requestWithAuth(path: string, init: RequestInit = {}, retr
   }
 
   try {
-    storeLoginTokens(await reissueToken({ refreshToken }))
+    await reissueStoredLoginTokens(refreshToken)
   } catch (error) {
+    if (readStoredRefreshToken() !== refreshToken) {
+      return retryRequestWithLatestToken(path, init)
+    }
+
     clearLoginTokens()
     if (error instanceof LoginApiError) {
       throw error
@@ -139,7 +206,7 @@ export async function requestWithAuth(path: string, init: RequestInit = {}, retr
     throw new LoginApiError('로그인 시간이 만료되었습니다. 다시 로그인해주세요.')
   }
 
-  return requestWithAuth(path, init, false)
+  return retryRequestWithLatestToken(path, init)
 }
 
 export async function readMyProfile(accessToken?: string): Promise<MyProfileResponse> {

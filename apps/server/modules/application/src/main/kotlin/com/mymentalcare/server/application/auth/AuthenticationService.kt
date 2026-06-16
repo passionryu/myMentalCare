@@ -21,15 +21,7 @@ internal class AuthenticationService(
 
         passwordVerifier.verifyPasswordMatches(request.password, member.password)
 
-        val accessToken = jwtTokenIssuer.issueAccessToken(member.id)
-        val refreshToken = jwtTokenIssuer.issueRefreshToken(member.id)
-
-        refreshTokenStore.storeRefreshToken(member.id, refreshToken)
-
-        return SignInResponse(
-            accessToken = accessToken,
-            refreshToken = refreshToken,
-        )
+        return issueLoginTokens(member.id)
     }
 
     // 리프레시 토큰으로 액세스 토큰을 재발급한다.
@@ -45,6 +37,11 @@ internal class AuthenticationService(
             throwReissueFailed("memberId:$memberId", request.refreshToken, "refreshTokenMismatch")
         }
 
+        return issueLoginTokens(memberId)
+    }
+
+    // 로그인 방식이 달라도 동일한 JWT/refresh token 발급 정책을 재사용한다.
+    fun issueLoginTokens(memberId: Long): SignInResponse {
         val accessToken = jwtTokenIssuer.issueAccessToken(memberId)
         val refreshToken = jwtTokenIssuer.issueRefreshToken(memberId)
 

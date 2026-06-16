@@ -30,6 +30,12 @@ mymentalcare:
       secret: ${MY_MENTAL_CARE_JWT_SECRET:local-mymentalcare-jwt-secret-must-be-changed}
       access-token-expiration: ${MY_MENTAL_CARE_ACCESS_TOKEN_EXPIRATION:1h}
       refresh-token-expiration: ${MY_MENTAL_CARE_REFRESH_TOKEN_EXPIRATION:7d}
+  auth:
+    kakao:
+      client-id: ${KAKAO_CLIENT_ID:}
+      client-secret: ${KAKAO_CLIENT_SECRET:}
+      redirect-uri: ${KAKAO_REDIRECT_URI:http://localhost:3001/api/auth/kakao/callback}
+      web-callback-url: ${WEB_AUTH_KAKAO_CALLBACK_URL:http://localhost:3000/auth/kakao/callback}
   ai:
     openai:
       api-key: ${OPENAI_API_KEY:}

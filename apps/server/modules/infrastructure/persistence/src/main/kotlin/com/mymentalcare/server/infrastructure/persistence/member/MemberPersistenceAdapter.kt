@@ -19,6 +19,10 @@ class MemberPersistenceAdapter(
             .orElse(null)
     }
 
+    override fun findByEmail(email: String): Member? {
+        return jpaMemberRepository.findByEmail(email)?.toDomain()
+    }
+
     override fun existsByLoginId(loginId: String): Boolean {
         return jpaMemberRepository.existsByLoginId(loginId)
     }
