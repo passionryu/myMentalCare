@@ -11,5 +11,7 @@ interface ChatMessageRepository {
 
     fun countByRoomId(roomId: Long): Int
 
+    fun findLatestByRoomId(roomId: Long): ChatMessage?
+
     fun save(message: ChatMessage): ChatMessage
 }

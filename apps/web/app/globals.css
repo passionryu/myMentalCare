@@ -3955,6 +3955,22 @@ h3 {
   font-size: 14px;
 }
 
+.mypage-summary-strip {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.mypage-summary-strip span {
+  border: 1px solid var(--theme-border);
+  border-radius: 999px;
+  background: rgba(255, 253, 247, 0.66);
+  color: var(--muted);
+  padding: 9px 12px;
+  font-size: 13px;
+  font-weight: 900;
+}
+
 .mypage-panel {
   border: 1px solid var(--theme-border);
   border-radius: 26px;

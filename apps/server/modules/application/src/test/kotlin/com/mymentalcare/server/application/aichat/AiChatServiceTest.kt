@@ -607,6 +607,10 @@ class AiChatServiceTest {
             return messages.count { it.roomId == roomId }
         }
 
+        override fun findLatestByRoomId(roomId: Long): ChatMessage? {
+            return findByRoomId(roomId).maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
         override fun save(message: ChatMessage): ChatMessage {
             val savedMessage = message.copy(id = (messages.size + 1).toLong())
             messages.add(savedMessage)
@@ -619,6 +623,14 @@ class AiChatServiceTest {
 
         override fun findLatestByRoomId(roomId: Long): AiChatReport? {
             return reports.filter { it.roomId == roomId }.maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findLatestByMemberId(memberId: Long): AiChatReport? {
+            return reports.filter { it.memberId == memberId }.maxByOrNull { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun countByMemberId(memberId: Long): Int {
+            return reports.count { it.memberId == memberId }
         }
 
         override fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport? {
