@@ -494,6 +494,8 @@ class AiChatServiceTest {
             aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository),
             crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
             aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
+            aiChatRoomRepository = roomRepository,
+            chatMessageRepository = messageRepository,
             aiChatReportRepository = reportRepository,
             aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
             aiChatReportGenerator = DefaultAiChatReportGenerator(),
@@ -511,6 +513,14 @@ class AiChatServiceTest {
                     it.chatbotCode == chatbotCode &&
                     it.conversationDate == conversationDate
             }
+        }
+
+        override fun findByMemberId(memberId: Long): List<AiChatRoom> {
+            return rooms.filter { it.memberId == memberId }.sortedWith(compareByDescending<AiChatRoom> { it.conversationDate }.thenByDescending { it.id })
+        }
+
+        override fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom? {
+            return rooms.firstOrNull { it.id == roomId && it.memberId == memberId }
         }
 
         override fun save(room: AiChatRoom): AiChatRoom {

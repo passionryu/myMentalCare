@@ -3,6 +3,10 @@ package com.mymentalcare.server.application.aichat
 interface AiChatInputPort {
     fun readTodayRoom(memberId: Long): TodayAiChatRoomResponse
 
+    fun readHistoryRooms(memberId: Long): List<AiChatHistoryRoomResponse>
+
+    fun readHistoryRoom(memberId: Long, roomId: Long): AiChatHistoryRoomDetailResponse?
+
     fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse
 
     fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse

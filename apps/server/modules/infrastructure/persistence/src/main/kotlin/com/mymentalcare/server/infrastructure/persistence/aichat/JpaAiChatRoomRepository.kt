@@ -9,4 +9,8 @@ interface JpaAiChatRoomRepository : JpaRepository<AiChatRoomEntity, Long> {
         chatbotCode: String,
         conversationDate: LocalDate,
     ): AiChatRoomEntity?
+
+    fun findByMemberIdOrderByConversationDateDescIdDesc(memberId: Long): List<AiChatRoomEntity>
+
+    fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoomEntity?
 }

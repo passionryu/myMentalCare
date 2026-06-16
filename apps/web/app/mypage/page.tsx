@@ -22,6 +22,7 @@ import {
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { AiChatHistoryRoom, AiChatHistoryRoomDetail, readAiChatHistoryRoom, readAiChatHistoryRooms } from '@/lib/ai-chat-api'
 import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
 import { MyPageSummaryResponse, readMyPageSummary } from '@/lib/mypage-api'
@@ -105,6 +106,9 @@ export default function MyPage() {
   const [notificationMessage, setNotificationMessage] = useState('')
   const [summary, setSummary] = useState<MyPageSummaryResponse | null>(null)
   const [summaryMessage, setSummaryMessage] = useState('')
+  const [chatHistoryRooms, setChatHistoryRooms] = useState<AiChatHistoryRoom[]>([])
+  const [selectedChatHistory, setSelectedChatHistory] = useState<AiChatHistoryRoomDetail | null>(null)
+  const [historyMessage, setHistoryMessage] = useState('')
   const [dialogType, setDialogType] = useState<DialogType>(null)
   const [toastMessage, setToastMessage] = useState('')
 
@@ -153,6 +157,15 @@ export default function MyPage() {
       })
       .catch((error) => {
         setSummaryMessage(error instanceof LoginApiError ? error.message : '마이페이지 요약을 불러오지 못했습니다.')
+      })
+
+    readAiChatHistoryRooms()
+      .then((rooms) => {
+        setChatHistoryRooms(rooms)
+        setHistoryMessage('')
+      })
+      .catch((error) => {
+        setHistoryMessage(error instanceof LoginApiError ? error.message : '채팅 이력을 불러오지 못했습니다.')
       })
   }, [])
 
@@ -235,6 +248,16 @@ export default function MyPage() {
       return
     }
     setToastMessage('이력 상세 조회 API가 연결되면 이 화면에서 바로 확인할 수 있습니다.')
+  }
+
+  const handleChatHistoryDetail = async (roomId: number) => {
+    setHistoryMessage('')
+    try {
+      const detail = await readAiChatHistoryRoom(roomId)
+      setSelectedChatHistory(detail)
+    } catch (error) {
+      setHistoryMessage(error instanceof LoginApiError ? error.message : '채팅 상세 이력을 불러오지 못했습니다.')
+    }
   }
 
   const handleProfileUpdate = async (request: UpdateMyProfileRequest) => {
@@ -437,9 +460,36 @@ export default function MyPage() {
               <PanelHeader
                 eyebrow="내 이력"
                 title="채팅과 리포트 조회"
-                description="가장 먼저 필요한 이력부터 빠르게 접근합니다. 상세 조회/삭제 API는 후속 구현에서 연결합니다."
+                description="날짜별 채팅 이력을 확인하고 필요한 대화 내용을 다시 볼 수 있습니다."
                 icon={ClipboardList}
               />
+              <div className="mypage-chat-history-list">
+                {historyMessage && (
+                  <div className="mypage-alert" role="status">
+                    <AlertTriangle size={18} aria-hidden="true" />
+                    <span>{historyMessage}</span>
+                  </div>
+                )}
+                {!historyMessage && chatHistoryRooms.length === 0 && (
+                  <div className="mypage-empty-state">
+                    <strong>아직 저장된 채팅 이력이 없습니다</strong>
+                    <span>마음이와 대화를 시작하면 이곳에 날짜별로 쌓입니다.</span>
+                  </div>
+                )}
+                {chatHistoryRooms.map((room) => (
+                  <article className="mypage-chat-history-item" key={room.roomId}>
+                    <div>
+                      <strong>{new Date(room.conversationDate).toLocaleDateString('ko-KR')}</strong>
+                      <p>{room.latestMessage || '아직 메시지가 없습니다.'}</p>
+                      <small>{room.messageCount}개 메시지 · {room.latestMessageAt ? formatShortDateTime(room.latestMessageAt) : '최근 메시지 없음'}</small>
+                    </div>
+                    <button type="button" onClick={() => handleChatHistoryDetail(room.roomId)}>
+                      상세 보기
+                      <ChevronRight size={16} aria-hidden="true" />
+                    </button>
+                  </article>
+                ))}
+              </div>
               <div className="mypage-history-list">
                 {historyItems.map((item) => {
                   const Icon = item.icon
@@ -616,7 +666,40 @@ export default function MyPage() {
           }}
         />
       )}
+
+      {selectedChatHistory && (
+        <ChatHistoryDialog detail={selectedChatHistory} onClose={() => setSelectedChatHistory(null)} />
+      )}
     </main>
+  )
+}
+
+function ChatHistoryDialog({ detail, onClose }: { detail: AiChatHistoryRoomDetail; onClose: () => void }) {
+  return (
+    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+      <section
+        className="auth-modal mypage-dialog mypage-chat-dialog"
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="chat-history-dialog-title"
+        onMouseDown={(event) => event.stopPropagation()}
+      >
+        <button className="icon-button" type="button" aria-label="채팅 이력 모달 닫기" onClick={onClose}>
+          <X size={20} aria-hidden="true" />
+        </button>
+        <p className="eyebrow">채팅 이력</p>
+        <h2 id="chat-history-dialog-title">{new Date(detail.conversationDate).toLocaleDateString('ko-KR')} 대화</h2>
+        <p className="modal-description">저장된 마음이와의 대화 내용을 읽기 전용으로 확인합니다.</p>
+        <div className="mypage-chat-message-list">
+          {detail.messages.map((message) => (
+            <article className={message.senderType === 'USER' ? 'is-user' : 'is-assistant'} key={message.messageId}>
+              <span>{message.senderType === 'USER' ? '나' : detail.chatbotName}</span>
+              <p>{message.content}</p>
+            </article>
+          ))}
+        </div>
+      </section>
+    </div>
   )
 }
 

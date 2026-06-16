@@ -14,6 +14,7 @@ import org.springframework.http.HttpStatus
 import org.springframework.http.ResponseEntity
 import org.springframework.security.core.annotation.AuthenticationPrincipal
 import org.springframework.web.bind.annotation.GetMapping
+import org.springframework.web.bind.annotation.PathVariable
 import org.springframework.web.bind.annotation.PostMapping
 import org.springframework.web.bind.annotation.RequestBody
 import org.springframework.web.bind.annotation.RequestMapping
@@ -35,6 +36,34 @@ class AiChatController(
         val response = aiChatInputPort.readTodayRoom(memberId)
 
         return ResponseEntity.ok(response.toBootstrapResponse())
+    }
+
+    @Operation(
+        summary = "내 AI 마음 대화방 이력 목록 조회",
+        description = "로그인한 사용자의 날짜별 대화방 목록과 최신 메시지 요약을 조회합니다.",
+    )
+    @GetMapping("/rooms")
+    fun readHistoryRooms(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatHistoryRoomResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readHistoryRooms(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
+        summary = "내 AI 마음 대화방 상세 조회",
+        description = "로그인한 사용자의 특정 대화방 메시지 이력을 조회합니다.",
+    )
+    @GetMapping("/rooms/{roomId}")
+    fun readHistoryRoom(
+        @AuthenticationPrincipal memberId: Long,
+        @PathVariable roomId: Long,
+    ): ResponseEntity<AiChatHistoryRoomDetailResponse> {
+        val response = aiChatInputPort.readHistoryRoom(memberId = memberId, roomId = roomId)
+
+        return response?.let { ResponseEntity.ok(it.toBootstrapResponse()) }
+            ?: ResponseEntity.notFound().build()
     }
 
     @Operation(
