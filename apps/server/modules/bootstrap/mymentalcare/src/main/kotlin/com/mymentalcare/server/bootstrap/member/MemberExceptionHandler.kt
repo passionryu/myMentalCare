@@ -1,5 +1,6 @@
 package com.mymentalcare.server.bootstrap.member
 
+import com.mymentalcare.server.application.member.DuplicateEmailException
 import com.mymentalcare.server.application.member.DuplicateLoginIdException
 import com.mymentalcare.server.application.member.MemberNotFoundException
 import com.mymentalcare.server.bootstrap.auth.ApiErrorResponse
@@ -11,6 +12,12 @@ import org.springframework.web.bind.annotation.RestControllerAdvice
 
 @RestControllerAdvice
 class MemberExceptionHandler {
+    @ExceptionHandler(DuplicateEmailException::class)
+    fun handleDuplicateEmail(exception: DuplicateEmailException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.status(HttpStatus.CONFLICT)
+            .body(ApiErrorResponse(code = "MEMBER_DUPLICATE_EMAIL", message = exception.message ?: "이미 사용 중인 이메일입니다."))
+    }
+
     @ExceptionHandler(DuplicateLoginIdException::class)
     fun handleDuplicateLoginId(exception: DuplicateLoginIdException): ResponseEntity<ApiErrorResponse> {
         return ResponseEntity.status(HttpStatus.CONFLICT)

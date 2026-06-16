@@ -49,7 +49,10 @@ class MemberEntity(
     }
 }
 
-fun Member.toEntity(): MemberEntity {
+fun Member.toEntity(
+    createdAt: LocalDateTime = LocalDateTime.now(),
+    updatedAt: LocalDateTime = LocalDateTime.now(),
+): MemberEntity {
     return MemberEntity(
         id = id,
         loginId = loginId,
@@ -57,5 +60,7 @@ fun Member.toEntity(): MemberEntity {
         password = password,
         name = name,
         phone = phone,
+        createdAt = createdAt,
+        updatedAt = updatedAt,
     )
 }

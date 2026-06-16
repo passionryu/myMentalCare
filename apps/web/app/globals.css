@@ -4170,6 +4170,16 @@ h3 {
   box-shadow: 0 0 0 3px rgba(35, 76, 133, 0.14);
 }
 
+.mypage-dialog-message {
+  border: 1px solid rgba(184, 111, 84, 0.28);
+  border-radius: 14px;
+  background: rgba(255, 238, 225, 0.74);
+  color: #69402e;
+  padding: 12px 14px;
+  font-size: 14px;
+  font-weight: 800;
+}
+
 .danger-soft-button,
 .danger-button {
   display: inline-flex;

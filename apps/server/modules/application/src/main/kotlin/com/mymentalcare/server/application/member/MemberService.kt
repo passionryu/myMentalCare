@@ -50,12 +50,43 @@ internal class MemberService(
         val member = memberRepository.findById(memberId)
             ?: throw MemberNotFoundException()
 
+        return member.toMyProfileResponse()
+    }
+
+    // 내 프로필 수정
+    @Transactional
+    override fun updateMyProfile(memberId: Long, request: UpdateMyProfileRequest): MyProfileResponse {
+        val member = memberRepository.findById(memberId)
+            ?: throw MemberNotFoundException()
+
+        val nextEmail = request.email.normalizeBlank()
+        if (nextEmail != null) {
+            val emailOwner = memberRepository.findByEmail(nextEmail)
+            if (emailOwner != null && emailOwner.id != memberId) {
+                throw DuplicateEmailException()
+            }
+        }
+
+        val updatedMember = memberRepository.save(
+            member.copy(
+                email = nextEmail,
+                name = request.name.trim(),
+                phone = request.phone.normalizeBlank(),
+            )
+        )
+
+        return updatedMember.toMyProfileResponse()
+    }
+
+    private fun Member.toMyProfileResponse(): MyProfileResponse {
         return MyProfileResponse(
-            memberId = member.id,
-            loginId = member.loginId,
-            email = member.email,
-            name = member.name,
-            phone = member.phone,
+            memberId = id,
+            loginId = loginId,
+            email = email,
+            name = name,
+            phone = phone,
         )
     }
+
+    private fun String?.normalizeBlank(): String? = this?.trim()?.takeIf { it.isNotBlank() }
 }
