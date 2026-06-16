@@ -23,6 +23,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { FormEvent, useEffect, useMemo, useState } from 'react'
 import { LoginApiError, MyProfileResponse, UpdateMyProfileRequest, readMyProfile, updateMyProfile } from '@/lib/auth-api'
+import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
 
 type ThemeTone = 'sunset' | 'cream' | 'wood'
 type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support' | 'security'
@@ -481,18 +482,43 @@ function PanelHeader({
 
 function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
   const [category, setCategory] = useState('이력/리포트')
+  const [content, setContent] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [formMessage, setFormMessage] = useState('')
+  const [submittedInquiry, setSubmittedInquiry] = useState<CreateInquiryResponse | null>(null)
 
-  const handleSubmit = (event: FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
-    onDone(`${category} 문의 접수 API가 연결되면 전송됩니다. 현재는 화면 흐름만 확인할 수 있습니다.`)
-    event.currentTarget.reset()
+    const trimmedContent = content.trim()
+    setFormMessage('')
+    setSubmittedInquiry(null)
+
+    if (trimmedContent.length < 10) {
+      setFormMessage('문의 내용은 10자 이상 입력해주세요.')
+      return
+    }
+
+    setIsSubmitting(true)
+    try {
+      const response = await createInquiry({
+        category,
+        content: trimmedContent,
+      })
+      setSubmittedInquiry(response)
+      setContent('')
+      onDone('문의가 접수되었습니다.')
+    } catch (error) {
+      setFormMessage(error instanceof LoginApiError ? error.message : '문의 접수 중 문제가 발생했습니다.')
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
     <form className="mypage-inquiry-form" onSubmit={handleSubmit}>
       <label>
         문의 유형
-        <select value={category} onChange={(event) => setCategory(event.target.value)}>
+        <select value={category} disabled={isSubmitting} onChange={(event) => setCategory(event.target.value)}>
           <option>이력/리포트</option>
           <option>계정</option>
           <option>서비스 이용</option>
@@ -501,10 +527,33 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
       </label>
       <label>
         문의 내용
-        <textarea name="content" rows={4} placeholder="문의 내용을 적어주세요." />
+        <textarea
+          name="content"
+          rows={4}
+          value={content}
+          disabled={isSubmitting}
+          placeholder="문의 내용을 적어주세요."
+          onChange={(event) => setContent(event.target.value)}
+        />
       </label>
-      <button className="primary-button" type="submit">
-        문의 남기기
+      {formMessage && (
+        <p className="mypage-dialog-message" role="alert">
+          {formMessage}
+        </p>
+      )}
+      {submittedInquiry && (
+        <div className="mypage-inquiry-result" role="status">
+          <CheckCircle2 size={18} aria-hidden="true" />
+          <div>
+            <strong>문의 접수 완료</strong>
+            <span>
+              접수번호 #{submittedInquiry.inquiryId} · {new Date(submittedInquiry.createdAt).toLocaleString('ko-KR')}
+            </span>
+          </div>
+        </div>
+      )}
+      <button className="primary-button" type="submit" disabled={isSubmitting}>
+        {isSubmitting ? '접수 중...' : '문의 남기기'}
         <Mail size={17} aria-hidden="true" />
       </button>
     </form>
