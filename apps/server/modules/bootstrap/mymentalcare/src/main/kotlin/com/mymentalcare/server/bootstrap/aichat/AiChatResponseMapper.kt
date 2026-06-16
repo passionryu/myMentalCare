@@ -1,6 +1,8 @@
 package com.mymentalcare.server.bootstrap.aichat
 
 import com.mymentalcare.server.application.aichat.AiChatCheckInResponse as ApplicationAiChatCheckInResponse
+import com.mymentalcare.server.application.aichat.AiChatCheckInAnswerResponse as ApplicationAiChatCheckInAnswerResponse
+import com.mymentalcare.server.application.aichat.AiChatCheckInHistoryResponse as ApplicationAiChatCheckInHistoryResponse
 import com.mymentalcare.server.application.aichat.AiChatHistoryRoomDetailResponse as ApplicationAiChatHistoryRoomDetailResponse
 import com.mymentalcare.server.application.aichat.AiChatHistoryRoomResponse as ApplicationAiChatHistoryRoomResponse
 import com.mymentalcare.server.application.aichat.AiChatMessageResponse as ApplicationAiChatMessageResponse
@@ -45,6 +47,18 @@ fun ApplicationAiChatHistoryRoomDetailResponse.toBootstrapResponse(): AiChatHist
         conversationDate = conversationDate,
         status = status,
         messages = messages.map { it.toBootstrapResponse() },
+    )
+}
+
+fun ApplicationAiChatCheckInHistoryResponse.toBootstrapResponse(): AiChatCheckInHistoryResponse {
+    return AiChatCheckInHistoryResponse(
+        checkInId = checkInId,
+        roomId = roomId,
+        segmentId = segmentId,
+        templateType = templateType,
+        summaryText = summaryText,
+        answers = answers.map { it.toBootstrapResponse() },
+        createdAt = createdAt,
     )
 }
 
@@ -129,6 +143,16 @@ private fun ApplicationAiChatCheckInResponse.toBootstrapResponse(): AiChatCheckI
         checkInId = checkInId,
         templateType = templateType,
         summaryText = summaryText,
+    )
+}
+
+private fun ApplicationAiChatCheckInAnswerResponse.toBootstrapResponse(): AiChatCheckInAnswerResponse {
+    return AiChatCheckInAnswerResponse(
+        stepKey = stepKey,
+        optionKey = optionKey,
+        label = label,
+        value = value,
+        freeText = freeText,
     )
 }
 

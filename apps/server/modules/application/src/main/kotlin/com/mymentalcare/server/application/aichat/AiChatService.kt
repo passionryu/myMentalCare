@@ -1,7 +1,9 @@
 package com.mymentalcare.server.application.aichat
 
+import com.mymentalcare.server.application.port.AiChatCheckInRepository
 import com.mymentalcare.server.application.port.AiChatReportRepository
 import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.port.AiChatSegmentRepository
 import com.mymentalcare.server.application.port.ChatMessageRepository
 import com.mymentalcare.server.domain.aichat.AiChatReport
 import com.mymentalcare.server.domain.aichat.AiChatReportSong
@@ -28,6 +30,8 @@ internal class AiChatService(
     private val crisisDetectionRecorder: CrisisDetectionRecorder,
     private val aiChatResponseAssembler: AiChatResponseAssembler,
     private val aiChatRoomRepository: AiChatRoomRepository,
+    private val aiChatSegmentRepository: AiChatSegmentRepository,
+    private val aiChatCheckInRepository: AiChatCheckInRepository,
     private val chatMessageRepository: ChatMessageRepository,
     private val aiChatReportRepository: AiChatReportRepository,
     private val aiChatReportReadinessDecider: AiChatReportReadinessDecider,
@@ -79,6 +83,36 @@ internal class AiChatService(
     @Transactional(readOnly = true)
     override fun readReport(memberId: Long, reportId: Long): AiChatReportResponse? {
         return aiChatReportRepository.findByIdAndMemberId(reportId = reportId, memberId = memberId)?.toResponse()
+    }
+
+    @Transactional(readOnly = true)
+    override fun readCheckIns(memberId: Long): List<AiChatCheckInHistoryResponse> {
+        val rooms = aiChatRoomRepository.findByMemberId(memberId)
+        val segments = rooms.flatMap { aiChatSegmentRepository.findByRoomId(it.id) }
+        val segmentById = segments.associateBy { it.id }
+        val roomIdBySegmentId = segments.associate { it.id to it.roomId }
+
+        return aiChatCheckInRepository.findBySegmentIds(segments.map { it.id })
+            .sortedByDescending { it.createdAt ?: java.time.LocalDateTime.MIN }
+            .map { checkIn ->
+                AiChatCheckInHistoryResponse(
+                    checkInId = checkIn.id,
+                    roomId = roomIdBySegmentId[checkIn.segmentId] ?: 0,
+                    segmentId = checkIn.segmentId,
+                    templateType = checkIn.templateType.name,
+                    summaryText = checkIn.summaryText,
+                    answers = checkIn.answers.map { answer ->
+                        AiChatCheckInAnswerResponse(
+                            stepKey = answer.stepKey,
+                            optionKey = answer.optionKey,
+                            label = answer.label,
+                            value = answer.value,
+                            freeText = answer.freeText,
+                        )
+                    },
+                    createdAt = checkIn.createdAt ?: segmentById[checkIn.segmentId]?.startedAt,
+                )
+            }
     }
 
     // 체크인 없이 오늘 대화방 안에 새 주제 구간을 시작한다.

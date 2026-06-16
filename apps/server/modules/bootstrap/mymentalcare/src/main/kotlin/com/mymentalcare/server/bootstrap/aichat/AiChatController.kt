@@ -95,6 +95,19 @@ class AiChatController(
     }
 
     @Operation(
+        summary = "내 마음 체크인 기록 조회",
+        description = "로그인한 사용자의 체크인 기록과 답변을 최신순으로 조회합니다.",
+    )
+    @GetMapping("/check-ins")
+    fun readCheckIns(
+        @AuthenticationPrincipal memberId: Long,
+    ): ResponseEntity<List<AiChatCheckInHistoryResponse>> {
+        return ResponseEntity.ok(
+            aiChatInputPort.readCheckIns(memberId).map { it.toBootstrapResponse() }
+        )
+    }
+
+    @Operation(
         summary = "오늘 대화방 새 주제 시작",
         description = "체크인 없이 오늘 대화방 안에 새 주제 구간을 만들고 마음이의 첫 메시지를 반환합니다.",
     )
