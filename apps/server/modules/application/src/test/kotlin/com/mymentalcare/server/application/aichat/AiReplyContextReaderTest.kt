@@ -1,8 +1,13 @@
 package com.mymentalcare.server.application.aichat
 
-import com.mymentalcare.server.application.port.AiChatRecentMessageCache
-import com.mymentalcare.server.application.port.AiChatRoomSummaryRepository
-import com.mymentalcare.server.application.port.ChatMessageRepository
+import com.mymentalcare.server.application.aichat.policy.*
+import com.mymentalcare.server.application.aichat.port.*
+import com.mymentalcare.server.application.aichat.reader.*
+import com.mymentalcare.server.application.aichat.recorder.*
+import com.mymentalcare.server.application.aichat.request.*
+import com.mymentalcare.server.application.aichat.response.*
+import com.mymentalcare.server.application.aichat.usecase.*
+
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatRoomStatus
 import com.mymentalcare.server.domain.aichat.AiChatRoomSummary

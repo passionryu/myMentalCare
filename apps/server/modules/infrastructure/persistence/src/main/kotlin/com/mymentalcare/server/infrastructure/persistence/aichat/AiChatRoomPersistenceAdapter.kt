@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
-import com.mymentalcare.server.application.port.AiChatRoomRepository
+import com.mymentalcare.server.application.aichat.port.AiChatRoomRepository
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import org.springframework.stereotype.Repository
 import java.time.LocalDate

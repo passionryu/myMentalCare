@@ -1,9 +1,14 @@
 package com.mymentalcare.server.application.member
 
-import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
-import com.mymentalcare.server.application.port.MemberRepository
-import com.mymentalcare.server.application.port.RefreshTokenStore
-import com.mymentalcare.server.application.port.SocialAccountRepository
+import com.mymentalcare.server.application.member.port.*
+import com.mymentalcare.server.application.member.request.*
+import com.mymentalcare.server.application.member.response.*
+import com.mymentalcare.server.application.member.usecase.*
+
+import com.mymentalcare.server.application.member.port.MemberNotificationSettingRepository
+import com.mymentalcare.server.application.member.port.MemberRepository
+import com.mymentalcare.server.application.auth.port.RefreshTokenStore
+import com.mymentalcare.server.application.member.port.SocialAccountRepository
 import com.mymentalcare.server.domain.auth.OAuthProvider
 import com.mymentalcare.server.domain.auth.SocialAccount
 import com.mymentalcare.server.domain.member.Member

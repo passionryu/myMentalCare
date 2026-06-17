@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
-import com.mymentalcare.server.application.port.CrisisDetectionEventRepository
+import com.mymentalcare.server.application.aichat.port.CrisisDetectionEventRepository
 import com.mymentalcare.server.domain.aichat.CrisisDetectionEvent
 import org.springframework.stereotype.Repository
 

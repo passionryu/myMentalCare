@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.member
 
-import com.mymentalcare.server.application.port.MemberNotificationSettingRepository
+import com.mymentalcare.server.application.member.port.MemberNotificationSettingRepository
 import com.mymentalcare.server.domain.member.MemberNotificationSetting
 import org.springframework.stereotype.Repository
 

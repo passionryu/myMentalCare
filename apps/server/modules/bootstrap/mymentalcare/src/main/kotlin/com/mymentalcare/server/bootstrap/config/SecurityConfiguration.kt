@@ -1,6 +1,6 @@
 package com.mymentalcare.server.bootstrap.config
 
-import com.mymentalcare.server.bootstrap.auth.adapter.JwtAuthenticationFilter
+import com.mymentalcare.server.bootstrap.auth.adapter.jwt.JwtAuthenticationFilter
 import jakarta.servlet.http.HttpServletResponse
 import org.springframework.boot.context.properties.EnableConfigurationProperties
 import org.springframework.context.annotation.Bean
