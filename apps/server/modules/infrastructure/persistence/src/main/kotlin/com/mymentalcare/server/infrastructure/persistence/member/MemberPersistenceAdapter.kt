@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.member
 
-import com.mymentalcare.server.application.port.MemberRepository
+import com.mymentalcare.server.application.member.port.MemberRepository
 import com.mymentalcare.server.domain.member.Member
 import com.mymentalcare.server.domain.member.MemberStatus
 import org.springframework.stereotype.Repository

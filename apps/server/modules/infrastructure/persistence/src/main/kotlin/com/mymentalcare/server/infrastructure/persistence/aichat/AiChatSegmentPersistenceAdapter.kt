@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
-import com.mymentalcare.server.application.port.AiChatSegmentRepository
+import com.mymentalcare.server.application.aichat.port.AiChatSegmentRepository
 import com.mymentalcare.server.domain.aichat.AiChatSegment
 import org.springframework.data.repository.findByIdOrNull
 import org.springframework.stereotype.Repository

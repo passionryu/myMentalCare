@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
-import com.mymentalcare.server.application.port.AiChatReportRepository
+import com.mymentalcare.server.application.aichat.port.AiChatReportRepository
 import com.mymentalcare.server.domain.aichat.AiChatReport
 import org.springframework.stereotype.Repository
 

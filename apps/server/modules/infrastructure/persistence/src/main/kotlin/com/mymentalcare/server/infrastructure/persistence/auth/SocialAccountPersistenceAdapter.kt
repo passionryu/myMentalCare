@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.auth
 
-import com.mymentalcare.server.application.port.SocialAccountRepository
+import com.mymentalcare.server.application.member.port.SocialAccountRepository
 import com.mymentalcare.server.domain.auth.OAuthProvider
 import com.mymentalcare.server.domain.auth.SocialAccount
 import org.springframework.stereotype.Repository
