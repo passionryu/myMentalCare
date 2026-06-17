@@ -23,7 +23,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AiChatHistoryRoom,
   AiChatHistoryRoomDetail,
@@ -95,10 +95,10 @@ const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }>
 const historyItems = [
   {
     title: '오늘 대화',
-    description: '오늘 이어간 마음이와의 대화방으로 이동합니다.',
+    description: '지금 이어갈 수 있는 AI 마음대화 화면으로 이동합니다.',
     meta: '채팅 이력',
     icon: MessageCircle,
-    action: '대화 보기',
+    action: '대화 이어가기',
     href: '/chat',
   },
   {
@@ -106,7 +106,7 @@ const historyItems = [
     description: '대화 마무리 후 저장된 마음 리포트를 확인합니다.',
     meta: '리포트 이력',
     icon: FileText,
-    action: '채팅에서 확인',
+    action: '리포트 만들기',
     href: '/chat',
   },
   {
@@ -128,6 +128,7 @@ export default function MyPage() {
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [notificationTime, setNotificationTime] = useState('21:00')
   const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const [isNotificationSaving, setIsNotificationSaving] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
   const [summary, setSummary] = useState<MyPageSummaryResponse | null>(null)
@@ -160,6 +161,7 @@ export default function MyPage() {
     }
 
     setNotificationEnabled(localStorage.getItem(NOTIFICATION_STORAGE_KEY) === '1')
+    setNotificationPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
 
     if (!accessToken) {
       return
@@ -245,7 +247,7 @@ export default function MyPage() {
     const nextTheme = themes.find((theme) => theme.value === nextThemeTone)
     setThemeTone(nextThemeTone)
     localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
-    setToastMessage(`${nextTheme?.label ?? '선택한'} 테마가 이 기기에 적용되었습니다.`)
+    setToastMessage(`${nextTheme?.label ?? '선택한'} 색감이 이 기기에 적용되었습니다.`)
   }
 
   const handleNotificationWeekdayToggle = (weekday: NotificationWeekday) => {
@@ -258,15 +260,33 @@ export default function MyPage() {
     })
   }
 
+  const handleNotificationPermissionRequest = async () => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      setNotificationMessage('이 브라우저에서는 알림 권한 요청을 지원하지 않습니다.')
+      return
+    }
+
+    if (Notification.permission === 'denied') {
+      setNotificationPermission('denied')
+      setNotificationMessage('브라우저에서 알림이 차단되어 있습니다. 사이트 설정에서 알림을 허용해주세요.')
+      return
+    }
+
+    const nextPermission = await Notification.requestPermission()
+    setNotificationPermission(nextPermission)
+    setNotificationMessage(
+      nextPermission === 'granted'
+        ? '브라우저 알림 권한이 허용되었습니다.'
+        : '알림 권한을 허용해야 설정한 시간에 알림을 받을 수 있습니다.',
+    )
+  }
+
   const handleNotificationSave = async () => {
     setNotificationMessage('')
     if (notificationWeekdayValues.length === 0) {
       setNotificationMessage('알림 요일을 1개 이상 선택해주세요.')
       return
-    }
-
-    if (notificationEnabled && typeof Notification !== 'undefined' && Notification.permission === 'denied') {
-      setNotificationMessage('브라우저 알림 권한이 차단되어 있습니다. 설정은 저장되지만 알림은 표시되지 않을 수 있습니다.')
     }
 
     setIsNotificationSaving(true)
@@ -289,6 +309,13 @@ export default function MyPage() {
             }
           : currentSummary,
       )
+      const currentPermission = typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+      setNotificationPermission(currentPermission)
+      if (setting.enabled && currentPermission === 'denied') {
+        setNotificationMessage('설정은 저장했지만 브라우저 알림이 차단되어 실제 알림은 표시되지 않습니다.')
+      } else if (setting.enabled && currentPermission === 'default') {
+        setNotificationMessage('설정은 저장했습니다. 알림을 받으려면 브라우저 권한도 허용해주세요.')
+      }
       setToastMessage('마음 체크 알림 설정이 저장되었습니다.')
     } catch (error) {
       setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 저장하지 못했습니다.')
@@ -510,12 +537,8 @@ export default function MyPage() {
             <div>
               <p className="eyebrow">내 마음 케어 공간</p>
               <h1 id="mypage-heading">마이페이지</h1>
-              <p>프로필, 대화 이력, 마음 리포트, 설정을 한 곳에서 관리합니다.</p>
+              <p>필요한 관리 항목을 선택해 내 정보와 기록을 확인합니다.</p>
             </div>
-            <button className="ghost-button mypage-mobile-home" type="button" onClick={() => router.push('/')}>
-              <Home size={18} aria-hidden="true" />
-              홈
-            </button>
           </header>
 
           {profileMessage && (
@@ -525,66 +548,76 @@ export default function MyPage() {
             </div>
           )}
 
-          <section className="mypage-overview-grid" aria-label="마이페이지 요약">
-            <article className="mypage-hero-card">
-              <span className="mypage-card-icon">
-                <HeartHandshake size={22} aria-hidden="true" />
-              </span>
-              <div>
-                <p className="eyebrow">오늘의 케어</p>
-                <h2>{profile?.name ? `${profile.name}님의 마음 공간` : '내 마음 공간'}</h2>
-                <p>오늘 대화를 이어가거나, 마무리 리포트를 확인하고, 필요한 설정을 조정할 수 있습니다.</p>
-              </div>
-              <div className="mypage-hero-actions">
-                <button className="primary-button" type="button" onClick={() => router.push('/chat')}>
-                  오늘 대화 이어가기
-                  <MessageCircle size={18} aria-hidden="true" />
-                </button>
-                <button className="soft-button" type="button" onClick={() => setActiveSection('history')}>
-                  이력 보기
-                  <ClipboardList size={18} aria-hidden="true" />
-                </button>
-              </div>
-            </article>
+          {activeSection === 'overview' && (
+            <>
+              <section className="mypage-overview-grid" aria-label="마이페이지 요약">
+                <article className="mypage-hero-card">
+                  <span className="mypage-card-icon">
+                    <HeartHandshake size={22} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="eyebrow">오늘 상태</p>
+                    <h2>{profile?.name ? `${profile.name}님의 기록` : '내 기록'}</h2>
+                    <p>대화를 이어가고, 저장된 기록과 알림 상태를 빠르게 확인합니다.</p>
+                  </div>
+                  <div className="mypage-hero-actions">
+                    <button className="primary-button" type="button" onClick={() => router.push('/chat')}>
+                      대화 이어가기
+                      <MessageCircle size={18} aria-hidden="true" />
+                    </button>
+                    <button className="soft-button" type="button" onClick={() => setActiveSection('history')}>
+                      지난 기록 보기
+                      <ClipboardList size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                </article>
 
-            <article className="mypage-mini-card">
-              <MessageCircle size={21} aria-hidden="true" />
-              <strong>채팅</strong>
-              <span>
-                {summaryMessage
-                  ? '확인 필요'
-                  : summary
-                    ? summary.hasTodayChat
-                      ? `오늘 ${summary.todayMessageCount}개`
-                      : '오늘 대화 없음'
-                    : '불러오는 중'}
-              </span>
-            </article>
-            <article className="mypage-mini-card">
-              <FileText size={21} aria-hidden="true" />
-              <strong>리포트</strong>
-              <span>
-                {summaryMessage
-                  ? '확인 필요'
-                  : summary
-                    ? summary.reportCount > 0
-                      ? `${summary.reportCount}개 저장`
-                      : '저장된 리포트 없음'
-                    : '불러오는 중'}
-              </span>
-            </article>
-            <article className="mypage-mini-card">
-              <Bell size={21} aria-hidden="true" />
-              <strong>알림</strong>
-              <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
-            </article>
-          </section>
+                <article className="mypage-mini-card">
+                  <MessageCircle size={21} aria-hidden="true" />
+                  <strong>채팅</strong>
+                  <span>
+                    {summaryMessage
+                      ? '확인 필요'
+                      : summary
+                        ? summary.hasTodayChat
+                          ? `오늘 ${summary.todayMessageCount}개`
+                          : '오늘 대화 없음'
+                        : '불러오는 중'}
+                  </span>
+                </article>
+                <article className="mypage-mini-card">
+                  <FileText size={21} aria-hidden="true" />
+                  <strong>리포트</strong>
+                  <span>
+                    {summaryMessage
+                      ? '확인 필요'
+                      : summary
+                        ? summary.reportCount > 0
+                          ? `${summary.reportCount}개 저장`
+                          : '저장된 리포트 없음'
+                        : '불러오는 중'}
+                  </span>
+                </article>
+                <article className="mypage-mini-card">
+                  <Bell size={21} aria-hidden="true" />
+                  <strong>알림</strong>
+                  <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
+                </article>
+              </section>
 
-          {summary && (
-            <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
-              <span>최근 대화: {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}</span>
-              <span>최근 리포트: {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}</span>
-            </section>
+              {summary && (
+                <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
+                  <span>
+                    <b>최근 대화</b>
+                    {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}
+                  </span>
+                  <span>
+                    <b>최근 리포트</b>
+                    {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}
+                  </span>
+                </section>
+              )}
+            </>
           )}
 
           {summaryMessage && (
@@ -594,7 +627,7 @@ export default function MyPage() {
             </div>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'profile') && (
+          {activeSection === 'profile' && (
             <section className="mypage-panel" aria-labelledby="profile-section-title">
               <PanelHeader
                 eyebrow="프로필"
@@ -619,7 +652,7 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'history') && (
+          {activeSection === 'history' && (
             <section className="mypage-panel" aria-labelledby="history-section-title">
               <PanelHeader
                 eyebrow="내 이력"
@@ -637,7 +670,11 @@ export default function MyPage() {
                 {!historyMessage && chatHistoryRooms.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>아직 저장된 채팅 이력이 없습니다</strong>
-                    <span>마음이와 대화를 시작하면 이곳에 날짜별로 쌓입니다.</span>
+                    <span>AI 마음대화를 시작하면 날짜별 기록이 이곳에 정리됩니다.</span>
+                    <button className="soft-button" type="button" onClick={() => router.push('/chat')}>
+                      대화 시작하기
+                      <MessageCircle size={16} aria-hidden="true" />
+                    </button>
                   </div>
                 )}
                 {chatHistoryRooms.map((room) => (
@@ -655,10 +692,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('CHAT_ROOM', room.roomId, '채팅 이력')}
+                        onClick={() => handleDeleteHistory('CHAT_ROOM', room.roomId, '이 대화')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        이 대화 삭제
                       </button>
                     </div>
                   </article>
@@ -695,7 +732,7 @@ export default function MyPage() {
                 {!reportMessage && reports.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>저장된 마음 리포트가 없습니다</strong>
-                    <span>오늘 대화를 마무리하면 리포트가 이곳에 저장됩니다.</span>
+                    <span>대화를 마무리하면 오늘 마음의 요약이 리포트로 남습니다.</span>
                   </div>
                 )}
                 {reports.map((report) => (
@@ -713,10 +750,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('REPORT', report.reportId, '마음 리포트')}
+                        onClick={() => handleDeleteHistory('REPORT', report.reportId, '이 리포트')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        리포트 삭제
                       </button>
                     </div>
                   </article>
@@ -732,7 +769,7 @@ export default function MyPage() {
                 {!checkInMessage && checkIns.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>저장된 체크인 기록이 없습니다</strong>
-                    <span>체크인으로 대화를 시작하면 선택한 답변이 이곳에 저장됩니다.</span>
+                    <span>체크인으로 시작한 대화의 선택 답변이 이곳에 쌓입니다.</span>
                   </div>
                 )}
                 {checkIns.map((checkIn) => (
@@ -746,10 +783,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('CHECK_IN', checkIn.checkInId, '체크인 기록')}
+                        onClick={() => handleDeleteHistory('CHECK_IN', checkIn.checkInId, '이 체크인 기록')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        체크인 삭제
                       </button>
                     </div>
                   </article>
@@ -758,13 +795,13 @@ export default function MyPage() {
               <div className="mypage-action-row">
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('deleteHistory')}>
                   <Trash2 size={17} aria-hidden="true" />
-                  이력 삭제 요청
+                  삭제 방법 안내
                 </button>
               </div>
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'settings') && (
+          {activeSection === 'settings' && (
             <section className="mypage-panel" aria-labelledby="settings-section-title">
               <PanelHeader
                 eyebrow="설정"
@@ -779,6 +816,24 @@ export default function MyPage() {
                     <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕습니다.</span>
                   </div>
                   <div className="mypage-notification-controls">
+                    <div className="mypage-notification-permission">
+                      <span>
+                        브라우저 권한:{' '}
+                        {notificationPermission === 'granted'
+                          ? '허용됨'
+                          : notificationPermission === 'denied'
+                            ? '차단됨'
+                            : notificationPermission === 'default'
+                              ? '미설정'
+                              : '지원 안 됨'}
+                      </span>
+                      {notificationPermission !== 'granted' && (
+                        <button className="soft-button" type="button" onClick={handleNotificationPermissionRequest}>
+                          {notificationPermission === 'denied' ? '허용 방법 보기' : '알림 권한 허용하기'}
+                          <Bell size={16} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                     <div className="mypage-notification-topline">
                       <button
                         className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
@@ -827,7 +882,7 @@ export default function MyPage() {
                 <div className="mypage-theme-setting">
                   <div>
                     <strong>화면 색상</strong>
-                    <span>선택한 색상은 현재 기기에 저장됩니다. 다른 기기에서는 다시 선택할 수 있습니다.</span>
+                    <span>선택한 색감은 이 기기에서만 적용돼요.</span>
                   </div>
                   <div className="mypage-theme-grid" aria-label="화면 색상 선택">
                     {themes.map((theme) => {
@@ -838,6 +893,7 @@ export default function MyPage() {
                           type="button"
                           key={theme.value}
                           aria-pressed={isSelected}
+                          aria-label={`${theme.label} 색감 선택${isSelected ? ', 현재 적용 중' : ''}`}
                           onClick={() => handleThemeChange(theme.value)}
                         >
                           <span className="theme-swatch" aria-hidden="true" />
@@ -853,12 +909,12 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'support') && (
+          {activeSection === 'support' && (
             <section className="mypage-panel" aria-labelledby="support-section-title">
               <PanelHeader
                 eyebrow="문의"
                 title="문의하기"
-                description="계정, 이력, 리포트 관련 문의를 남길 수 있는 위치입니다."
+                description="이용 중 불편한 점이나 기록 확인이 필요하면 여기서 알려주세요."
                 icon={Mail}
               />
               <InquiryForm onDone={(message) => setToastMessage(message)} />
@@ -870,7 +926,7 @@ export default function MyPage() {
               <PanelHeader
                 eyebrow="계정"
                 title="로그인 방식과 계정 보안"
-                description="현재 계정의 로그인 방식을 확인하고 비밀번호를 변경할 수 있습니다."
+                description="로그인 방식, 비밀번호 변경, 계정 종료 같은 민감한 설정을 구분해 관리합니다."
                 icon={ShieldCheck}
               />
               {securityMessage && (
@@ -940,6 +996,12 @@ export default function MyPage() {
                   <LogOut size={17} aria-hidden="true" />
                   로그아웃
                 </button>
+              </div>
+              <div className="mypage-danger-zone">
+                <div>
+                  <strong>위험 구역</strong>
+                  <span>계정을 닫는 작업은 되돌리기 어렵기 때문에 한 번 더 확인합니다.</span>
+                </div>
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('withdraw')}>
                   <Trash2 size={17} aria-hidden="true" />
                   회원 탈퇴 안내
@@ -998,9 +1060,9 @@ function ChatHistoryDialog({ detail, onClose }: { detail: AiChatHistoryRoomDetai
         <button className="icon-button" type="button" aria-label="채팅 이력 모달 닫기" onClick={onClose}>
           <X size={20} aria-hidden="true" />
         </button>
-        <p className="eyebrow">채팅 이력</p>
+        <p className="eyebrow">읽기 전용</p>
         <h2 id="chat-history-dialog-title">{new Date(detail.conversationDate).toLocaleDateString('ko-KR')} 대화</h2>
-        <p className="modal-description">저장된 마음이와의 대화 내용을 읽기 전용으로 확인합니다.</p>
+        <p className="modal-description">저장된 대화를 확인하는 화면입니다. 내용 수정은 지원하지 않습니다.</p>
         <div className="mypage-chat-message-list">
           {detail.messages.map((message) => (
             <article className={message.senderType === 'USER' ? 'is-user' : 'is-assistant'} key={message.messageId}>
@@ -1098,6 +1160,7 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formMessage, setFormMessage] = useState('')
   const [submittedInquiry, setSubmittedInquiry] = useState<CreateInquiryResponse | null>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -1107,6 +1170,7 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
 
     if (trimmedContent.length < 10) {
       setFormMessage('문의 내용은 10자 이상 입력해주세요.')
+      requestAnimationFrame(() => contentRef.current?.focus())
       return
     }
 
@@ -1128,28 +1192,37 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
 
   return (
     <form className="mypage-inquiry-form" onSubmit={handleSubmit}>
-      <label>
+      <label htmlFor="mypage-inquiry-category">
         문의 유형
-        <select value={category} disabled={isSubmitting} onChange={(event) => setCategory(event.target.value)}>
+        <select
+          id="mypage-inquiry-category"
+          value={category}
+          disabled={isSubmitting}
+          onChange={(event) => setCategory(event.target.value)}
+        >
           <option>이력/리포트</option>
           <option>계정</option>
           <option>서비스 이용</option>
           <option>기타</option>
         </select>
       </label>
-      <label>
+      <label htmlFor="mypage-inquiry-content">
         문의 내용
         <textarea
+          id="mypage-inquiry-content"
+          ref={contentRef}
           name="content"
           rows={4}
           value={content}
           disabled={isSubmitting}
           placeholder="문의 내용을 적어주세요."
+          aria-invalid={Boolean(formMessage)}
+          aria-describedby={formMessage ? 'mypage-inquiry-error' : undefined}
           onChange={(event) => setContent(event.target.value)}
         />
       </label>
       {formMessage && (
-        <p className="mypage-dialog-message" role="alert">
+        <p className="mypage-dialog-message" id="mypage-inquiry-error" role="alert">
           {formMessage}
         </p>
       )}
@@ -1191,15 +1264,21 @@ function MyPageDialog({
   const [formMessage, setFormMessage] = useState('')
 
   const titleByType = {
-    editProfile: '개인정보 수정',
-    deleteHistory: '이력 삭제 요청',
+    editProfile: '내 정보 수정',
+    deleteHistory: '이력 삭제 안내',
     withdraw: '회원 탈퇴',
   }
 
   const descriptionByType = {
-    editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
-    deleteHistory: '채팅, 리포트, 체크인 카드의 삭제 버튼으로 선택한 이력을 삭제합니다.',
+    editProfile: '대화 기록과 연결되는 기본 정보를 관리합니다. 로그인 아이디와 비밀번호는 계정 관리에서 다룹니다.',
+    deleteHistory: '전체 삭제 대신 필요한 항목만 카드별로 선택해 삭제합니다.',
     withdraw: '탈퇴 후 계정은 비활성화되며, 현재 로그인 상태가 종료됩니다. 계속하려면 비밀번호와 확인 문구를 입력해주세요.',
+  }
+
+  const eyebrowByType = {
+    editProfile: '프로필 정보',
+    deleteHistory: '기록 관리',
+    withdraw: '계정 관리',
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1274,7 +1353,7 @@ function MyPageDialog({
         <button className="icon-button" type="button" aria-label="마이페이지 모달 닫기" onClick={onClose}>
           <X size={20} aria-hidden="true" />
         </button>
-        <p className="eyebrow">마이페이지</p>
+        <p className="eyebrow">{eyebrowByType[type]}</p>
         <h2 id="mypage-dialog-title">{titleByType[type]}</h2>
         <p className="modal-description">{descriptionByType[type]}</p>
 
@@ -1312,7 +1391,7 @@ function MyPageDialog({
           ) : (
             <div className="mypage-dialog-warning">
               <AlertTriangle size={20} aria-hidden="true" />
-              <span>삭제는 카드별로 진행되며, 삭제한 이력은 복구할 수 없습니다.</span>
+              <span>각 카드의 `이 대화 삭제`, `리포트 삭제`, `체크인 삭제` 버튼으로 필요한 기록만 삭제할 수 있습니다.</span>
             </div>
           )}
           {formMessage && (
@@ -1325,7 +1404,7 @@ function MyPageDialog({
               취소
             </button>
             <button className={type === 'editProfile' ? 'primary-button' : 'danger-button'} type="submit" disabled={isSubmitting}>
-              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : type === 'withdraw' ? (isSubmitting ? '탈퇴 처리 중...' : '회원 탈퇴하기') : '확인했습니다'}
+              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : type === 'withdraw' ? (isSubmitting ? '탈퇴 처리 중...' : '회원 탈퇴하기') : '확인'}
             </button>
           </div>
         </form>
