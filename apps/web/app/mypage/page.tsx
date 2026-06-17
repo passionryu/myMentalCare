@@ -95,10 +95,10 @@ const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }>
 const historyItems = [
   {
     title: '오늘 대화',
-    description: '오늘 이어간 마음이와의 대화방으로 이동합니다.',
+    description: '지금 이어갈 수 있는 AI 마음대화 화면으로 이동합니다.',
     meta: '채팅 이력',
     icon: MessageCircle,
-    action: '대화 보기',
+    action: '대화 이어가기',
     href: '/chat',
   },
   {
@@ -106,7 +106,7 @@ const historyItems = [
     description: '대화 마무리 후 저장된 마음 리포트를 확인합니다.',
     meta: '리포트 이력',
     icon: FileText,
-    action: '채팅에서 확인',
+    action: '리포트 만들기',
     href: '/chat',
   },
   {
@@ -529,17 +529,17 @@ export default function MyPage() {
                     <HeartHandshake size={22} aria-hidden="true" />
                   </span>
                   <div>
-                    <p className="eyebrow">오늘의 케어</p>
-                    <h2>{profile?.name ? `${profile.name}님의 마음 공간` : '내 마음 공간'}</h2>
-                    <p>오늘 대화를 이어가거나, 마무리 리포트를 확인하고, 필요한 설정을 조정할 수 있습니다.</p>
+                    <p className="eyebrow">오늘 상태</p>
+                    <h2>{profile?.name ? `${profile.name}님의 기록` : '내 기록'}</h2>
+                    <p>대화를 이어가고, 저장된 기록과 알림 상태를 빠르게 확인합니다.</p>
                   </div>
                   <div className="mypage-hero-actions">
                     <button className="primary-button" type="button" onClick={() => router.push('/chat')}>
-                      오늘 대화 이어가기
+                      대화 이어가기
                       <MessageCircle size={18} aria-hidden="true" />
                     </button>
                     <button className="soft-button" type="button" onClick={() => setActiveSection('history')}>
-                      이력 보기
+                      지난 기록 보기
                       <ClipboardList size={18} aria-hidden="true" />
                     </button>
                   </div>
@@ -580,8 +580,14 @@ export default function MyPage() {
 
               {summary && (
                 <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
-                  <span>최근 대화: {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}</span>
-                  <span>최근 리포트: {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}</span>
+                  <span>
+                    <b>최근 대화</b>
+                    {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}
+                  </span>
+                  <span>
+                    <b>최근 리포트</b>
+                    {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}
+                  </span>
                 </section>
               )}
             </>
@@ -637,7 +643,11 @@ export default function MyPage() {
                 {!historyMessage && chatHistoryRooms.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>아직 저장된 채팅 이력이 없습니다</strong>
-                    <span>마음이와 대화를 시작하면 이곳에 날짜별로 쌓입니다.</span>
+                    <span>AI 마음대화를 시작하면 날짜별 기록이 이곳에 정리됩니다.</span>
+                    <button className="soft-button" type="button" onClick={() => router.push('/chat')}>
+                      대화 시작하기
+                      <MessageCircle size={16} aria-hidden="true" />
+                    </button>
                   </div>
                 )}
                 {chatHistoryRooms.map((room) => (
@@ -695,7 +705,7 @@ export default function MyPage() {
                 {!reportMessage && reports.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>저장된 마음 리포트가 없습니다</strong>
-                    <span>오늘 대화를 마무리하면 리포트가 이곳에 저장됩니다.</span>
+                    <span>대화를 마무리하면 오늘 마음의 요약이 리포트로 남습니다.</span>
                   </div>
                 )}
                 {reports.map((report) => (
@@ -732,7 +742,7 @@ export default function MyPage() {
                 {!checkInMessage && checkIns.length === 0 && (
                   <div className="mypage-empty-state">
                     <strong>저장된 체크인 기록이 없습니다</strong>
-                    <span>체크인으로 대화를 시작하면 선택한 답변이 이곳에 저장됩니다.</span>
+                    <span>체크인으로 시작한 대화의 선택 답변이 이곳에 쌓입니다.</span>
                   </div>
                 )}
                 {checkIns.map((checkIn) => (
