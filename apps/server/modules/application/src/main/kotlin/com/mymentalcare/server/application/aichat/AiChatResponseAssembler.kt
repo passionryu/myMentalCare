@@ -1,8 +1,9 @@
 package com.mymentalcare.server.application.aichat
 
-import com.mymentalcare.server.application.port.AiChatCheckInRepository
-import com.mymentalcare.server.application.port.AiChatSegmentRepository
-import com.mymentalcare.server.application.port.ChatMessageRepository
+import com.mymentalcare.server.application.aichat.policy.*
+import com.mymentalcare.server.application.aichat.port.*
+import com.mymentalcare.server.application.aichat.response.*
+
 import com.mymentalcare.server.domain.aichat.AiChatCheckIn
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatSegment

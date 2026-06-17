@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.inquiry
 
-import com.mymentalcare.server.application.port.InquiryRepository
+import com.mymentalcare.server.application.inquiry.port.InquiryRepository
 import com.mymentalcare.server.domain.inquiry.Inquiry
 import org.springframework.stereotype.Repository
 

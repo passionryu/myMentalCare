@@ -2,7 +2,7 @@ package com.mymentalcare.server.infrastructure.persistence.aichat
 
 import com.fasterxml.jackson.core.type.TypeReference
 import com.fasterxml.jackson.databind.ObjectMapper
-import com.mymentalcare.server.application.port.AiChatCheckInRepository
+import com.mymentalcare.server.application.aichat.port.AiChatCheckInRepository
 import com.mymentalcare.server.domain.aichat.AiChatCheckIn
 import com.mymentalcare.server.domain.aichat.AiChatCheckInAnswer
 import org.springframework.stereotype.Repository

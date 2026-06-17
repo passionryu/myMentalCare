@@ -1,6 +1,11 @@
 package com.mymentalcare.server.application.inquiry
 
-import com.mymentalcare.server.application.port.InquiryRepository
+import com.mymentalcare.server.application.inquiry.port.*
+import com.mymentalcare.server.application.inquiry.request.*
+import com.mymentalcare.server.application.inquiry.response.*
+import com.mymentalcare.server.application.inquiry.usecase.*
+
+import com.mymentalcare.server.application.inquiry.port.InquiryRepository
 import com.mymentalcare.server.domain.inquiry.Inquiry
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue

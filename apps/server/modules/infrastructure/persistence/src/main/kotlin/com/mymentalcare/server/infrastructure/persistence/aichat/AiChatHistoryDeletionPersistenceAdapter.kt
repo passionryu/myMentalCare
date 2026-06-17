@@ -1,6 +1,6 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
-import com.mymentalcare.server.application.port.AiChatHistoryDeletionRepository
+import com.mymentalcare.server.application.aichat.port.AiChatHistoryDeletionRepository
 import jakarta.persistence.EntityManager
 import org.springframework.stereotype.Repository
 
