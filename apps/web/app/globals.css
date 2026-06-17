@@ -3701,9 +3701,39 @@ h3 {
     padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
   }
 
-  .chat-message-body,
+  .chat-messages {
+    gap: 18px;
+    max-height: 58vh;
+    padding: 14px;
+  }
+
+  .chat-message-row {
+    gap: 8px;
+  }
+
+  .chat-message-body {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 5px;
+    max-width: calc(100% - 46px);
+  }
+
+  .chat-message-row.is-user .chat-message-body {
+    align-items: flex-end;
+    max-width: min(86%, 520px);
+  }
+
   .chat-message-row.is-assistant .chat-message-body {
+    max-width: calc(100% - 46px);
+  }
+
+  .chat-bubble {
     max-width: 100%;
+    padding: 13px 15px;
+  }
+
+  .chat-bubble p {
+    line-height: 1.62;
   }
 
   .chat-avatar {
@@ -3714,6 +3744,8 @@ h3 {
   }
 
   .chat-message-body time {
+    order: 2;
+    margin: 0 4px;
     font-size: 12px;
   }
 
@@ -3729,6 +3761,53 @@ h3 {
   .checkin-template-grid,
   .wizard-option-grid {
     grid-template-columns: 1fr;
+  }
+
+  .checkin-modal-backdrop {
+    align-items: end;
+    padding: 12px 12px calc(12px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .checkin-modal {
+    width: 100%;
+    max-height: min(76svh, 620px);
+    border-radius: 26px 26px 22px 22px;
+    padding: 24px 18px 18px;
+  }
+
+  .checkin-modal h2 {
+    font-size: clamp(26px, 9vw, 34px);
+  }
+
+  .checkin-modal .modal-description {
+    margin-bottom: 16px;
+    font-size: 14px;
+    line-height: 1.55;
+  }
+
+  .checkin-template-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 10px;
+  }
+
+  .checkin-template-card {
+    min-height: 92px;
+    padding: 13px;
+  }
+
+  .checkin-template-card strong {
+    font-size: 14px;
+    line-height: 1.3;
+  }
+
+  .checkin-template-card span {
+    font-size: 12px;
+    line-height: 1.42;
+  }
+
+  .direct-start-card {
+    min-height: 52px;
+    margin-bottom: 16px;
   }
 
   .chat-action-strip button {
