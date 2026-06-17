@@ -3388,6 +3388,24 @@ h3 {
     padding: 18px 14px calc(var(--mobile-bottom-nav-offset) + 8px);
   }
 
+  .service-page-frame .service-top-nav {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) auto;
+    gap: 10px;
+    padding: 8px 10px;
+  }
+
+  .service-top-nav .brand-mark {
+    min-width: 0;
+    font-size: 15px;
+  }
+
+  .service-top-nav .brand-mark span {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .nav-actions {
     width: auto;
     flex-direction: row;
@@ -3433,6 +3451,13 @@ h3 {
   .service-top-nav .ghost-button,
   .service-top-nav .primary-button {
     display: inline-flex;
+  }
+
+  .service-top-nav .nav-outline-button {
+    min-height: 42px;
+    padding: 0 12px;
+    gap: 6px;
+    font-size: 13px;
   }
 
   .settings-shell {
@@ -3624,7 +3649,16 @@ h3 {
   }
 
   .site-footer nav {
+    width: 100%;
     justify-content: flex-start;
+    gap: 4px 14px;
+  }
+
+  .site-footer a,
+  .site-footer span {
+    display: inline-flex;
+    align-items: center;
+    min-height: 44px;
   }
 
   .policy-document {
@@ -3825,6 +3859,25 @@ h3 {
   .report-highlight-card,
   .modal-actions.split {
     grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 420px) {
+  .service-top-nav .nav-actions {
+    gap: 6px;
+  }
+
+  .service-top-nav .nav-outline-button {
+    width: 42px;
+    padding: 0;
+    gap: 0;
+    overflow: hidden;
+    color: transparent;
+    font-size: 0;
+  }
+
+  .service-top-nav .nav-outline-button svg {
+    color: var(--theme-primary);
   }
 }
 
