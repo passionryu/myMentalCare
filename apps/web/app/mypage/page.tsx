@@ -247,7 +247,7 @@ export default function MyPage() {
     const nextTheme = themes.find((theme) => theme.value === nextThemeTone)
     setThemeTone(nextThemeTone)
     localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
-    setToastMessage(`${nextTheme?.label ?? '선택한'} 테마가 이 기기에 적용되었습니다.`)
+    setToastMessage(`${nextTheme?.label ?? '선택한'} 색감이 이 기기에 적용되었습니다.`)
   }
 
   const handleNotificationWeekdayToggle = (weekday: NotificationWeekday) => {
@@ -882,7 +882,7 @@ export default function MyPage() {
                 <div className="mypage-theme-setting">
                   <div>
                     <strong>화면 색상</strong>
-                    <span>선택한 색상은 현재 기기에 저장됩니다. 다른 기기에서는 다시 선택할 수 있습니다.</span>
+                    <span>선택한 색감은 이 기기에서만 적용돼요.</span>
                   </div>
                   <div className="mypage-theme-grid" aria-label="화면 색상 선택">
                     {themes.map((theme) => {
@@ -893,6 +893,7 @@ export default function MyPage() {
                           type="button"
                           key={theme.value}
                           aria-pressed={isSelected}
+                          aria-label={`${theme.label} 색감 선택${isSelected ? ', 현재 적용 중' : ''}`}
                           onClick={() => handleThemeChange(theme.value)}
                         >
                           <span className="theme-swatch" aria-hidden="true" />

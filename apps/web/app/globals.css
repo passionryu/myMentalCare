@@ -4347,10 +4347,21 @@ h3 {
   text-align: left;
 }
 
+.mypage-theme-option:hover,
+.mypage-theme-option:focus-visible {
+  border-color: var(--theme-accent-border);
+  box-shadow: 0 0 0 3px rgba(49, 91, 63, 0.1);
+}
+
 .mypage-theme-option.is-selected {
   border-color: var(--theme-accent-border);
   background: rgba(241, 250, 238, 0.78);
   box-shadow: var(--theme-selected-shadow);
+}
+
+.mypage-theme-option.is-selected .theme-swatch {
+  outline: 3px solid rgba(49, 91, 63, 0.18);
+  outline-offset: 3px;
 }
 
 .mypage-theme-option .theme-swatch {
