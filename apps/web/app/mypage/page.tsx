@@ -665,10 +665,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('CHAT_ROOM', room.roomId, '채팅 이력')}
+                        onClick={() => handleDeleteHistory('CHAT_ROOM', room.roomId, '이 대화')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        이 대화 삭제
                       </button>
                     </div>
                   </article>
@@ -723,10 +723,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('REPORT', report.reportId, '마음 리포트')}
+                        onClick={() => handleDeleteHistory('REPORT', report.reportId, '이 리포트')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        리포트 삭제
                       </button>
                     </div>
                   </article>
@@ -756,10 +756,10 @@ export default function MyPage() {
                       <button
                         className="mypage-inline-danger-button"
                         type="button"
-                        onClick={() => handleDeleteHistory('CHECK_IN', checkIn.checkInId, '체크인 기록')}
+                        onClick={() => handleDeleteHistory('CHECK_IN', checkIn.checkInId, '이 체크인 기록')}
                       >
                         <Trash2 size={15} aria-hidden="true" />
-                        삭제
+                        체크인 삭제
                       </button>
                     </div>
                   </article>
@@ -768,7 +768,7 @@ export default function MyPage() {
               <div className="mypage-action-row">
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('deleteHistory')}>
                   <Trash2 size={17} aria-hidden="true" />
-                  이력 삭제 요청
+                  삭제 방법 안내
                 </button>
               </div>
             </section>
@@ -880,7 +880,7 @@ export default function MyPage() {
               <PanelHeader
                 eyebrow="계정"
                 title="로그인 방식과 계정 보안"
-                description="현재 계정의 로그인 방식을 확인하고 비밀번호를 변경할 수 있습니다."
+                description="로그인 방식, 비밀번호 변경, 계정 종료 같은 민감한 설정을 구분해 관리합니다."
                 icon={ShieldCheck}
               />
               {securityMessage && (
@@ -950,6 +950,12 @@ export default function MyPage() {
                   <LogOut size={17} aria-hidden="true" />
                   로그아웃
                 </button>
+              </div>
+              <div className="mypage-danger-zone">
+                <div>
+                  <strong>위험 구역</strong>
+                  <span>계정을 닫는 작업은 되돌리기 어렵기 때문에 한 번 더 확인합니다.</span>
+                </div>
                 <button className="danger-soft-button" type="button" onClick={() => setDialogType('withdraw')}>
                   <Trash2 size={17} aria-hidden="true" />
                   회원 탈퇴 안내
@@ -1202,13 +1208,13 @@ function MyPageDialog({
 
   const titleByType = {
     editProfile: '개인정보 수정',
-    deleteHistory: '이력 삭제 요청',
+    deleteHistory: '이력 삭제 안내',
     withdraw: '회원 탈퇴',
   }
 
   const descriptionByType = {
     editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
-    deleteHistory: '채팅, 리포트, 체크인 카드의 삭제 버튼으로 선택한 이력을 삭제합니다.',
+    deleteHistory: '전체 삭제 대신 필요한 항목만 카드별로 선택해 삭제합니다.',
     withdraw: '탈퇴 후 계정은 비활성화되며, 현재 로그인 상태가 종료됩니다. 계속하려면 비밀번호와 확인 문구를 입력해주세요.',
   }
 
@@ -1322,7 +1328,7 @@ function MyPageDialog({
           ) : (
             <div className="mypage-dialog-warning">
               <AlertTriangle size={20} aria-hidden="true" />
-              <span>삭제는 카드별로 진행되며, 삭제한 이력은 복구할 수 없습니다.</span>
+              <span>각 카드의 `이 대화 삭제`, `리포트 삭제`, `체크인 삭제` 버튼으로 필요한 기록만 삭제할 수 있습니다.</span>
             </div>
           )}
           {formMessage && (
@@ -1335,7 +1341,7 @@ function MyPageDialog({
               취소
             </button>
             <button className={type === 'editProfile' ? 'primary-button' : 'danger-button'} type="submit" disabled={isSubmitting}>
-              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : type === 'withdraw' ? (isSubmitting ? '탈퇴 처리 중...' : '회원 탈퇴하기') : '확인했습니다'}
+              {type === 'editProfile' ? (isSubmitting ? '저장 중...' : '저장하기') : type === 'withdraw' ? (isSubmitting ? '탈퇴 처리 중...' : '회원 탈퇴하기') : '확인'}
             </button>
           </div>
         </form>
