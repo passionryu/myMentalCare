@@ -20,6 +20,7 @@ import org.junit.jupiter.api.Assertions.assertThrows
 import org.junit.jupiter.api.Test
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.time.LocalDateTime
+import java.time.LocalTime
 
 class MemberServiceTest {
     private val passwordEncoder = BCryptPasswordEncoder()
@@ -179,6 +180,58 @@ class MemberServiceTest {
         assertNull(refreshTokenStore.readRefreshToken(1L))
     }
 
+    @Test
+    fun `알림 설정이 없으면 기본 알림 설정을 반환한다`() {
+        val notificationSettingRepository = FakeMemberNotificationSettingRepository()
+        val service = memberService(
+            repository = FakeMemberRepository(mutableMapOf(1L to testMember())),
+            notificationSettingRepository = notificationSettingRepository,
+        )
+
+        val response = service.readNotificationSetting(1L)
+
+        assertEquals(false, response.enabled)
+        assertEquals("21:00", response.notificationTime)
+        assertEquals(listOf("MON", "TUE", "WED", "THU", "FRI"), response.weekdays)
+        assertNull(notificationSettingRepository.findByMemberId(1L))
+    }
+
+    @Test
+    fun `알림 설정 수정은 기존 설정을 갱신하고 요일 중복을 제거한다`() {
+        val notificationSettingRepository = FakeMemberNotificationSettingRepository(
+            settings = mutableMapOf(
+                1L to MemberNotificationSetting(
+                    id = 7L,
+                    memberId = 1L,
+                    enabled = false,
+                    notificationTime = LocalTime.of(21, 0),
+                    weekdays = listOf("MON"),
+                ),
+            ),
+        )
+        val service = memberService(
+            repository = FakeMemberRepository(mutableMapOf(1L to testMember())),
+            notificationSettingRepository = notificationSettingRepository,
+        )
+
+        val response = service.updateNotificationSetting(
+            memberId = 1L,
+            request = MemberNotificationSettingRequest(
+                enabled = true,
+                notificationTime = LocalTime.of(8, 30),
+                weekdays = listOf("MON", "MON", "FRI"),
+            ),
+        )
+        val savedSetting = notificationSettingRepository.findByMemberId(1L)
+
+        assertEquals(true, response.enabled)
+        assertEquals("08:30", response.notificationTime)
+        assertEquals(listOf("MON", "FRI"), response.weekdays)
+        assertEquals(7L, savedSetting?.id)
+        assertEquals(LocalTime.of(8, 30), savedSetting?.notificationTime)
+        assertEquals(listOf("MON", "FRI"), savedSetting?.weekdays)
+    }
+
     private fun testMember(
         id: Long = 1L,
         loginId: String = "test1",
@@ -236,10 +289,19 @@ class MemberServiceTest {
         }
     }
 
-    private class FakeMemberNotificationSettingRepository : MemberNotificationSettingRepository {
-        override fun findByMemberId(memberId: Long): MemberNotificationSetting? = null
+    private class FakeMemberNotificationSettingRepository(
+        val settings: MutableMap<Long, MemberNotificationSetting> = mutableMapOf(),
+    ) : MemberNotificationSettingRepository {
+        override fun findByMemberId(memberId: Long): MemberNotificationSetting? = settings[memberId]
 
-        override fun save(setting: MemberNotificationSetting): MemberNotificationSetting = setting
+        override fun save(setting: MemberNotificationSetting): MemberNotificationSetting {
+            val savedSetting = setting.copy(
+                id = setting.id.takeIf { it > 0 }
+                    ?: ((settings.values.maxOfOrNull { it.id } ?: 0L) + 1L),
+            )
+            settings[savedSetting.memberId] = savedSetting
+            return savedSetting
+        }
     }
 
     private class FakeRefreshTokenStore(
