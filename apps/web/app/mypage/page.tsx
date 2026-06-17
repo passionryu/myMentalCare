@@ -510,12 +510,8 @@ export default function MyPage() {
             <div>
               <p className="eyebrow">내 마음 케어 공간</p>
               <h1 id="mypage-heading">마이페이지</h1>
-              <p>프로필, 대화 이력, 마음 리포트, 설정을 한 곳에서 관리합니다.</p>
+              <p>필요한 관리 항목을 선택해 내 정보와 기록을 확인합니다.</p>
             </div>
-            <button className="ghost-button mypage-mobile-home" type="button" onClick={() => router.push('/')}>
-              <Home size={18} aria-hidden="true" />
-              홈
-            </button>
           </header>
 
           {profileMessage && (
@@ -525,66 +521,70 @@ export default function MyPage() {
             </div>
           )}
 
-          <section className="mypage-overview-grid" aria-label="마이페이지 요약">
-            <article className="mypage-hero-card">
-              <span className="mypage-card-icon">
-                <HeartHandshake size={22} aria-hidden="true" />
-              </span>
-              <div>
-                <p className="eyebrow">오늘의 케어</p>
-                <h2>{profile?.name ? `${profile.name}님의 마음 공간` : '내 마음 공간'}</h2>
-                <p>오늘 대화를 이어가거나, 마무리 리포트를 확인하고, 필요한 설정을 조정할 수 있습니다.</p>
-              </div>
-              <div className="mypage-hero-actions">
-                <button className="primary-button" type="button" onClick={() => router.push('/chat')}>
-                  오늘 대화 이어가기
-                  <MessageCircle size={18} aria-hidden="true" />
-                </button>
-                <button className="soft-button" type="button" onClick={() => setActiveSection('history')}>
-                  이력 보기
-                  <ClipboardList size={18} aria-hidden="true" />
-                </button>
-              </div>
-            </article>
+          {activeSection === 'overview' && (
+            <>
+              <section className="mypage-overview-grid" aria-label="마이페이지 요약">
+                <article className="mypage-hero-card">
+                  <span className="mypage-card-icon">
+                    <HeartHandshake size={22} aria-hidden="true" />
+                  </span>
+                  <div>
+                    <p className="eyebrow">오늘의 케어</p>
+                    <h2>{profile?.name ? `${profile.name}님의 마음 공간` : '내 마음 공간'}</h2>
+                    <p>오늘 대화를 이어가거나, 마무리 리포트를 확인하고, 필요한 설정을 조정할 수 있습니다.</p>
+                  </div>
+                  <div className="mypage-hero-actions">
+                    <button className="primary-button" type="button" onClick={() => router.push('/chat')}>
+                      오늘 대화 이어가기
+                      <MessageCircle size={18} aria-hidden="true" />
+                    </button>
+                    <button className="soft-button" type="button" onClick={() => setActiveSection('history')}>
+                      이력 보기
+                      <ClipboardList size={18} aria-hidden="true" />
+                    </button>
+                  </div>
+                </article>
 
-            <article className="mypage-mini-card">
-              <MessageCircle size={21} aria-hidden="true" />
-              <strong>채팅</strong>
-              <span>
-                {summaryMessage
-                  ? '확인 필요'
-                  : summary
-                    ? summary.hasTodayChat
-                      ? `오늘 ${summary.todayMessageCount}개`
-                      : '오늘 대화 없음'
-                    : '불러오는 중'}
-              </span>
-            </article>
-            <article className="mypage-mini-card">
-              <FileText size={21} aria-hidden="true" />
-              <strong>리포트</strong>
-              <span>
-                {summaryMessage
-                  ? '확인 필요'
-                  : summary
-                    ? summary.reportCount > 0
-                      ? `${summary.reportCount}개 저장`
-                      : '저장된 리포트 없음'
-                    : '불러오는 중'}
-              </span>
-            </article>
-            <article className="mypage-mini-card">
-              <Bell size={21} aria-hidden="true" />
-              <strong>알림</strong>
-              <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
-            </article>
-          </section>
+                <article className="mypage-mini-card">
+                  <MessageCircle size={21} aria-hidden="true" />
+                  <strong>채팅</strong>
+                  <span>
+                    {summaryMessage
+                      ? '확인 필요'
+                      : summary
+                        ? summary.hasTodayChat
+                          ? `오늘 ${summary.todayMessageCount}개`
+                          : '오늘 대화 없음'
+                        : '불러오는 중'}
+                  </span>
+                </article>
+                <article className="mypage-mini-card">
+                  <FileText size={21} aria-hidden="true" />
+                  <strong>리포트</strong>
+                  <span>
+                    {summaryMessage
+                      ? '확인 필요'
+                      : summary
+                        ? summary.reportCount > 0
+                          ? `${summary.reportCount}개 저장`
+                          : '저장된 리포트 없음'
+                        : '불러오는 중'}
+                  </span>
+                </article>
+                <article className="mypage-mini-card">
+                  <Bell size={21} aria-hidden="true" />
+                  <strong>알림</strong>
+                  <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
+                </article>
+              </section>
 
-          {summary && (
-            <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
-              <span>최근 대화: {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}</span>
-              <span>최근 리포트: {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}</span>
-            </section>
+              {summary && (
+                <section className="mypage-summary-strip" aria-label="마이페이지 상세 요약">
+                  <span>최근 대화: {formatShortDateTime(summary.recentChatAt) ?? '아직 없음'}</span>
+                  <span>최근 리포트: {formatShortDateTime(summary.latestReportAt) ?? '아직 없음'}</span>
+                </section>
+              )}
+            </>
           )}
 
           {summaryMessage && (
@@ -594,7 +594,7 @@ export default function MyPage() {
             </div>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'profile') && (
+          {activeSection === 'profile' && (
             <section className="mypage-panel" aria-labelledby="profile-section-title">
               <PanelHeader
                 eyebrow="프로필"
@@ -619,7 +619,7 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'history') && (
+          {activeSection === 'history' && (
             <section className="mypage-panel" aria-labelledby="history-section-title">
               <PanelHeader
                 eyebrow="내 이력"
@@ -764,7 +764,7 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'settings') && (
+          {activeSection === 'settings' && (
             <section className="mypage-panel" aria-labelledby="settings-section-title">
               <PanelHeader
                 eyebrow="설정"
@@ -853,7 +853,7 @@ export default function MyPage() {
             </section>
           )}
 
-          {(activeSection === 'overview' || activeSection === 'support') && (
+          {activeSection === 'support' && (
             <section className="mypage-panel" aria-labelledby="support-section-title">
               <PanelHeader
                 eyebrow="문의"
