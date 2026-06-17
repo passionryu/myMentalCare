@@ -184,8 +184,8 @@ export default function Page() {
       <section className="prompt-section" aria-labelledby="prompt-heading">
         <div className="section-heading">
           <p className="eyebrow">체크인으로 시작하기</p>
-          <h2 id="prompt-heading">Check In 방식으로 시작하세요!</h2>
-          <p>체크인 기능으로 간단히 마음 상태를 고른 뒤, AI와 대화를 시작합니다.</p>
+          <h2 id="prompt-heading">Check In으로 시작하기</h2>
+          <p>짧게 상태를 고르고, 같은 흐름에서 AI 마음대화를 시작합니다.</p>
         </div>
         <div className="prompt-grid">
           {CHECK_IN_TEMPLATES.map((template) => (

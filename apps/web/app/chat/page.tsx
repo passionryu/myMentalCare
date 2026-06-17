@@ -364,7 +364,7 @@ export default function AiChatPage() {
             )}
             {!isLoading && displayedMessages.length === 0 && (
               <div className="empty-chat">
-                <p>바로 상담을 시작하거나 체크인으로 지금 상태를 짧게 알려주세요.</p>
+                <p>바로 대화를 시작하거나 체크인으로 지금 상태를 짧게 알려주세요.</p>
               </div>
             )}
             {room && renderChatTimeline(displayedMessages, segmentById)}
@@ -487,7 +487,7 @@ function CheckInEntryModal({
   onSubmitCheckIn: (templateType: CheckInTemplateType, answers: AiChatCheckInAnswer[]) => void
 }) {
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+    <div className="modal-backdrop checkin-modal-backdrop" role="presentation" onMouseDown={onClose}>
       <section
         className="auth-modal checkin-modal"
         role="dialog"
@@ -585,7 +585,7 @@ function StartModeSelector({
         <>
           <button className="direct-start-card" type="button" onClick={onStartDirect} disabled={isSubmitting}>
             {isSubmitting ? <Loader2 size={18} aria-hidden="true" /> : <MessageCircle size={18} aria-hidden="true" />}
-            바로 상담 시작하기
+            바로 대화 시작하기
           </button>
 
           <div className="checkin-start-heading">
