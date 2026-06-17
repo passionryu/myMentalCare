@@ -4807,16 +4807,16 @@ h3 {
 
   .mypage-section-nav {
     grid-column: 1 / -1;
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
     gap: 8px;
-    overflow-x: auto;
-    padding-bottom: 3px;
+    overflow: visible;
+    padding-bottom: 0;
   }
 
   .mypage-section-nav button {
-    flex: 0 0 auto;
-    width: auto;
-    min-width: 132px;
+    width: 100%;
+    min-width: 0;
     justify-content: center;
     text-align: center;
   }
@@ -4844,7 +4844,7 @@ h3 {
   }
 
   .mypage-section-nav button {
-    min-width: 124px;
+    min-width: 0;
   }
 }
 
@@ -4879,7 +4879,16 @@ h3 {
   }
 
   .mypage-section-nav {
-    display: flex;
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mypage-section-nav button {
+    min-height: 50px;
+    padding: 0 10px;
+    border-radius: 18px;
+    font-size: 13px;
   }
 
   .mypage-history-item {
@@ -4909,6 +4918,85 @@ h3 {
 
   .mypage-login-method-grid {
     grid-template-columns: 1fr;
+  }
+
+  .mypage-notification-setting,
+  .mypage-theme-setting {
+    gap: 12px;
+    border-radius: 18px;
+    padding: 14px;
+  }
+
+  .mypage-notification-permission {
+    align-items: stretch;
+    flex-direction: column;
+    border-radius: 16px;
+  }
+
+  .mypage-notification-permission .soft-button,
+  .mypage-notification-controls > .soft-button {
+    justify-content: center;
+    width: 100%;
+    min-height: 44px;
+  }
+
+  .mypage-notification-topline {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr);
+    gap: 12px;
+    align-items: center;
+  }
+
+  .mypage-notification-topline label {
+    display: grid;
+    gap: 6px;
+  }
+
+  .mypage-notification-topline input {
+    width: 100%;
+    min-height: 44px;
+    text-align: center;
+  }
+
+  .mypage-weekday-grid {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 8px;
+  }
+
+  .mypage-weekday-grid button {
+    min-height: 40px;
+    padding: 0 6px;
+  }
+
+  .mypage-theme-grid {
+    gap: 8px;
+  }
+
+  .mypage-theme-option {
+    grid-template-columns: 38px minmax(0, 1fr);
+    gap: 4px 10px;
+    align-items: center;
+    min-height: auto;
+    border-radius: 16px;
+    padding: 12px 56px 12px 12px;
+  }
+
+  .mypage-theme-option .theme-swatch {
+    grid-row: 1 / span 2;
+    width: 34px;
+    height: 34px;
+    border-radius: 14px;
+  }
+
+  .mypage-theme-option small {
+    font-size: 12px;
+    line-height: 1.35;
+  }
+
+  .mypage-theme-selected {
+    top: 50%;
+    right: 12px;
+    transform: translateY(-50%);
   }
 
   .mypage-hero-actions,
