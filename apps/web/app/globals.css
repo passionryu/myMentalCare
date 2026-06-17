@@ -4239,6 +4239,28 @@ h3 {
   gap: 12px;
 }
 
+.mypage-notification-permission {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid var(--theme-border);
+  border-radius: 18px;
+  background: rgba(237, 246, 236, 0.56);
+  padding: 12px;
+}
+
+.mypage-notification-permission span {
+  color: var(--theme-primary);
+  font-size: 14px;
+  font-weight: 900;
+}
+
+.mypage-notification-permission .soft-button {
+  min-height: 38px;
+  padding: 0 13px;
+}
+
 .mypage-notification-topline {
   display: flex;
   align-items: center;
@@ -4271,11 +4293,12 @@ h3 {
 }
 
 .mypage-weekday-grid button {
-  min-height: 40px;
+  min-height: 46px;
   border: 1px solid var(--theme-border);
   border-radius: 999px;
   background: rgba(241, 250, 238, 0.6);
   color: var(--theme-primary);
+  padding: 0 12px;
   font-weight: 900;
 }
 

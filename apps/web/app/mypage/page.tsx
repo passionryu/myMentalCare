@@ -128,6 +128,7 @@ export default function MyPage() {
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [notificationTime, setNotificationTime] = useState('21:00')
   const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
+  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
   const [isNotificationSaving, setIsNotificationSaving] = useState(false)
   const [notificationMessage, setNotificationMessage] = useState('')
   const [summary, setSummary] = useState<MyPageSummaryResponse | null>(null)
@@ -160,6 +161,7 @@ export default function MyPage() {
     }
 
     setNotificationEnabled(localStorage.getItem(NOTIFICATION_STORAGE_KEY) === '1')
+    setNotificationPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
 
     if (!accessToken) {
       return
@@ -258,15 +260,33 @@ export default function MyPage() {
     })
   }
 
+  const handleNotificationPermissionRequest = async () => {
+    if (typeof Notification === 'undefined') {
+      setNotificationPermission('unsupported')
+      setNotificationMessage('이 브라우저에서는 알림 권한 요청을 지원하지 않습니다.')
+      return
+    }
+
+    if (Notification.permission === 'denied') {
+      setNotificationPermission('denied')
+      setNotificationMessage('브라우저에서 알림이 차단되어 있습니다. 사이트 설정에서 알림을 허용해주세요.')
+      return
+    }
+
+    const nextPermission = await Notification.requestPermission()
+    setNotificationPermission(nextPermission)
+    setNotificationMessage(
+      nextPermission === 'granted'
+        ? '브라우저 알림 권한이 허용되었습니다.'
+        : '알림 권한을 허용해야 설정한 시간에 알림을 받을 수 있습니다.',
+    )
+  }
+
   const handleNotificationSave = async () => {
     setNotificationMessage('')
     if (notificationWeekdayValues.length === 0) {
       setNotificationMessage('알림 요일을 1개 이상 선택해주세요.')
       return
-    }
-
-    if (notificationEnabled && typeof Notification !== 'undefined' && Notification.permission === 'denied') {
-      setNotificationMessage('브라우저 알림 권한이 차단되어 있습니다. 설정은 저장되지만 알림은 표시되지 않을 수 있습니다.')
     }
 
     setIsNotificationSaving(true)
@@ -289,6 +309,13 @@ export default function MyPage() {
             }
           : currentSummary,
       )
+      const currentPermission = typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
+      setNotificationPermission(currentPermission)
+      if (setting.enabled && currentPermission === 'denied') {
+        setNotificationMessage('설정은 저장했지만 브라우저 알림이 차단되어 실제 알림은 표시되지 않습니다.')
+      } else if (setting.enabled && currentPermission === 'default') {
+        setNotificationMessage('설정은 저장했습니다. 알림을 받으려면 브라우저 권한도 허용해주세요.')
+      }
       setToastMessage('마음 체크 알림 설정이 저장되었습니다.')
     } catch (error) {
       setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 저장하지 못했습니다.')
@@ -789,6 +816,24 @@ export default function MyPage() {
                     <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕습니다.</span>
                   </div>
                   <div className="mypage-notification-controls">
+                    <div className="mypage-notification-permission">
+                      <span>
+                        브라우저 권한:{' '}
+                        {notificationPermission === 'granted'
+                          ? '허용됨'
+                          : notificationPermission === 'denied'
+                            ? '차단됨'
+                            : notificationPermission === 'default'
+                              ? '미설정'
+                              : '지원 안 됨'}
+                      </span>
+                      {notificationPermission !== 'granted' && (
+                        <button className="soft-button" type="button" onClick={handleNotificationPermissionRequest}>
+                          {notificationPermission === 'denied' ? '허용 방법 보기' : '알림 권한 허용하기'}
+                          <Bell size={16} aria-hidden="true" />
+                        </button>
+                      )}
+                    </div>
                     <div className="mypage-notification-topline">
                       <button
                         className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
