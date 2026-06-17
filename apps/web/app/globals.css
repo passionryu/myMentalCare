@@ -4521,9 +4521,35 @@ h3 {
 }
 
 .mypage-security-actions {
-  justify-content: space-between;
   border-top: 1px solid var(--theme-border);
   padding-top: 16px;
+}
+
+.mypage-danger-zone {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border: 1px solid rgba(184, 111, 84, 0.26);
+  border-radius: 20px;
+  background: rgba(255, 238, 225, 0.48);
+  padding: 16px;
+}
+
+.mypage-danger-zone > div {
+  display: grid;
+  gap: 4px;
+}
+
+.mypage-danger-zone strong {
+  color: #7a412f;
+  font-weight: 950;
+}
+
+.mypage-danger-zone span {
+  color: #69402e;
+  font-size: 14px;
+  font-weight: 800;
 }
 
 .mypage-toast {
