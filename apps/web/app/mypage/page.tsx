@@ -23,7 +23,7 @@ import {
   X,
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
-import { FormEvent, useEffect, useMemo, useState } from 'react'
+import { FormEvent, useEffect, useMemo, useRef, useState } from 'react'
 import {
   AiChatHistoryRoom,
   AiChatHistoryRoomDetail,
@@ -913,7 +913,7 @@ export default function MyPage() {
               <PanelHeader
                 eyebrow="문의"
                 title="문의하기"
-                description="계정, 이력, 리포트 관련 문의를 남길 수 있는 위치입니다."
+                description="이용 중 불편한 점이나 기록 확인이 필요하면 여기서 알려주세요."
                 icon={Mail}
               />
               <InquiryForm onDone={(message) => setToastMessage(message)} />
@@ -1159,6 +1159,7 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [formMessage, setFormMessage] = useState('')
   const [submittedInquiry, setSubmittedInquiry] = useState<CreateInquiryResponse | null>(null)
+  const contentRef = useRef<HTMLTextAreaElement>(null)
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
@@ -1168,6 +1169,7 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
 
     if (trimmedContent.length < 10) {
       setFormMessage('문의 내용은 10자 이상 입력해주세요.')
+      requestAnimationFrame(() => contentRef.current?.focus())
       return
     }
 
@@ -1189,28 +1191,37 @@ function InquiryForm({ onDone }: { onDone: (message: string) => void }) {
 
   return (
     <form className="mypage-inquiry-form" onSubmit={handleSubmit}>
-      <label>
+      <label htmlFor="mypage-inquiry-category">
         문의 유형
-        <select value={category} disabled={isSubmitting} onChange={(event) => setCategory(event.target.value)}>
+        <select
+          id="mypage-inquiry-category"
+          value={category}
+          disabled={isSubmitting}
+          onChange={(event) => setCategory(event.target.value)}
+        >
           <option>이력/리포트</option>
           <option>계정</option>
           <option>서비스 이용</option>
           <option>기타</option>
         </select>
       </label>
-      <label>
+      <label htmlFor="mypage-inquiry-content">
         문의 내용
         <textarea
+          id="mypage-inquiry-content"
+          ref={contentRef}
           name="content"
           rows={4}
           value={content}
           disabled={isSubmitting}
           placeholder="문의 내용을 적어주세요."
+          aria-invalid={Boolean(formMessage)}
+          aria-describedby={formMessage ? 'mypage-inquiry-error' : undefined}
           onChange={(event) => setContent(event.target.value)}
         />
       </label>
       {formMessage && (
-        <p className="mypage-dialog-message" role="alert">
+        <p className="mypage-dialog-message" id="mypage-inquiry-error" role="alert">
           {formMessage}
         </p>
       )}
