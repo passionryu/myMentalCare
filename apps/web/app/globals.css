@@ -1792,8 +1792,15 @@ h3 {
   justify-content: center;
   width: 40px;
   height: 40px;
+  border: 1px solid var(--theme-border);
   background: var(--theme-soft-surface);
   color: var(--theme-primary);
+  box-shadow: 0 10px 26px rgba(56, 43, 28, 0.08);
+}
+
+.icon-button:hover {
+  background: var(--theme-primary);
+  color: #fffdf7;
 }
 
 .auth-form {

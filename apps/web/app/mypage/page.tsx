@@ -1059,9 +1059,9 @@ function ChatHistoryDialog({ detail, onClose }: { detail: AiChatHistoryRoomDetai
         <button className="icon-button" type="button" aria-label="채팅 이력 모달 닫기" onClick={onClose}>
           <X size={20} aria-hidden="true" />
         </button>
-        <p className="eyebrow">채팅 이력</p>
+        <p className="eyebrow">읽기 전용</p>
         <h2 id="chat-history-dialog-title">{new Date(detail.conversationDate).toLocaleDateString('ko-KR')} 대화</h2>
-        <p className="modal-description">저장된 마음이와의 대화 내용을 읽기 전용으로 확인합니다.</p>
+        <p className="modal-description">저장된 대화를 확인하는 화면입니다. 내용 수정은 지원하지 않습니다.</p>
         <div className="mypage-chat-message-list">
           {detail.messages.map((message) => (
             <article className={message.senderType === 'USER' ? 'is-user' : 'is-assistant'} key={message.messageId}>
@@ -1263,15 +1263,21 @@ function MyPageDialog({
   const [formMessage, setFormMessage] = useState('')
 
   const titleByType = {
-    editProfile: '개인정보 수정',
+    editProfile: '내 정보 수정',
     deleteHistory: '이력 삭제 안내',
     withdraw: '회원 탈퇴',
   }
 
   const descriptionByType = {
-    editProfile: '이름, 이메일, 전화번호를 수정합니다. 로그인 아이디와 비밀번호는 이 화면에서 변경하지 않습니다.',
+    editProfile: '대화 기록과 연결되는 기본 정보를 관리합니다. 로그인 아이디와 비밀번호는 계정 관리에서 다룹니다.',
     deleteHistory: '전체 삭제 대신 필요한 항목만 카드별로 선택해 삭제합니다.',
     withdraw: '탈퇴 후 계정은 비활성화되며, 현재 로그인 상태가 종료됩니다. 계속하려면 비밀번호와 확인 문구를 입력해주세요.',
+  }
+
+  const eyebrowByType = {
+    editProfile: '프로필 정보',
+    deleteHistory: '기록 관리',
+    withdraw: '계정 관리',
   }
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -1346,7 +1352,7 @@ function MyPageDialog({
         <button className="icon-button" type="button" aria-label="마이페이지 모달 닫기" onClick={onClose}>
           <X size={20} aria-hidden="true" />
         </button>
-        <p className="eyebrow">마이페이지</p>
+        <p className="eyebrow">{eyebrowByType[type]}</p>
         <h2 id="mypage-dialog-title">{titleByType[type]}</h2>
         <p className="modal-description">{descriptionByType[type]}</p>
 
