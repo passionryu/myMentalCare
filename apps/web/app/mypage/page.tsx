@@ -62,7 +62,6 @@ type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support'
 type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
-const NOTIFICATION_STORAGE_KEY = 'myMentalCare.notificationEnabled'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
 const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
@@ -160,7 +159,6 @@ export default function MyPage() {
       setThemeTone(savedThemeTone)
     }
 
-    setNotificationEnabled(localStorage.getItem(NOTIFICATION_STORAGE_KEY) === '1')
     setNotificationPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
 
     if (!accessToken) {
@@ -181,7 +179,7 @@ export default function MyPage() {
         setNotificationEnabled(setting.enabled)
         setNotificationTime(setting.notificationTime)
         setNotificationWeekdayValues(setting.weekdays.length > 0 ? setting.weekdays : defaultNotificationWeekdays)
-        localStorage.setItem(NOTIFICATION_STORAGE_KEY, setting.enabled ? '1' : '0')
+        setNotificationMessage('')
       })
       .catch((error) => {
         setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 불러오지 못했습니다.')
@@ -299,7 +297,6 @@ export default function MyPage() {
       setNotificationEnabled(setting.enabled)
       setNotificationTime(setting.notificationTime)
       setNotificationWeekdayValues(setting.weekdays)
-      localStorage.setItem(NOTIFICATION_STORAGE_KEY, setting.enabled ? '1' : '0')
       setSummary((currentSummary) =>
         currentSummary
           ? {
