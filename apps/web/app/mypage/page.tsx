@@ -64,6 +64,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const NOTIFICATION_STORAGE_KEY = 'myMentalCare.notificationEnabled'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
+const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
 const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
@@ -105,7 +106,7 @@ const historyItems = [
     description: '대화 마무리 후 저장된 마음 리포트를 확인합니다.',
     meta: '리포트 이력',
     icon: FileText,
-    action: '리포트 보기',
+    action: '채팅에서 확인',
     href: '/chat',
   },
   {
@@ -389,6 +390,7 @@ export default function MyPage() {
 
   const handleWithdrawAccount = async (request: WithdrawMemberRequest) => {
     await withdrawMyAccount(request)
+    sessionStorage.setItem(WITHDRAWAL_NOTICE_REQUEST_KEY, '1')
     router.push('/')
   }
 

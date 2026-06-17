@@ -29,6 +29,7 @@ type AuthNotice = {
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
+const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
 
 const trustMessages = ['개인 대화 공간', '대화 이력 저장', '내 마음 AI 레포트']
 
@@ -53,6 +54,14 @@ export default function Page() {
         eyebrow: '로그아웃 완료',
         title: '로그아웃되었습니다',
         description: '다시 이용하려면 로그인 후 AI 마음대화와 마이페이지를 이어갈 수 있습니다.',
+      })
+    }
+    if (sessionStorage.getItem(WITHDRAWAL_NOTICE_REQUEST_KEY) === '1') {
+      sessionStorage.removeItem(WITHDRAWAL_NOTICE_REQUEST_KEY)
+      setAuthNotice({
+        eyebrow: '회원 탈퇴 완료',
+        title: '회원 탈퇴가 완료되었습니다',
+        description: '계정이 비활성화되었고 현재 로그인 상태가 종료되었습니다.',
       })
     }
     const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
