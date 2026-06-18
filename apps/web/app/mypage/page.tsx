@@ -64,6 +64,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
+const PASSWORD_CHANGE_NOTICE_REQUEST_KEY = 'myMentalCare.passwordChangeNotice'
 const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
@@ -91,7 +92,17 @@ const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }>
   { value: 'SUN', label: '일' },
 ]
 
-const historyItems = [
+type HistoryItem = {
+  title: string
+  description: string
+  meta: string
+  icon: typeof MessageCircle
+  action: string
+  href?: string
+  target?: 'checkIns'
+}
+
+const historyItems: HistoryItem[] = [
   {
     title: '오늘 대화',
     description: '지금 이어갈 수 있는 AI 마음대화 화면으로 이동합니다.',
@@ -105,15 +116,16 @@ const historyItems = [
     description: '대화 마무리 후 저장된 마음 리포트를 확인합니다.',
     meta: '리포트 이력',
     icon: FileText,
-    action: '리포트 만들기',
+    action: '채팅에서 만들기',
     href: '/chat',
   },
   {
     title: '체크인 기록',
     description: '체크인으로 시작한 감정, 컨디션, 회고 흐름을 모아봅니다.',
-    meta: '준비 중',
+    meta: '체크인 이력',
     icon: BookOpen,
-    action: '기록 보기',
+    action: '아래에서 보기',
+    target: 'checkIns',
   },
 ]
 
@@ -146,6 +158,7 @@ export default function MyPage() {
   const [securityMessage, setSecurityMessage] = useState('')
   const [passwordMessage, setPasswordMessage] = useState('')
   const [isPasswordSaving, setIsPasswordSaving] = useState(false)
+  const checkInListRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
     const accessToken = localStorage.getItem('myMentalCare.accessToken')
@@ -328,9 +341,14 @@ export default function MyPage() {
     router.push('/')
   }
 
-  const handleHistoryAction = (href?: string) => {
-    if (href) {
-      router.push(href)
+  const handleHistoryAction = (item: HistoryItem) => {
+    if (item.href) {
+      router.push(item.href)
+      return
+    }
+    if (item.target === 'checkIns') {
+      checkInListRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+      checkInListRef.current?.focus({ preventScroll: true })
       return
     }
     setToastMessage('이력 상세 조회 API가 연결되면 이 화면에서 바로 확인할 수 있습니다.')
@@ -420,8 +438,9 @@ export default function MyPage() {
 
   const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const form = event.currentTarget
     setPasswordMessage('')
-    const formData = new FormData(event.currentTarget)
+    const formData = new FormData(form)
     const currentPassword = String(formData.get('currentPassword') ?? '')
     const newPassword = String(formData.get('newPassword') ?? '')
     const newPasswordConfirm = String(formData.get('newPasswordConfirm') ?? '')
@@ -444,8 +463,8 @@ export default function MyPage() {
     setIsPasswordSaving(true)
     try {
       await changeMyPassword({ currentPassword, newPassword })
-      event.currentTarget.reset()
-      setToastMessage('비밀번호가 변경되었습니다. 다시 로그인해주세요.')
+      form.reset()
+      sessionStorage.setItem(PASSWORD_CHANGE_NOTICE_REQUEST_KEY, '1')
       router.push('/')
     } catch (error) {
       setPasswordMessage(error instanceof LoginApiError ? error.message : '비밀번호를 변경하지 못했습니다.')
@@ -711,7 +730,7 @@ export default function MyPage() {
                         <p>{item.description}</p>
                         <small>{item.meta}</small>
                       </div>
-                      <button type="button" onClick={() => handleHistoryAction(item.href)}>
+                      <button type="button" onClick={() => handleHistoryAction(item)}>
                         {item.action}
                         <ChevronRight size={16} aria-hidden="true" />
                       </button>
@@ -756,7 +775,12 @@ export default function MyPage() {
                   </article>
                 ))}
               </div>
-              <div className="mypage-checkin-list">
+              <div
+                ref={checkInListRef}
+                className="mypage-checkin-list"
+                tabIndex={-1}
+                aria-label="체크인 기록 목록"
+              >
                 {checkInMessage && (
                   <div className="mypage-alert" role="status">
                     <AlertTriangle size={18} aria-hidden="true" />
