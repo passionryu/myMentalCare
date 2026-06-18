@@ -5,6 +5,8 @@ import com.mymentalcare.server.application.aichat.port.*
 import com.mymentalcare.server.application.aichat.response.*
 
 import com.mymentalcare.server.domain.aichat.AiChatCheckIn
+import com.mymentalcare.server.domain.aichat.AiChatReport
+import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatSegment
 import com.mymentalcare.server.domain.aichat.ChatMessage
@@ -26,6 +28,41 @@ internal class AiChatResponseAssembler(
 
     fun readMessages(room: AiChatRoom): List<ChatMessage> {
         return chatMessageRepository.findByRoomId(room.id)
+    }
+
+    fun toMessageResponse(message: ChatMessage): AiChatMessageResponse {
+        return message.toResponse()
+    }
+
+    fun toReportResponse(report: AiChatReport): AiChatReportResponse {
+        return AiChatReportResponse(
+            reportId = report.id,
+            roomId = report.roomId,
+            reportType = report.reportType.name,
+            conversationDate = report.conversationDate,
+            summary = report.summary,
+            primaryEmotion = report.primaryEmotion,
+            emotionIntensity = report.emotionIntensity,
+            mainCause = report.mainCause,
+            emotionalFlow = report.emotionalFlow,
+            todaySentence = report.todaySentence,
+            songs = report.songs.map { it.toResponse() },
+            saved = true,
+            createdAt = report.createdAt,
+        )
+    }
+
+    fun toReportReadinessResponse(readiness: AiChatReportReadinessResult): AiChatReportReadinessResponse {
+        return AiChatReportReadinessResponse(
+            ready = readiness.ready,
+            reason = readiness.reason,
+            userMessageCount = readiness.userMessageCount,
+            userTextLength = readiness.userTextLength,
+            requiredUserMessageCount = readiness.requiredUserMessageCount,
+            requiredUserTextLength = readiness.requiredUserTextLength,
+            unmetRequirements = readiness.unmetRequirements,
+            guideMessage = readiness.guideMessage,
+        )
     }
 
     // 메시지 전송 결과를 사용자 메시지, 챗봇 응답, 위기 감지 결과로 묶어 반환한다.
@@ -96,6 +133,15 @@ internal class AiChatResponseAssembler(
             checkInId = id,
             templateType = templateType.name,
             summaryText = summaryText,
+        )
+    }
+
+    private fun AiChatReportSong.toResponse(): AiChatReportSongResponse {
+        return AiChatReportSongResponse(
+            title = title,
+            artist = artist,
+            reason = reason,
+            youtubeUrl = youtubeUrl,
         )
     }
 
