@@ -22,7 +22,7 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder
 import java.time.LocalDateTime
 import java.time.LocalTime
 
-class MemberServiceTest {
+class MemberUsecaseServiceTest {
     private val passwordEncoder = BCryptPasswordEncoder()
 
     @Test
@@ -253,14 +253,69 @@ class MemberServiceTest {
         notificationSettingRepository: MemberNotificationSettingRepository = FakeMemberNotificationSettingRepository(),
         refreshTokenStore: RefreshTokenStore = FakeRefreshTokenStore(mutableMapOf()),
         socialAccountRepository: SocialAccountRepository = FakeSocialAccountRepository(),
-    ): MemberService {
-        return MemberService(
-            memberRepository = repository,
-            notificationSettingRepository = notificationSettingRepository,
-            refreshTokenStore = refreshTokenStore,
-            socialAccountRepository = socialAccountRepository,
-            passwordEncoder = BCryptPasswordEncoder(),
+    ): MemberUsecaseFixture {
+        val passwordEncoder = BCryptPasswordEncoder()
+        return MemberUsecaseFixture(
+            registrationService = MemberRegistrationService(
+                memberRepository = repository,
+                passwordEncoder = passwordEncoder,
+            ),
+            profileService = MemberProfileService(
+                memberRepository = repository,
+            ),
+            notificationService = MemberNotificationService(
+                memberRepository = repository,
+                notificationSettingRepository = notificationSettingRepository,
+            ),
+            securityService = MemberSecurityService(
+                memberRepository = repository,
+                refreshTokenStore = refreshTokenStore,
+                socialAccountRepository = socialAccountRepository,
+                passwordEncoder = passwordEncoder,
+            ),
         )
+    }
+
+    private class MemberUsecaseFixture(
+        private val registrationService: MemberRegistrationService,
+        private val profileService: MemberProfileService,
+        private val notificationService: MemberNotificationService,
+        private val securityService: MemberSecurityService,
+    ) : MemberRegistrationInputPort,
+        MemberProfileInputPort,
+        MemberNotificationInputPort,
+        MemberSecurityInputPort {
+        override fun signUp(request: SignUpMemberRequest): SignUpMemberResponse {
+            return registrationService.signUp(request)
+        }
+
+        override fun readMyProfile(memberId: Long): MyProfileResponse {
+            return profileService.readMyProfile(memberId)
+        }
+
+        override fun updateMyProfile(memberId: Long, request: UpdateMyProfileRequest): MyProfileResponse {
+            return profileService.updateMyProfile(memberId, request)
+        }
+
+        override fun readNotificationSetting(memberId: Long): MemberNotificationSettingResponse {
+            return notificationService.readNotificationSetting(memberId)
+        }
+
+        override fun updateNotificationSetting(memberId: Long, request: MemberNotificationSettingRequest): MemberNotificationSettingResponse {
+            return notificationService.updateNotificationSetting(memberId, request)
+        }
+
+        override fun withdrawMyAccount(memberId: Long, request: WithdrawMemberRequest): WithdrawMemberResponse {
+            return securityService.withdrawMyAccount(memberId, request)
+        }
+
+        override fun readLoginMethods(memberId: Long): MemberLoginMethodsResponse {
+            return securityService.readLoginMethods(memberId)
+        }
+
+        override fun changePassword(memberId: Long, request: ChangeMemberPasswordRequest): ChangeMemberPasswordResponse {
+            return securityService.changePassword(memberId, request)
+        }
     }
 
     private class FakeMemberRepository(

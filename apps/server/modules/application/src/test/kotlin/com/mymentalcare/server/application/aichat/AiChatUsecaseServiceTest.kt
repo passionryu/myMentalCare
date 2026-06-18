@@ -23,11 +23,12 @@ import com.mymentalcare.server.domain.aichat.CrisisDetectionEvent
 import com.mymentalcare.server.domain.aichat.CrisisDetectionSourceType
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
+import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
 
-class AiChatServiceTest {
+class AiChatUsecaseServiceTest {
     @Test
     fun `오늘 대화방이 없으면 새로 만들고 빈 메시지 목록을 반환한다`() {
         val roomRepository = FakeAiChatRoomRepository()
@@ -338,7 +339,7 @@ class AiChatServiceTest {
 
         val response = service.readLatestTodayReport(memberId = 1L)
 
-        assertEquals(null, response)
+        assertNull(response)
         assertEquals(0, roomRepository.rooms.size)
     }
 
@@ -475,37 +476,134 @@ class AiChatServiceTest {
         eventRepository: FakeCrisisDetectionEventRepository = FakeCrisisDetectionEventRepository(),
         aiChatSummaryGenerator: AiChatSummaryGenerator = DefaultAiChatSummaryGenerator(),
         aiReplyProvider: AiReplyProvider = FakeAiReplyProvider(reply = "마음이 기본 응답입니다."),
-    ): AiChatService {
+    ): AiChatUsecaseFixture {
         val aiChatMessageAppender = AiChatMessageAppender(messageRepository)
-        return AiChatService(
-            todayAiChatRoomReader = TodayAiChatRoomReader(roomRepository),
-            aiChatSegmentStarter = AiChatSegmentStarter(segmentRepository),
-            aiChatCheckInSummaryFactory = AiChatCheckInSummaryFactory(),
-            aiChatCheckInRecorder = AiChatCheckInRecorder(checkInRepository),
-            aiChatOpeningMessageFactory = AiChatOpeningMessageFactory(),
-            aiChatOpeningMessageRecorder = AiChatOpeningMessageRecorder(messageRepository, aiChatMessageAppender),
-            aiChatMessageAppender = aiChatMessageAppender,
-            aiChatSummaryRefreshProcessor = AiChatSummaryRefreshProcessor(
-                summaryRepository,
-                messageRepository,
-                AiChatSummaryRefreshDecider(),
-                aiChatSummaryGenerator,
+        val todayAiChatRoomReader = TodayAiChatRoomReader(roomRepository)
+        val aiChatSegmentStarter = AiChatSegmentStarter(segmentRepository)
+        val aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository)
+        val aiChatOpeningMessageFactory = AiChatOpeningMessageFactory()
+        val aiChatOpeningMessageRecorder = AiChatOpeningMessageRecorder(messageRepository, aiChatMessageAppender)
+        val aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository, recentMessageCache)
+        val aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository)
+        val crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository)
+        val crisisKeywordDetector = CrisisKeywordDetector()
+
+        return AiChatUsecaseFixture(
+            roomService = AiChatRoomService(
+                todayAiChatRoomReader = todayAiChatRoomReader,
+                aiChatResponseAssembler = aiChatResponseAssembler,
+                aiChatRoomRepository = roomRepository,
+                chatMessageRepository = messageRepository,
             ),
-            aiReplyContextReader = AiReplyContextReader(messageRepository, summaryRepository, recentMessageCache),
-            aiChatSegmentContextReader = AiChatSegmentContextReader(checkInRepository),
-            crisisDetectionRecorder = CrisisDetectionRecorder(eventRepository),
-            aiChatResponseAssembler = AiChatResponseAssembler(messageRepository, segmentRepository, checkInRepository),
-            aiChatRoomRepository = roomRepository,
-            aiChatSegmentRepository = segmentRepository,
-            aiChatCheckInRepository = checkInRepository,
-            aiChatHistoryDeletionRepository = historyDeletionRepository,
-            chatMessageRepository = messageRepository,
-            aiChatReportRepository = reportRepository,
-            aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
-            aiChatReportGenerator = DefaultAiChatReportGenerator(),
-            crisisKeywordDetector = CrisisKeywordDetector(),
-            aiReplyProvider = aiReplyProvider,
+            messageService = AiChatMessageService(
+                todayAiChatRoomReader = todayAiChatRoomReader,
+                aiChatSegmentStarter = aiChatSegmentStarter,
+                aiChatOpeningMessageFactory = aiChatOpeningMessageFactory,
+                aiChatOpeningMessageRecorder = aiChatOpeningMessageRecorder,
+                aiChatMessageAppender = aiChatMessageAppender,
+                aiChatSummaryRefreshProcessor = AiChatSummaryRefreshProcessor(
+                    summaryRepository,
+                    messageRepository,
+                    AiChatSummaryRefreshDecider(),
+                    aiChatSummaryGenerator,
+                ),
+                aiReplyContextReader = aiReplyContextReader,
+                aiChatSegmentContextReader = aiChatSegmentContextReader,
+                crisisDetectionRecorder = crisisDetectionRecorder,
+                aiChatResponseAssembler = aiChatResponseAssembler,
+                crisisKeywordDetector = crisisKeywordDetector,
+                aiReplyProvider = aiReplyProvider,
+            ),
+            checkInService = AiChatCheckInService(
+                todayAiChatRoomReader = todayAiChatRoomReader,
+                aiChatSegmentStarter = aiChatSegmentStarter,
+                aiChatCheckInSummaryFactory = AiChatCheckInSummaryFactory(),
+                aiChatCheckInRecorder = AiChatCheckInRecorder(checkInRepository),
+                aiChatOpeningMessageFactory = aiChatOpeningMessageFactory,
+                aiChatOpeningMessageRecorder = aiChatOpeningMessageRecorder,
+                aiReplyContextReader = aiReplyContextReader,
+                crisisDetectionRecorder = crisisDetectionRecorder,
+                aiChatResponseAssembler = aiChatResponseAssembler,
+                aiChatRoomRepository = roomRepository,
+                aiChatSegmentRepository = segmentRepository,
+                aiChatCheckInRepository = checkInRepository,
+                crisisKeywordDetector = crisisKeywordDetector,
+            ),
+            reportService = AiChatReportService(
+                todayAiChatRoomReader = todayAiChatRoomReader,
+                aiChatResponseAssembler = aiChatResponseAssembler,
+                aiChatReportRepository = reportRepository,
+                aiChatReportReadinessDecider = AiChatReportReadinessDecider(),
+                aiChatReportGenerator = DefaultAiChatReportGenerator(),
+            ),
+            historyService = AiChatHistoryService(
+                aiChatHistoryDeletionRepository = historyDeletionRepository,
+            ),
         )
+    }
+
+    private class AiChatUsecaseFixture(
+        private val roomService: AiChatRoomService,
+        private val messageService: AiChatMessageService,
+        private val checkInService: AiChatCheckInService,
+        private val reportService: AiChatReportService,
+        private val historyService: AiChatHistoryService,
+    ) : AiChatRoomInputPort,
+        AiChatMessageInputPort,
+        AiChatCheckInInputPort,
+        AiChatReportInputPort,
+        AiChatHistoryInputPort {
+        override fun readTodayRoom(memberId: Long): TodayAiChatRoomResponse {
+            return roomService.readTodayRoom(memberId)
+        }
+
+        override fun readHistoryRooms(memberId: Long): List<AiChatHistoryRoomResponse> {
+            return roomService.readHistoryRooms(memberId)
+        }
+
+        override fun readHistoryRoom(memberId: Long, roomId: Long): AiChatHistoryRoomDetailResponse? {
+            return roomService.readHistoryRoom(memberId, roomId)
+        }
+
+        override fun startSegment(memberId: Long, request: StartAiChatSegmentRequest): StartAiChatSegmentResponse {
+            return messageService.startSegment(memberId, request)
+        }
+
+        override fun sendMessage(memberId: Long, request: SendAiChatMessageRequest): SendAiChatMessageResponse {
+            return messageService.sendMessage(memberId, request)
+        }
+
+        override fun readCheckIns(memberId: Long): List<AiChatCheckInHistoryResponse> {
+            return checkInService.readCheckIns(memberId)
+        }
+
+        override fun startCheckInSegment(memberId: Long, request: StartAiChatCheckInRequest): StartAiChatSegmentResponse {
+            return checkInService.startCheckInSegment(memberId, request)
+        }
+
+        override fun readReports(memberId: Long): List<AiChatReportResponse> {
+            return reportService.readReports(memberId)
+        }
+
+        override fun readReport(memberId: Long, reportId: Long): AiChatReportResponse? {
+            return reportService.readReport(memberId, reportId)
+        }
+
+        override fun readTodayReportReadiness(memberId: Long): AiChatReportReadinessResponse {
+            return reportService.readTodayReportReadiness(memberId)
+        }
+
+        override fun createTodayReport(memberId: Long, request: CreateAiChatReportRequest): AiChatReportResponse {
+            return reportService.createTodayReport(memberId, request)
+        }
+
+        override fun readLatestTodayReport(memberId: Long): AiChatReportResponse? {
+            return reportService.readLatestTodayReport(memberId)
+        }
+
+        override fun deleteHistory(memberId: Long, request: DeleteAiChatHistoryRequest): DeleteAiChatHistoryResponse {
+            return historyService.deleteHistory(memberId, request)
+        }
     }
 
     private class FakeAiChatRoomRepository : AiChatRoomRepository {
