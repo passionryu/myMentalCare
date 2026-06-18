@@ -106,7 +106,7 @@ const historyItems = [
     description: '대화 마무리 후 저장된 마음 리포트를 확인합니다.',
     meta: '리포트 이력',
     icon: FileText,
-    action: '리포트 만들기',
+    action: '채팅에서 만들기',
     href: '/chat',
   },
   {
