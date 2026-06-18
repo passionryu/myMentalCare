@@ -64,6 +64,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
+const PASSWORD_CHANGE_NOTICE_REQUEST_KEY = 'myMentalCare.passwordChangeNotice'
 const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
@@ -420,8 +421,9 @@ export default function MyPage() {
 
   const handlePasswordChange = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault()
+    const form = event.currentTarget
     setPasswordMessage('')
-    const formData = new FormData(event.currentTarget)
+    const formData = new FormData(form)
     const currentPassword = String(formData.get('currentPassword') ?? '')
     const newPassword = String(formData.get('newPassword') ?? '')
     const newPasswordConfirm = String(formData.get('newPasswordConfirm') ?? '')
@@ -444,8 +446,8 @@ export default function MyPage() {
     setIsPasswordSaving(true)
     try {
       await changeMyPassword({ currentPassword, newPassword })
-      event.currentTarget.reset()
-      setToastMessage('비밀번호가 변경되었습니다. 다시 로그인해주세요.')
+      form.reset()
+      sessionStorage.setItem(PASSWORD_CHANGE_NOTICE_REQUEST_KEY, '1')
       router.push('/')
     } catch (error) {
       setPasswordMessage(error instanceof LoginApiError ? error.message : '비밀번호를 변경하지 못했습니다.')
