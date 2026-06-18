@@ -30,6 +30,7 @@ const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
+const PASSWORD_CHANGE_NOTICE_REQUEST_KEY = 'myMentalCare.passwordChangeNotice'
 
 const trustMessages = ['개인 대화 공간', '대화 이력 저장', '내 마음 AI 레포트']
 
@@ -62,6 +63,14 @@ export default function Page() {
         eyebrow: '회원 탈퇴 완료',
         title: '회원 탈퇴가 완료되었습니다',
         description: '계정이 비활성화되었고 현재 로그인 상태가 종료되었습니다.',
+      })
+    }
+    if (sessionStorage.getItem(PASSWORD_CHANGE_NOTICE_REQUEST_KEY) === '1') {
+      sessionStorage.removeItem(PASSWORD_CHANGE_NOTICE_REQUEST_KEY)
+      setAuthNotice({
+        eyebrow: '비밀번호 변경 완료',
+        title: '비밀번호가 변경되었습니다',
+        description: '보안을 위해 다시 로그인한 뒤 AI 마음대화와 마이페이지를 이용해주세요.',
       })
     }
     const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
