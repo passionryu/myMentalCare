@@ -2078,7 +2078,7 @@ h3 {
 .mypage-theme-option-breathing-landscape .theme-swatch {
   background:
     radial-gradient(circle at 82% 22%, #ffe08a 0 10%, transparent 11%),
-    repeating-linear-gradient(180deg, transparent 0 7px, rgba(255, 255, 255, 0.34) 8px 9px, transparent 10px 18px),
+    radial-gradient(ellipse at 52% 52%, rgba(255, 255, 255, 0.42) 0 15%, transparent 16%),
     linear-gradient(180deg, #aee7ff 0%, #8fd5ef 42%, #1f9bb0 43%, #35b6c8 64%, #f2d18d 65%, #d7a965 100%);
 }
 
@@ -2092,10 +2092,9 @@ h3 {
 .theme-option-chat-bubbles .theme-swatch,
 .mypage-theme-option-chat-bubbles .theme-swatch {
   background:
-    radial-gradient(ellipse at 24% 34%, rgba(255, 236, 190, 0.2) 0 18%, transparent 19%),
-    radial-gradient(ellipse at 78% 64%, rgba(76, 43, 24, 0.2) 0 20%, transparent 21%),
-    repeating-linear-gradient(90deg, rgba(82, 47, 28, 0.26) 0 2px, transparent 2px 14px),
-    linear-gradient(135deg, #d9a566, #9b6236 52%, #5e3723);
+    linear-gradient(105deg, rgba(255, 230, 184, 0.28) 0 18%, transparent 19% 48%, rgba(91, 48, 25, 0.2) 49% 64%, transparent 65%),
+    radial-gradient(ellipse at 28% 36%, rgba(255, 226, 176, 0.34), transparent 28%),
+    linear-gradient(135deg, #dfad72, #a96c3e 52%, #6b3f25);
 }
 
 .theme-option-botanical-room .theme-swatch,
@@ -2274,13 +2273,12 @@ h3 {
     radial-gradient(circle at 84% 18%, rgba(255, 219, 123, 0.78), transparent 12%),
     linear-gradient(180deg, rgba(177, 231, 255, 0.98) 0%, rgba(137, 209, 233, 0.98) 39%, rgba(31, 146, 170, 0.88) 40%, rgba(47, 181, 199, 0.86) 62%, rgba(242, 210, 147, 0.96) 63%, rgba(216, 171, 106, 0.9) 100%);
   --theme-visual-layer:
-    repeating-linear-gradient(180deg, transparent 0 16px, rgba(255, 255, 255, 0.26) 17px 19px, transparent 20px 42px),
-    linear-gradient(180deg, transparent 0 39%, rgba(255, 255, 255, 0.42) 39.2% 39.7%, transparent 40.1%),
-    radial-gradient(ellipse at 18% 78%, rgba(255, 244, 212, 0.42), transparent 24%),
-    radial-gradient(ellipse at 78% 76%, rgba(255, 244, 212, 0.34), transparent 26%);
+    radial-gradient(ellipse at 46% 47%, rgba(255, 255, 255, 0.36), transparent 20%),
+    radial-gradient(ellipse at 18% 76%, rgba(255, 244, 212, 0.46), transparent 26%),
+    radial-gradient(ellipse at 80% 78%, rgba(255, 244, 212, 0.36), transparent 28%),
+    linear-gradient(180deg, transparent 0 40%, rgba(255, 255, 255, 0.28) 40.2% 41.6%, transparent 42.2%);
   --theme-pattern-layer:
-    radial-gradient(ellipse at 32% 84%, rgba(151, 106, 53, 0.12), transparent 26%),
-    radial-gradient(ellipse at 80% 86%, rgba(151, 106, 53, 0.1), transparent 28%);
+    none;
   --theme-primary: #176f82;
   --theme-primary-soft: rgba(213, 242, 249, 0.88);
   --theme-primary-shadow: 0 10px 24px rgba(23, 111, 130, 0.22);
@@ -2328,17 +2326,15 @@ h3 {
 .page-shell[data-theme-tone='chat-bubbles'],
 .chat-page-shell[data-theme-tone='chat-bubbles'] {
   --theme-background-layer:
-    radial-gradient(ellipse at 16% 22%, rgba(255, 221, 162, 0.34), transparent 24%),
-    radial-gradient(ellipse at 82% 76%, rgba(92, 50, 27, 0.2), transparent 30%),
-    linear-gradient(135deg, rgba(255, 245, 228, 0.98), rgba(217, 165, 101, 0.72) 48%, rgba(118, 72, 43, 0.68));
+    radial-gradient(ellipse at 16% 22%, rgba(255, 221, 162, 0.28), transparent 26%),
+    radial-gradient(ellipse at 82% 76%, rgba(92, 50, 27, 0.18), transparent 34%),
+    linear-gradient(135deg, rgba(255, 245, 228, 0.98), rgba(224, 177, 117, 0.72) 48%, rgba(124, 78, 48, 0.7));
   --theme-visual-layer:
-    repeating-linear-gradient(90deg, rgba(91, 54, 32, 0.1) 0 2px, transparent 2px 38px),
-    repeating-linear-gradient(180deg, transparent 0 34px, rgba(91, 54, 32, 0.08) 35px 37px, transparent 38px 74px),
-    radial-gradient(ellipse at 26% 38%, rgba(91, 54, 32, 0.12), transparent 18%),
-    radial-gradient(ellipse at 72% 50%, rgba(255, 232, 190, 0.24), transparent 22%);
+    linear-gradient(108deg, rgba(255, 235, 199, 0.24) 0 18%, transparent 19% 46%, rgba(92, 50, 27, 0.08) 47% 63%, transparent 64%),
+    radial-gradient(ellipse at 26% 38%, rgba(91, 54, 32, 0.1), transparent 22%),
+    radial-gradient(ellipse at 72% 50%, rgba(255, 232, 190, 0.2), transparent 26%);
   --theme-pattern-layer:
-    radial-gradient(ellipse at 31% 28%, rgba(98, 57, 33, 0.16), transparent 12%),
-    radial-gradient(ellipse at 68% 68%, rgba(168, 100, 49, 0.16), transparent 14%);
+    none;
   --theme-primary: #6b4427;
   --theme-primary-soft: rgba(238, 209, 173, 0.86);
   --theme-primary-shadow: 0 10px 24px rgba(107, 68, 39, 0.22);
