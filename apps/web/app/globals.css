@@ -2066,6 +2066,43 @@ h3 {
   background: linear-gradient(135deg, #efe5d6, #a66e4a);
 }
 
+.theme-option-morning-window .theme-swatch,
+.mypage-theme-option-morning-window .theme-swatch {
+  background:
+    linear-gradient(110deg, transparent 0 28%, rgba(255, 255, 255, 0.48) 28.5% 34%, transparent 34.5%),
+    linear-gradient(135deg, #ffe2ad, #e8f0dd 52%, #c77d59);
+}
+
+.theme-option-breathing-landscape .theme-swatch,
+.mypage-theme-option-breathing-landscape .theme-swatch {
+  background:
+    radial-gradient(ellipse at 50% 112%, #d99a67 0 34%, transparent 35%),
+    linear-gradient(180deg, #d6ebf0 0%, #f8eee0 60%, #cfbca8 100%);
+}
+
+.theme-option-mind-journal .theme-swatch,
+.mypage-theme-option-mind-journal .theme-swatch {
+  background:
+    repeating-linear-gradient(0deg, transparent 0 8px, rgba(102, 83, 61, 0.16) 9px 10px),
+    linear-gradient(135deg, #fff9ee, #d8c3a2);
+}
+
+.theme-option-chat-bubbles .theme-swatch,
+.mypage-theme-option-chat-bubbles .theme-swatch {
+  background:
+    radial-gradient(circle at 28% 34%, rgba(255, 255, 255, 0.72) 0 16%, transparent 17%),
+    radial-gradient(circle at 72% 54%, rgba(255, 255, 255, 0.62) 0 18%, transparent 19%),
+    linear-gradient(135deg, #ffe8da, #e6f2e9 62%, #c57365);
+}
+
+.theme-option-botanical-room .theme-swatch,
+.mypage-theme-option-botanical-room .theme-swatch {
+  background:
+    radial-gradient(ellipse at 82% 28%, rgba(66, 93, 68, 0.4) 0 14%, transparent 15%),
+    radial-gradient(ellipse at 72% 62%, rgba(66, 93, 68, 0.22) 0 20%, transparent 21%),
+    linear-gradient(135deg, #f5efe1, #dfeedd 58%, #9d7b52);
+}
+
 .settings-action {
   padding: 16px;
   text-align: left;
@@ -2197,6 +2234,177 @@ h3 {
   --theme-accent-border: rgba(166, 110, 74, 0.5);
   --theme-accent-shadow: 0 32px 86px rgba(166, 110, 74, 0.16);
   --theme-selected-shadow: 0 0 0 3px rgba(166, 110, 74, 0.14);
+}
+
+.page-shell,
+.chat-page-shell {
+  --theme-background-layer:
+    radial-gradient(circle at 16% 14%, rgba(255, 224, 170, 0.5), transparent 24%),
+    linear-gradient(118deg, rgba(255, 248, 235, 0.96), rgba(231, 244, 239, 0.92) 48%, rgba(245, 222, 196, 0.9));
+  --theme-visual-layer:
+    linear-gradient(104deg, transparent 0 12%, rgba(255, 255, 255, 0.34) 12.3% 15.4%, transparent 15.8% 31%),
+    radial-gradient(circle at 82% 20%, rgba(255, 198, 129, 0.28), transparent 26%);
+  --theme-pattern-layer:
+    linear-gradient(90deg, rgba(255, 255, 255, 0.16) 1px, transparent 1px),
+    linear-gradient(180deg, rgba(255, 255, 255, 0.12) 1px, transparent 1px);
+  --theme-primary: #45624c;
+  --theme-primary-soft: rgba(227, 241, 229, 0.82);
+  --theme-primary-shadow: 0 10px 24px rgba(69, 98, 76, 0.22);
+  --theme-panel: rgba(255, 251, 244, 0.8);
+  --theme-panel-solid: rgba(255, 253, 247, 0.9);
+  --theme-surface: rgba(255, 253, 247, 0.88);
+  --theme-soft-surface: rgba(232, 243, 235, 0.62);
+  --theme-soft-surface-hover: rgba(255, 235, 207, 0.9);
+  --theme-border: rgba(69, 98, 76, 0.18);
+  --theme-border-strong: rgba(69, 98, 76, 0.26);
+  --theme-accent: #c77d59;
+  --theme-accent-border: rgba(199, 125, 89, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(199, 125, 89, 0.2);
+  --theme-selected-shadow: 0 0 0 3px rgba(199, 125, 89, 0.16);
+}
+
+.page-shell[data-theme-tone='breathing-landscape'],
+.chat-page-shell[data-theme-tone='breathing-landscape'] {
+  --theme-background-layer:
+    radial-gradient(ellipse at 50% 112%, rgba(217, 154, 103, 0.42), transparent 30%),
+    linear-gradient(180deg, rgba(214, 235, 240, 0.96) 0%, rgba(248, 238, 224, 0.96) 54%, rgba(232, 211, 194, 0.9) 100%);
+  --theme-visual-layer:
+    radial-gradient(ellipse at 50% 88%, rgba(255, 255, 255, 0.34), transparent 24%),
+    linear-gradient(180deg, transparent 0 58%, rgba(113, 147, 141, 0.12) 58.4% 60.2%, transparent 60.8%);
+  --theme-pattern-layer:
+    radial-gradient(ellipse at 18% 72%, rgba(255, 255, 255, 0.22), transparent 26%),
+    radial-gradient(ellipse at 76% 68%, rgba(255, 255, 255, 0.2), transparent 24%);
+  --theme-primary: #3f6770;
+  --theme-primary-soft: rgba(224, 241, 244, 0.84);
+  --theme-primary-shadow: 0 10px 24px rgba(63, 103, 112, 0.2);
+  --theme-panel: rgba(255, 253, 247, 0.78);
+  --theme-panel-solid: rgba(255, 253, 247, 0.9);
+  --theme-surface: rgba(255, 253, 247, 0.9);
+  --theme-soft-surface: rgba(224, 241, 244, 0.7);
+  --theme-soft-surface-hover: rgba(255, 238, 218, 0.92);
+  --theme-border: rgba(63, 103, 112, 0.18);
+  --theme-border-strong: rgba(63, 103, 112, 0.28);
+  --theme-accent: #c1845f;
+  --theme-accent-border: rgba(193, 132, 95, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(193, 132, 95, 0.18);
+  --theme-selected-shadow: 0 0 0 3px rgba(193, 132, 95, 0.16);
+}
+
+.page-shell[data-theme-tone='mind-journal'],
+.chat-page-shell[data-theme-tone='mind-journal'] {
+  --theme-background-layer:
+    linear-gradient(90deg, rgba(124, 96, 58, 0.05) 1px, transparent 1px),
+    repeating-linear-gradient(0deg, transparent 0 31px, rgba(124, 96, 58, 0.08) 32px 33px),
+    linear-gradient(135deg, rgba(255, 249, 238, 0.98), rgba(242, 229, 210, 0.94));
+  --theme-visual-layer:
+    radial-gradient(circle at 20% 18%, rgba(218, 180, 118, 0.24), transparent 28%),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.28), transparent 36%);
+  --theme-pattern-layer:
+    repeating-linear-gradient(90deg, rgba(91, 70, 52, 0.025) 0 1px, transparent 1px 18px),
+    radial-gradient(circle at 86% 76%, rgba(91, 70, 52, 0.08), transparent 22%);
+  --theme-primary: #66533d;
+  --theme-primary-soft: rgba(241, 230, 211, 0.82);
+  --theme-primary-shadow: 0 10px 24px rgba(102, 83, 61, 0.2);
+  --theme-panel: rgba(255, 253, 247, 0.82);
+  --theme-panel-solid: rgba(255, 253, 247, 0.92);
+  --theme-surface: rgba(255, 251, 242, 0.92);
+  --theme-soft-surface: rgba(241, 230, 211, 0.74);
+  --theme-soft-surface-hover: rgba(230, 216, 196, 0.92);
+  --theme-border: rgba(102, 83, 61, 0.18);
+  --theme-border-strong: rgba(102, 83, 61, 0.28);
+  --theme-accent: #a8734b;
+  --theme-accent-border: rgba(168, 115, 75, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(168, 115, 75, 0.16);
+  --theme-selected-shadow: 0 0 0 3px rgba(168, 115, 75, 0.14);
+}
+
+.page-shell[data-theme-tone='chat-bubbles'],
+.chat-page-shell[data-theme-tone='chat-bubbles'] {
+  --theme-background-layer:
+    radial-gradient(circle at 18% 28%, rgba(255, 232, 218, 0.72), transparent 24%),
+    radial-gradient(circle at 78% 22%, rgba(232, 244, 239, 0.82), transparent 25%),
+    radial-gradient(circle at 66% 78%, rgba(255, 214, 192, 0.5), transparent 30%),
+    linear-gradient(135deg, rgba(255, 248, 241, 0.96), rgba(236, 246, 240, 0.94));
+  --theme-visual-layer:
+    radial-gradient(circle at 26% 36%, rgba(255, 255, 255, 0.34), transparent 12%),
+    radial-gradient(circle at 78% 30%, rgba(255, 255, 255, 0.3), transparent 13%),
+    radial-gradient(circle at 66% 80%, rgba(255, 255, 255, 0.24), transparent 16%);
+  --theme-pattern-layer:
+    radial-gradient(circle at 33% 26%, rgba(205, 128, 104, 0.12), transparent 9%),
+    radial-gradient(circle at 72% 64%, rgba(69, 98, 76, 0.1), transparent 10%);
+  --theme-primary: #4f6755;
+  --theme-primary-soft: rgba(230, 242, 233, 0.86);
+  --theme-primary-shadow: 0 10px 24px rgba(79, 103, 85, 0.2);
+  --theme-panel: rgba(255, 253, 247, 0.78);
+  --theme-panel-solid: rgba(255, 253, 247, 0.9);
+  --theme-surface: rgba(255, 253, 247, 0.88);
+  --theme-soft-surface: rgba(230, 242, 233, 0.72);
+  --theme-soft-surface-hover: rgba(255, 231, 216, 0.92);
+  --theme-border: rgba(79, 103, 85, 0.18);
+  --theme-border-strong: rgba(79, 103, 85, 0.28);
+  --theme-accent: #c57365;
+  --theme-accent-border: rgba(197, 115, 101, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(197, 115, 101, 0.18);
+  --theme-selected-shadow: 0 0 0 3px rgba(197, 115, 101, 0.16);
+}
+
+.page-shell[data-theme-tone='botanical-room'],
+.chat-page-shell[data-theme-tone='botanical-room'] {
+  --theme-background-layer:
+    radial-gradient(circle at 84% 16%, rgba(191, 217, 183, 0.5), transparent 25%),
+    linear-gradient(135deg, rgba(245, 239, 225, 0.96), rgba(225, 238, 222, 0.94) 52%, rgba(238, 226, 207, 0.9));
+  --theme-visual-layer:
+    radial-gradient(ellipse at 84% 24%, rgba(67, 104, 76, 0.18), transparent 24%),
+    linear-gradient(68deg, transparent 0 67%, rgba(67, 104, 76, 0.14) 67.5% 69%, transparent 69.4%);
+  --theme-pattern-layer:
+    radial-gradient(ellipse at 88% 35%, rgba(67, 104, 76, 0.14), transparent 6%),
+    radial-gradient(ellipse at 92% 51%, rgba(67, 104, 76, 0.1), transparent 7%),
+    radial-gradient(ellipse at 78% 62%, rgba(67, 104, 76, 0.1), transparent 8%);
+  --theme-primary: #425d44;
+  --theme-primary-soft: rgba(226, 239, 222, 0.86);
+  --theme-primary-shadow: 0 10px 24px rgba(66, 93, 68, 0.2);
+  --theme-panel: rgba(255, 253, 247, 0.8);
+  --theme-panel-solid: rgba(255, 253, 247, 0.9);
+  --theme-surface: rgba(255, 253, 247, 0.9);
+  --theme-soft-surface: rgba(226, 239, 222, 0.74);
+  --theme-soft-surface-hover: rgba(236, 225, 205, 0.92);
+  --theme-border: rgba(66, 93, 68, 0.18);
+  --theme-border-strong: rgba(66, 93, 68, 0.28);
+  --theme-accent: #9d7b52;
+  --theme-accent-border: rgba(157, 123, 82, 0.52);
+  --theme-accent-shadow: 0 32px 86px rgba(157, 123, 82, 0.16);
+  --theme-selected-shadow: 0 0 0 3px rgba(157, 123, 82, 0.14);
+}
+
+.page-shell,
+.chat-page-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.home-page-shell::before,
+.home-page-shell::after {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  content: '';
+}
+
+.home-page-shell::before {
+  background: var(--theme-visual-layer);
+  opacity: 0.86;
+}
+
+.home-page-shell::after {
+  background: var(--theme-pattern-layer);
+  background-size: 92px 92px, auto;
+  opacity: 0.7;
+}
+
+.home-page-shell > * {
+  position: relative;
+  z-index: 1;
 }
 
 .chat-layout {
@@ -3527,6 +3735,10 @@ h3 {
     grid-template-columns: 1fr;
   }
 
+  .mypage-theme-grid {
+    grid-template-columns: repeat(auto-fit, minmax(142px, 1fr));
+  }
+
   .hero-description {
     font-size: 16px;
     line-height: 1.7;
@@ -4394,7 +4606,7 @@ h3 {
 
 .mypage-theme-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(5, minmax(0, 1fr));
   gap: 10px;
 }
 
@@ -4518,7 +4730,7 @@ h3 {
   display: grid;
   justify-items: start;
   gap: 8px;
-  min-height: 126px;
+  min-height: 146px;
   border: 1px solid var(--theme-border);
   border-radius: 20px;
   background: rgba(255, 253, 247, 0.66);
@@ -4545,8 +4757,8 @@ h3 {
 }
 
 .mypage-theme-option .theme-swatch {
-  width: 40px;
-  height: 28px;
+  width: 58px;
+  height: 38px;
   border-radius: 999px;
 }
 
