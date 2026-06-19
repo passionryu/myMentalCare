@@ -10,9 +10,9 @@ export const DEFAULT_THEME_TONE: ThemeTone = 'morning-window'
 
 export const THEME_OPTIONS: Array<{ value: ThemeTone; label: string; description: string }> = [
   { value: 'morning-window', label: '아침 창가', description: '햇살이 들어오는 조용한 창가 분위기' },
-  { value: 'breathing-landscape', label: '숨결 풍경', description: '하늘과 지평선이 넓게 열리는 안정감' },
+  { value: 'breathing-landscape', label: '바다 해변', description: '잔잔한 바다와 모래빛 해변이 주는 개방감' },
   { value: 'mind-journal', label: '마음 노트', description: '종이와 기록 중심의 차분한 배경' },
-  { value: 'chat-bubbles', label: '대화 온기', description: '은은한 말풍선이 감싸는 공감 분위기' },
+  { value: 'chat-bubbles', label: '우드 톤', description: '따뜻한 나무결과 브라운 톤의 안정감' },
   { value: 'botanical-room', label: '식물 방', description: '식물 그림자와 휴식감이 있는 공간' },
 ]
 
