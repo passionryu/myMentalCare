@@ -18,15 +18,14 @@ import { FormEvent, useEffect, useState } from 'react'
 import { buildKakaoLoginUrl, LoginApiError, MyProfileResponse, loginMember, readMyProfile, signupMember } from '@/lib/auth-api'
 import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY } from '@/lib/check-in-templates'
 import type { CheckInTemplateDefinition } from '@/lib/check-in-templates'
+import { DEFAULT_THEME_TONE, readStoredThemeTone, ThemeTone } from '@/lib/theme-tone'
 
 type AuthMode = 'signup' | 'login'
-type ThemeTone = 'sunset' | 'cream' | 'wood'
 type AuthNotice = {
   eyebrow: string
   title: string
   description: string
 }
-const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
@@ -40,7 +39,7 @@ export default function Page() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
-  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
   const [authNotice, setAuthNotice] = useState<AuthNotice | null>(null)
 
   useEffect(() => {
@@ -73,15 +72,7 @@ export default function Page() {
         description: '보안을 위해 다시 로그인한 뒤 AI 마음대화와 마이페이지를 이용해주세요.',
       })
     }
-    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'rose') {
-      setThemeTone('wood')
-      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
-      return
-    }
-    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
-      setThemeTone(savedThemeTone)
-    }
+    setThemeTone(readStoredThemeTone())
   }, [])
 
   const handleOpenProfile = async () => {

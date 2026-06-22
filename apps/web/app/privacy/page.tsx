@@ -3,10 +3,7 @@
 import { ArrowLeft, HeartHandshake } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
-
-type ThemeTone = 'sunset' | 'cream' | 'wood'
-
-const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
+import { DEFAULT_THEME_TONE, readStoredThemeTone, ThemeTone } from '@/lib/theme-tone'
 
 const privacySections = [
   {
@@ -76,18 +73,10 @@ const privacySections = [
 
 export default function PrivacyPage() {
   const router = useRouter()
-  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
 
   useEffect(() => {
-    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'rose') {
-      setThemeTone('wood')
-      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
-      return
-    }
-    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
-      setThemeTone(savedThemeTone)
-    }
+    setThemeTone(readStoredThemeTone())
   }, [])
 
   return (
