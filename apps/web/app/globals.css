@@ -4631,6 +4631,11 @@ h3 {
   padding: 16px;
 }
 
+.mypage-notification-setting.is-disabled {
+  border-style: dashed;
+  background: rgba(255, 253, 247, 0.52);
+}
+
 .mypage-notification-setting > div:first-child {
   display: grid;
   gap: 4px;
@@ -4639,6 +4644,12 @@ h3 {
 .mypage-notification-controls {
   display: grid;
   gap: 12px;
+}
+
+.mypage-notification-controls button:disabled,
+.mypage-notification-controls input:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
 }
 
 .mypage-notification-permission {

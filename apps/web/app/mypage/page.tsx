@@ -51,11 +51,6 @@ import {
 } from '@/lib/auth-api'
 import { CreateInquiryResponse, createInquiry } from '@/lib/inquiry-api'
 import { MyPageSummaryResponse, readMyPageSummary } from '@/lib/mypage-api'
-import {
-  NotificationWeekday,
-  readNotificationSetting,
-  updateNotificationSetting,
-} from '@/lib/notification-settings-api'
 import { DEFAULT_THEME_TONE, THEME_OPTIONS, THEME_TONE_STORAGE_KEY, ThemeTone, readStoredThemeTone } from '@/lib/theme-tone'
 
 type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support' | 'security'
@@ -64,7 +59,7 @@ type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
 const PASSWORD_CHANGE_NOTICE_REQUEST_KEY = 'myMentalCare.passwordChangeNotice'
-const defaultNotificationWeekdays: NotificationWeekday[] = ['MON', 'TUE', 'WED', 'THU', 'FRI']
+const notificationComingSoonMessage = '마음 체크 알림은 곧 제공될 예정입니다. 지금은 설정을 변경할 수 없습니다.'
 
 const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> = [
   { id: 'overview', label: '요약', icon: Home },
@@ -76,16 +71,6 @@ const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> =
 ]
 
 const themes = THEME_OPTIONS
-
-const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }> = [
-  { value: 'MON', label: '월' },
-  { value: 'TUE', label: '화' },
-  { value: 'WED', label: '수' },
-  { value: 'THU', label: '목' },
-  { value: 'FRI', label: '금' },
-  { value: 'SAT', label: '토' },
-  { value: 'SUN', label: '일' },
-]
 
 type HistoryItem = {
   title: string
@@ -131,12 +116,6 @@ export default function MyPage() {
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
   const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
-  const [notificationEnabled, setNotificationEnabled] = useState(false)
-  const [notificationTime, setNotificationTime] = useState('21:00')
-  const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
-  const [notificationPermission, setNotificationPermission] = useState<NotificationPermission | 'unsupported'>('unsupported')
-  const [isNotificationSaving, setIsNotificationSaving] = useState(false)
-  const [notificationMessage, setNotificationMessage] = useState('')
   const [summary, setSummary] = useState<MyPageSummaryResponse | null>(null)
   const [summaryMessage, setSummaryMessage] = useState('')
   const [chatHistoryRooms, setChatHistoryRooms] = useState<AiChatHistoryRoom[]>([])
@@ -161,8 +140,6 @@ export default function MyPage() {
 
     setThemeTone(readStoredThemeTone())
 
-    setNotificationPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
-
     if (!accessToken) {
       return
     }
@@ -174,17 +151,6 @@ export default function MyPage() {
       })
       .catch((error) => {
         setProfileMessage(error instanceof LoginApiError ? error.message : '프로필 정보를 불러오지 못했습니다.')
-      })
-
-    readNotificationSetting()
-      .then((setting) => {
-        setNotificationEnabled(setting.enabled)
-        setNotificationTime(setting.notificationTime)
-        setNotificationWeekdayValues(setting.weekdays.length > 0 ? setting.weekdays : defaultNotificationWeekdays)
-        setNotificationMessage('')
-      })
-      .catch((error) => {
-        setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 불러오지 못했습니다.')
       })
 
     readMyPageSummary()
@@ -248,79 +214,6 @@ export default function MyPage() {
     setThemeTone(nextThemeTone)
     localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
     setToastMessage(`${nextTheme?.label ?? '선택한'} 배경이 이 기기에 적용되었습니다.`)
-  }
-
-  const handleNotificationWeekdayToggle = (weekday: NotificationWeekday) => {
-    setNotificationWeekdayValues((currentWeekdays) => {
-      if (currentWeekdays.includes(weekday)) {
-        return currentWeekdays.filter((currentWeekday) => currentWeekday !== weekday)
-      }
-
-      return [...currentWeekdays, weekday]
-    })
-  }
-
-  const handleNotificationPermissionRequest = async () => {
-    if (typeof Notification === 'undefined') {
-      setNotificationPermission('unsupported')
-      setNotificationMessage('이 브라우저에서는 알림 권한 요청을 지원하지 않습니다.')
-      return
-    }
-
-    if (Notification.permission === 'denied') {
-      setNotificationPermission('denied')
-      setNotificationMessage('브라우저에서 알림이 차단되어 있습니다. 사이트 설정에서 알림을 허용해주세요.')
-      return
-    }
-
-    const nextPermission = await Notification.requestPermission()
-    setNotificationPermission(nextPermission)
-    setNotificationMessage(
-      nextPermission === 'granted'
-        ? '브라우저 알림 권한이 허용되었습니다.'
-        : '알림 권한을 허용해야 설정한 시간에 알림을 받을 수 있습니다.',
-    )
-  }
-
-  const handleNotificationSave = async () => {
-    setNotificationMessage('')
-    if (notificationWeekdayValues.length === 0) {
-      setNotificationMessage('알림 요일을 1개 이상 선택해주세요.')
-      return
-    }
-
-    setIsNotificationSaving(true)
-    try {
-      const setting = await updateNotificationSetting({
-        enabled: notificationEnabled,
-        notificationTime,
-        weekdays: notificationWeekdayValues,
-      })
-      setNotificationEnabled(setting.enabled)
-      setNotificationTime(setting.notificationTime)
-      setNotificationWeekdayValues(setting.weekdays)
-      setSummary((currentSummary) =>
-        currentSummary
-          ? {
-              ...currentSummary,
-              notificationEnabled: setting.enabled,
-              notificationTime: setting.notificationTime,
-            }
-          : currentSummary,
-      )
-      const currentPermission = typeof Notification === 'undefined' ? 'unsupported' : Notification.permission
-      setNotificationPermission(currentPermission)
-      if (setting.enabled && currentPermission === 'denied') {
-        setNotificationMessage('설정은 저장했지만 브라우저 알림이 차단되어 실제 알림은 표시되지 않습니다.')
-      } else if (setting.enabled && currentPermission === 'default') {
-        setNotificationMessage('설정은 저장했습니다. 알림을 받으려면 브라우저 권한도 허용해주세요.')
-      }
-      setToastMessage('마음 체크 알림 설정이 저장되었습니다.')
-    } catch (error) {
-      setNotificationMessage(error instanceof LoginApiError ? error.message : '알림 설정을 저장하지 못했습니다.')
-    } finally {
-      setIsNotificationSaving(false)
-    }
   }
 
   const handleLogout = () => {
@@ -606,7 +499,7 @@ export default function MyPage() {
                 <article className="mypage-mini-card">
                   <Bell size={21} aria-hidden="true" />
                   <strong>알림</strong>
-                  <span>{summary?.notificationEnabled ? summary.notificationTime : notificationEnabled ? notificationTime : '꺼짐'}</span>
+                  <span>준비 중</span>
                 </article>
               </section>
 
@@ -820,38 +713,27 @@ export default function MyPage() {
                 icon={Palette}
               />
               <div className="mypage-settings-list">
-                <div className="mypage-notification-setting">
+                <div className="mypage-notification-setting is-disabled">
                   <div>
                     <strong>마음 체크 알림</strong>
-                    <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕습니다.</span>
+                    <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕는 기능을 준비하고 있습니다.</span>
                   </div>
+                  <p className="mypage-setting-message" role="status">{notificationComingSoonMessage}</p>
                   <div className="mypage-notification-controls">
                     <div className="mypage-notification-permission">
-                      <span>
-                        브라우저 권한:{' '}
-                        {notificationPermission === 'granted'
-                          ? '허용됨'
-                          : notificationPermission === 'denied'
-                            ? '차단됨'
-                            : notificationPermission === 'default'
-                              ? '미설정'
-                              : '지원 안 됨'}
-                      </span>
-                      {notificationPermission !== 'granted' && (
-                        <button className="soft-button" type="button" onClick={handleNotificationPermissionRequest}>
-                          {notificationPermission === 'denied' ? '허용 방법 보기' : '알림 권한 허용하기'}
-                          <Bell size={16} aria-hidden="true" />
-                        </button>
-                      )}
+                      <span>브라우저 권한: 준비 중</span>
+                      <button className="soft-button" type="button" disabled>
+                        알림 권한 허용하기
+                        <Bell size={16} aria-hidden="true" />
+                      </button>
                     </div>
                     <div className="mypage-notification-topline">
                       <button
-                        className={`toggle-button ${notificationEnabled ? 'is-on' : ''}`}
+                        className="toggle-button"
                         type="button"
                         role="switch"
-                        aria-checked={notificationEnabled}
-                        disabled={isNotificationSaving}
-                        onClick={() => setNotificationEnabled((currentValue) => !currentValue)}
+                        aria-checked={false}
+                        disabled
                       >
                         <span />
                       </button>
@@ -859,32 +741,21 @@ export default function MyPage() {
                         알림 시간
                         <input
                           type="time"
-                          value={notificationTime}
-                          disabled={isNotificationSaving}
-                          onChange={(event) => setNotificationTime(event.target.value)}
+                          value="21:00"
+                          disabled
+                          readOnly
                         />
                       </label>
                     </div>
                     <div className="mypage-weekday-grid" aria-label="알림 요일 선택">
-                      {notificationWeekdays.map((weekday) => {
-                        const isSelected = notificationWeekdayValues.includes(weekday.value)
-                        return (
-                          <button
-                            className={isSelected ? 'is-selected' : ''}
-                            type="button"
-                            key={weekday.value}
-                            aria-pressed={isSelected}
-                            disabled={isNotificationSaving}
-                            onClick={() => handleNotificationWeekdayToggle(weekday.value)}
-                          >
-                            {weekday.label}
-                          </button>
-                        )
-                      })}
+                      {['월', '화', '수', '목', '금', '토', '일'].map((weekday) => (
+                        <button type="button" key={weekday} aria-pressed={false} disabled>
+                          {weekday}
+                        </button>
+                      ))}
                     </div>
-                    {notificationMessage && <p className="mypage-setting-message">{notificationMessage}</p>}
-                    <button className="soft-button" type="button" disabled={isNotificationSaving} onClick={handleNotificationSave}>
-                      {isNotificationSaving ? '저장 중...' : '알림 설정 저장'}
+                    <button className="soft-button" type="button" disabled>
+                      준비 중
                       <CheckCircle2 size={17} aria-hidden="true" />
                     </button>
                   </div>
