@@ -5,6 +5,7 @@ import com.mymentalcare.server.application.inquiry.request.*
 import com.mymentalcare.server.application.inquiry.response.*
 
 import com.mymentalcare.server.application.inquiry.port.InquiryRepository
+import com.mymentalcare.server.application.notification.response.InquiryReceivedNotification
 import com.mymentalcare.server.domain.inquiry.Inquiry
 import com.mymentalcare.server.domain.inquiry.InquiryStatus
 import org.springframework.stereotype.Service
@@ -14,6 +15,7 @@ import java.time.LocalDateTime
 @Service
 internal class InquiryService(
     private val inquiryRepository: InquiryRepository,
+    private val inquiryOperatorNotifier: InquiryOperatorNotifier,
 ) : InquiryInputPort {
     @Transactional
     override fun createInquiry(memberId: Long, request: CreateInquiryRequest): CreateInquiryResponse {
@@ -26,6 +28,16 @@ internal class InquiryService(
                 content = request.content.trim(),
                 status = InquiryStatus.RECEIVED,
                 createdAt = now,
+            )
+        )
+
+        inquiryOperatorNotifier.notifyOperatorInquiryWasReceived(
+            InquiryReceivedNotification(
+                inquiryId = savedInquiry.id,
+                memberId = memberId,
+                category = savedInquiry.category,
+                content = savedInquiry.content,
+                receivedAt = savedInquiry.createdAt ?: now,
             )
         )
 

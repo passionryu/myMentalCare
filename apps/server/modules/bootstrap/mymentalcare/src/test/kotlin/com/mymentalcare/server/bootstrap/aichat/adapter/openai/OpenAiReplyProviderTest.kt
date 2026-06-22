@@ -5,6 +5,7 @@ import com.mymentalcare.server.application.aichat.request.AiReplyMessage
 import com.mymentalcare.server.application.aichat.request.AiReplyRequest
 import com.mymentalcare.server.application.aichat.policy.OPEN_AI_REPLY_ERROR_MESSAGE
 import com.mymentalcare.server.application.notification.port.OperatorNotificationPort
+import com.mymentalcare.server.application.notification.response.InquiryReceivedNotification
 import com.mymentalcare.server.bootstrap.config.OpenAiProperties
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -105,5 +106,7 @@ class OpenAiReplyProviderTest {
         override fun notifyAiReplyFailure(notification: AiReplyFailureNotification) {
             notifications.add(notification)
         }
+
+        override fun notifyInquiryReceived(notification: InquiryReceivedNotification) = Unit
     }
 }
