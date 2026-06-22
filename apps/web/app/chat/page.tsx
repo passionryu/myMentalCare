@@ -34,11 +34,9 @@ import {
 } from '@/lib/ai-chat-api'
 import { CHECK_IN_TEMPLATES, PENDING_CHECK_IN_SELECTOR_STORAGE_KEY, PENDING_CHECK_IN_TEMPLATE_STORAGE_KEY, findCheckInTemplate } from '@/lib/check-in-templates'
 import type { CheckInOption, CheckInStep, CheckInTemplateDefinition } from '@/lib/check-in-templates'
+import { DEFAULT_THEME_TONE, readStoredThemeTone, ThemeTone } from '@/lib/theme-tone'
 
 type ModalMode = 'NONE' | 'EXISTING_CONVERSATION' | 'START_SELECTOR' | 'CHECK_IN_WIZARD'
-type ThemeTone = 'sunset' | 'cream' | 'wood'
-
-const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 
 export default function AiChatPage() {
   const router = useRouter()
@@ -63,16 +61,10 @@ export default function AiChatPage() {
   const pendingCheckInTemplateRef = useRef<CheckInTemplateDefinition | null | undefined>(undefined)
   const pendingCheckInSelectorRef = useRef<boolean | undefined>(undefined)
   const [isCheckInOnlyStart, setIsCheckInOnlyStart] = useState(false)
-  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
 
   useEffect(() => {
-    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'rose') {
-      setThemeTone('wood')
-      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
-    } else if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
-      setThemeTone(savedThemeTone)
-    }
+    setThemeTone(readStoredThemeTone())
 
     const readPendingCheckInTemplate = () => {
       if (pendingCheckInTemplateRef.current !== undefined) {

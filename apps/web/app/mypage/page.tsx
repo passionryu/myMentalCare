@@ -56,12 +56,11 @@ import {
   readNotificationSetting,
   updateNotificationSetting,
 } from '@/lib/notification-settings-api'
+import { DEFAULT_THEME_TONE, THEME_OPTIONS, THEME_TONE_STORAGE_KEY, ThemeTone, readStoredThemeTone } from '@/lib/theme-tone'
 
-type ThemeTone = 'sunset' | 'cream' | 'wood'
 type MyPageSection = 'overview' | 'profile' | 'history' | 'settings' | 'support' | 'security'
 type DialogType = 'editProfile' | 'deleteHistory' | 'withdraw' | null
 
-const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGOUT_NOTICE_REQUEST_KEY = 'myMentalCare.logoutNotice'
 const WITHDRAWAL_NOTICE_REQUEST_KEY = 'myMentalCare.withdrawalNotice'
 const PASSWORD_CHANGE_NOTICE_REQUEST_KEY = 'myMentalCare.passwordChangeNotice'
@@ -76,11 +75,7 @@ const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> =
   { id: 'security', label: '계정 관리', icon: ShieldCheck },
 ]
 
-const themes: Array<{ value: ThemeTone; label: string; description: string }> = [
-  { value: 'sunset', label: '노을빛', description: '차분한 살구색과 세이지 톤' },
-  { value: 'cream', label: '크림빛', description: '밝고 편안한 아이보리 톤' },
-  { value: 'wood', label: '우드빛', description: '내추럴 우드와 아이보리 톤' },
-]
+const themes = THEME_OPTIONS
 
 const notificationWeekdays: Array<{ value: NotificationWeekday; label: string }> = [
   { value: 'MON', label: '월' },
@@ -135,7 +130,7 @@ export default function MyPage() {
   const [isAuthenticated, setIsAuthenticated] = useState(false)
   const [profile, setProfile] = useState<MyProfileResponse | null>(null)
   const [profileMessage, setProfileMessage] = useState('')
-  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
   const [notificationEnabled, setNotificationEnabled] = useState(false)
   const [notificationTime, setNotificationTime] = useState('21:00')
   const [notificationWeekdayValues, setNotificationWeekdayValues] = useState<NotificationWeekday[]>(defaultNotificationWeekdays)
@@ -164,13 +159,7 @@ export default function MyPage() {
     const accessToken = localStorage.getItem('myMentalCare.accessToken')
     setIsAuthenticated(Boolean(accessToken))
 
-    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'rose') {
-      setThemeTone('wood')
-      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
-    } else if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
-      setThemeTone(savedThemeTone)
-    }
+    setThemeTone(readStoredThemeTone())
 
     setNotificationPermission(typeof Notification === 'undefined' ? 'unsupported' : Notification.permission)
 
@@ -258,7 +247,7 @@ export default function MyPage() {
     const nextTheme = themes.find((theme) => theme.value === nextThemeTone)
     setThemeTone(nextThemeTone)
     localStorage.setItem(THEME_TONE_STORAGE_KEY, nextThemeTone)
-    setToastMessage(`${nextTheme?.label ?? '선택한'} 색감이 이 기기에 적용되었습니다.`)
+    setToastMessage(`${nextTheme?.label ?? '선택한'} 배경이 이 기기에 적용되었습니다.`)
   }
 
   const handleNotificationWeekdayToggle = (weekday: NotificationWeekday) => {
@@ -902,10 +891,10 @@ export default function MyPage() {
                 </div>
                 <div className="mypage-theme-setting">
                   <div>
-                    <strong>화면 색상</strong>
-                    <span>선택한 색감은 이 기기에서만 적용돼요.</span>
+                    <strong>화면 배경</strong>
+                    <span>선택한 배경 분위기는 이 기기에서만 적용돼요.</span>
                   </div>
-                  <div className="mypage-theme-grid" aria-label="화면 색상 선택">
+                  <div className="mypage-theme-grid" aria-label="화면 배경 선택">
                     {themes.map((theme) => {
                       const isSelected = themeTone === theme.value
                       return (
@@ -914,7 +903,7 @@ export default function MyPage() {
                           type="button"
                           key={theme.value}
                           aria-pressed={isSelected}
-                          aria-label={`${theme.label} 색감 선택${isSelected ? ', 현재 적용 중' : ''}`}
+                          aria-label={`${theme.label} 배경 선택${isSelected ? ', 현재 적용 중' : ''}`}
                           onClick={() => handleThemeChange(theme.value)}
                         >
                           <span className="theme-swatch" aria-hidden="true" />

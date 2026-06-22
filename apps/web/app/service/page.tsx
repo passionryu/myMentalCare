@@ -3,10 +3,8 @@
 import { ArrowRight, BookOpen, ClipboardCheck, Home, MessageCircle, SendHorizontal, ShieldCheck, UserRound } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import { DEFAULT_THEME_TONE, readStoredThemeTone, ThemeTone } from '@/lib/theme-tone'
 
-type ThemeTone = 'sunset' | 'cream' | 'wood'
-
-const THEME_TONE_STORAGE_KEY = 'myMentalCare.themeTone'
 const LOGIN_MODAL_REQUEST_KEY = 'myMentalCare.openLoginModal'
 
 const exampleConversationMessages = [
@@ -61,22 +59,14 @@ const flowSteps = [
 export default function ServicePage() {
   const router = useRouter()
   const [isAuthenticated, setIsAuthenticated] = useState(false)
-  const [themeTone, setThemeTone] = useState<ThemeTone>('sunset')
+  const [themeTone, setThemeTone] = useState<ThemeTone>(DEFAULT_THEME_TONE)
   const [reducedMotion, setReducedMotion] = useState(false)
   const [exampleWindowIndex, setExampleWindowIndex] = useState(0)
   const [selectedSafetyGuide, setSelectedSafetyGuide] = useState<(typeof safetyGuides)[number] | null>(null)
 
   useEffect(() => {
     setIsAuthenticated(Boolean(localStorage.getItem('myMentalCare.accessToken')))
-    const savedThemeTone = localStorage.getItem(THEME_TONE_STORAGE_KEY)
-    if (savedThemeTone === 'rose') {
-      setThemeTone('wood')
-      localStorage.setItem(THEME_TONE_STORAGE_KEY, 'wood')
-      return
-    }
-    if (savedThemeTone === 'sunset' || savedThemeTone === 'cream' || savedThemeTone === 'wood') {
-      setThemeTone(savedThemeTone)
-    }
+    setThemeTone(readStoredThemeTone())
   }, [])
 
   useEffect(() => {
