@@ -4,12 +4,15 @@ import com.mymentalcare.server.application.aichat.response.AiReplyFailureNotific
 import com.mymentalcare.server.application.common.extension.logError
 import com.mymentalcare.server.application.common.extension.logWarn
 import com.mymentalcare.server.application.notification.port.OperatorNotificationPort
+import com.mymentalcare.server.application.notification.response.InquiryReceivedNotification
 import com.mymentalcare.server.bootstrap.config.OperatorNotificationProperties
 import org.springframework.http.MediaType
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
 import org.springframework.web.client.RestClientException
 import java.time.format.DateTimeFormatter
+
+private const val DISCORD_INQUIRY_CONTENT_LIMIT = 1_500
 
 @Component
 class DiscordOperatorNotificationAdapter(
@@ -49,6 +52,37 @@ class DiscordOperatorNotificationAdapter(
         }
     }
 
+    // 문의 접수 사실을 현재 운영 오류 Discord 채널로 임시 라우팅한다.
+    override fun notifyInquiryReceived(notification: InquiryReceivedNotification) {
+        if (properties.discordWebhookUrl.isBlank()) {
+            logWarn {
+                "[문의 접수] Discord 웹훅 미설정으로 운영자 문의 알림 생략. " +
+                    "who=system, " +
+                    "what=DiscordOperatorNotificationAdapter.notifyInquiryReceived, " +
+                    "requestData=inquiryId:${notification.inquiryId},memberId:${notification.memberId},category:${notification.category}, " +
+                    "reason=discordWebhookUrlMissing"
+            }
+            return
+        }
+
+        try {
+            restClient.post()
+                .uri(properties.discordWebhookUrl)
+                .contentType(MediaType.APPLICATION_JSON)
+                .body(mapOf("content" to buildInquiryReceivedMessage(notification)))
+                .retrieve()
+                .toBodilessEntity()
+        } catch (e: RestClientException) {
+            logError(e) {
+                "[문의 접수] Discord 운영자 문의 알림 전송 실패. " +
+                    "who=system, " +
+                    "what=DiscordOperatorNotificationAdapter.notifyInquiryReceived, " +
+                    "requestData=inquiryId:${notification.inquiryId},memberId:${notification.memberId},category:${notification.category}, " +
+                    "reason=${e.message}"
+            }
+        }
+    }
+
     private fun buildOpenAiFailureMessage(notification: AiReplyFailureNotification): String {
         return """
             [myMentalCare OpenAI 오류] AI 마음 대화 응답 생성 실패
@@ -64,6 +98,20 @@ class DiscordOperatorNotificationAdapter(
 
             조치 필요:
             OPENAI_API_KEY, 모델명, 과금 상태, rate limit을 확인하세요.
+        """.trimIndent()
+    }
+
+    private fun buildInquiryReceivedMessage(notification: InquiryReceivedNotification): String {
+        return """
+            [myMentalCare 문의 접수] 새 문의가 접수되었습니다
+
+            접수 시각: ${notification.receivedAt.format(DateTimeFormatter.ofPattern("yyyy.MM.dd HH:mm:ss"))}
+            문의 ID: ${notification.inquiryId}
+            회원 ID: ${notification.memberId}
+            문의 유형: ${notification.category}
+
+            문의 내용:
+            ${notification.content.take(DISCORD_INQUIRY_CONTENT_LIMIT)}
         """.trimIndent()
     }
 }
