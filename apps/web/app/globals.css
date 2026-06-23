@@ -4440,18 +4440,21 @@ h3 {
 .mypage-chat-history-list {
   display: grid;
   gap: 12px;
+  min-width: 0;
   margin-bottom: 14px;
 }
 
 .mypage-report-list {
   display: grid;
   gap: 12px;
+  min-width: 0;
   margin-top: 14px;
 }
 
 .mypage-checkin-list {
   display: grid;
   gap: 12px;
+  min-width: 0;
   margin-top: 14px;
 }
 
@@ -4482,6 +4485,9 @@ h3 {
   align-items: center;
   justify-content: space-between;
   gap: 14px;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
   border: 1px solid var(--theme-border);
   border-radius: 20px;
   background: rgba(255, 253, 247, 0.66);
@@ -4504,6 +4510,8 @@ h3 {
 .mypage-checkin-item p,
 .mypage-checkin-item small {
   display: block;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .mypage-chat-history-item p,
@@ -4519,8 +4527,11 @@ h3 {
 .mypage-chat-history-item small,
 .mypage-report-item small,
 .mypage-checkin-item small {
+  overflow: hidden;
   color: var(--muted);
   font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .mypage-item-actions {
@@ -4528,6 +4539,8 @@ h3 {
   flex: 0 0 auto;
   align-items: center;
   gap: 8px;
+  max-width: 100%;
+  min-width: 0;
 }
 
 .mypage-chat-history-item button,
@@ -4538,6 +4551,7 @@ h3 {
   justify-content: center;
   gap: 6px;
   flex: 0 0 auto;
+  min-width: 0;
   border: 1px solid var(--theme-border-strong);
   border-radius: 999px;
   background: rgba(241, 250, 238, 0.68);
@@ -5091,6 +5105,7 @@ h3 {
 .mypage-report-detail p {
   color: var(--foreground);
   line-height: 1.65;
+  overflow-wrap: anywhere;
 }
 
 .mypage-report-songs {
@@ -5102,6 +5117,7 @@ h3 {
 .mypage-report-songs span {
   display: grid;
   gap: 4px;
+  min-width: 0;
   border-radius: 14px;
   background: rgba(237, 246, 236, 0.72);
   color: var(--foreground);
@@ -5112,6 +5128,7 @@ h3 {
 .mypage-report-songs small {
   color: var(--muted);
   line-height: 1.5;
+  overflow-wrap: anywhere;
 }
 
 .mypage-chat-message-list {
@@ -5143,6 +5160,7 @@ h3 {
   padding: 12px 14px;
   font-weight: 800;
   line-height: 1.55;
+  overflow-wrap: anywhere;
 }
 
 .mypage-chat-message-list .is-user p {
@@ -5267,11 +5285,13 @@ h3 {
   }
 
   .mypage-item-actions {
+    flex-wrap: wrap;
     width: 100%;
   }
 
   .mypage-item-actions button {
-    flex: 1;
+    flex: 1 1 118px;
+    white-space: normal;
   }
 
   .mypage-login-method-grid {
