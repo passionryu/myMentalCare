@@ -42,6 +42,7 @@ const checks = [
   ['로그인 실패 오류 메시지 처리', authApi.includes('LoginApiError')],
   ['정신 건강 서비스 디자인 문구', page.includes('따뜻한 개인 멘탈 케어')],
   ['모달 backdrop 스타일', styles.includes('.modal-backdrop')],
+  ['홈 배경 레이어가 모달 fixed 위치를 덮어쓰지 않음', styles.includes('.home-page-shell > :not(.modal-backdrop)') && !styles.includes('.home-page-shell > * {')],
   ['메인 카드 hover 스타일', styles.includes('.feature-card:hover') && styles.includes('.care-panel:hover')],
   ['마이페이지 설정 스타일 유지', styles.includes('.toggle-button') && styles.includes('.mypage-theme-grid')],
   ['화면 배경 테마 스타일', styles.includes(".page-shell[data-theme-tone='breathing-landscape']") && styles.includes(".page-shell[data-theme-tone='botanical-room']") && styles.includes('--theme-visual-layer')],

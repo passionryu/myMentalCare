@@ -2405,7 +2405,7 @@ h3 {
   opacity: 0.7;
 }
 
-.home-page-shell > * {
+.home-page-shell > :not(.modal-backdrop) {
   position: relative;
   z-index: 1;
 }
