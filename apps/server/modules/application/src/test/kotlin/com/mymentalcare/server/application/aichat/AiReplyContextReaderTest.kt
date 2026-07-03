@@ -116,6 +116,10 @@ class AiReplyContextReaderTest {
             return messages.filter { it.roomId == roomId }.sortedBy { it.messageOrder }
         }
 
+        override fun findByRoomIds(roomIds: List<Long>): List<ChatMessage> {
+            return messages.filter { it.roomId in roomIds }.sortedWith(compareBy<ChatMessage> { it.roomId }.thenBy { it.messageOrder })
+        }
+
         override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
             return messages.filter { it.segmentId == segmentId }.sortedBy { it.messageOrder }
         }

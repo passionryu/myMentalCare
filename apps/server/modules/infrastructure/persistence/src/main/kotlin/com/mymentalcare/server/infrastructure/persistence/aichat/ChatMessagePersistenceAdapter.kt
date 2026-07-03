@@ -14,6 +14,15 @@ class ChatMessagePersistenceAdapter(
             .map { it.toDomain() }
     }
 
+    override fun findByRoomIds(roomIds: List<Long>): List<ChatMessage> {
+        if (roomIds.isEmpty()) {
+            return emptyList()
+        }
+
+        return jpaChatMessageRepository.findByRoomIdInOrderByRoomIdAscMessageOrderAsc(roomIds)
+            .map { it.toDomain() }
+    }
+
     override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
         return jpaChatMessageRepository.findBySegmentIdOrderByMessageOrderAsc(segmentId)
             .map { it.toDomain() }

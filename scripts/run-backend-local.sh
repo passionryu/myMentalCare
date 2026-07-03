@@ -55,7 +55,7 @@ fi
 ./gradlew --stop >/dev/null 2>&1 || true
 ./gradlew --no-daemon :modules:bootstrap:mymentalcare:bootJar
 
-JAR_PATH="$ROOT_DIR/apps/server/modules/bootstrap/mymentalcare/build/libs/mymentalcare-0.0.1-SNAPSHOT.jar"
+JAR_PATH="$ROOT_DIR/apps/server/modules/bootstrap/mymentalcare/build/libs/mymentalcare-server.jar"
 exec "$JAVA_HOME/bin/java" \
   -jar "$JAR_PATH" \
   --server.port="$SERVER_PORT"
