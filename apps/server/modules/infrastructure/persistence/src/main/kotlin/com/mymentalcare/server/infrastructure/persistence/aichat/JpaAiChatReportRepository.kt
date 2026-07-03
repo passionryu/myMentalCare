@@ -25,3 +25,7 @@ interface JpaAiChatReportRepository : JpaRepository<AiChatReportEntity, Long> {
 interface JpaAiChatReportSongRepository : JpaRepository<AiChatReportSongEntity, Long> {
     fun findByReportIdOrderBySongOrderAsc(reportId: Long): List<AiChatReportSongEntity>
 }
+
+interface JpaAiChatReportEmotionPointRepository : JpaRepository<AiChatReportEmotionPointEntity, Long> {
+    fun findByReportIdOrderByPointOrderAsc(reportId: Long): List<AiChatReportEmotionPointEntity>
+}

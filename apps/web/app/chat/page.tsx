@@ -894,6 +894,12 @@ function ShortReportGuideModal({
 }
 
 function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport; onClose: () => void; onGoHome: () => void }) {
+  const emotionScoreText = typeof report.emotionScore === 'number'
+    ? `${report.emotionScore}/100`
+    : report.emotionIntensity
+      ? `${report.emotionIntensity}/5`
+      : '판단 유보'
+
   return (
     <div className="modal-backdrop stacked" role="presentation" onMouseDown={onClose}>
       <section
@@ -927,11 +933,13 @@ function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport
             <strong>{report.primaryEmotion}</strong>
           </div>
           <div>
-            <span>감정 강도</span>
-            <strong>{report.emotionIntensity ? `${report.emotionIntensity}/5` : '판단 유보'}</strong>
+            <span>{typeof report.emotionScore === 'number' ? '감정 점수' : '감정 강도'}</span>
+            <strong>{emotionScoreText}</strong>
           </div>
           <p>{report.todaySentence}</p>
         </section>
+
+        <EmotionTimelineChart timeline={report.emotionTimeline ?? []} />
 
         <div className="report-section-grid">
           <ReportSection title="오늘의 대화 요약" value={report.summary} />
@@ -945,19 +953,23 @@ function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport
             <strong>추천 노래</strong>
           </div>
           <div className="report-song-list">
-            {report.songs.map((song) => (
-              <a className="report-song-card" href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.artist}-${song.title}`}>
-                <span>
-                  <strong>{song.title}</strong>
-                  <small>{song.artist}</small>
-                </span>
-                <p>{song.reason}</p>
-                <em>
-                  YouTube에서 듣기
-                  <ExternalLink size={14} aria-hidden="true" />
-                </em>
-              </a>
-            ))}
+            {report.songs.length === 0 ? (
+              <p className="report-song-empty">추천 노래를 만들지 못했습니다. 대화를 조금 더 이어간 뒤 다시 확인해주세요.</p>
+            ) : (
+              report.songs.map((song) => (
+                <a className="report-song-card" href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.artist}-${song.title}`}>
+                  <span>
+                    <strong>{song.title}</strong>
+                    <small>{song.artist}</small>
+                  </span>
+                  <p>{song.reason}</p>
+                  <em>
+                    YouTube에서 듣기
+                    <ExternalLink size={14} aria-hidden="true" />
+                  </em>
+                </a>
+              ))
+            )}
           </div>
         </div>
 
@@ -969,6 +981,56 @@ function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport
         </div>
       </section>
     </div>
+  )
+}
+
+function EmotionTimelineChart({ timeline }: { timeline: NonNullable<AiChatReport['emotionTimeline']> }) {
+  if (timeline.length === 0) {
+    return null
+  }
+
+  const width = 560
+  const height = 190
+  const padding = 26
+  const sortedTimeline = [...timeline].sort((a, b) => a.pointOrder - b.pointOrder)
+  const points = sortedTimeline.map((point, index) => {
+    const x = sortedTimeline.length === 1
+      ? width / 2
+      : padding + (index / (sortedTimeline.length - 1)) * (width - padding * 2)
+    const y = padding + ((100 - point.score) / 100) * (height - padding * 2)
+    return { ...point, x, y }
+  })
+  const polyline = points.map((point) => `${point.x},${point.y}`).join(' ')
+
+  return (
+    <section className="report-emotion-chart" aria-label="대화 중 마음 변화 그래프">
+      <div className="report-emotion-chart-heading">
+        <span>마음 변화 그래프</span>
+        <strong>대화 흐름에 따른 감정 점수</strong>
+      </div>
+      <svg className="report-emotion-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="감정 점수 0점부터 100점 사이의 변화 그래프">
+        <line x1={padding} y1={padding} x2={padding} y2={height - padding} />
+        <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} />
+        <line className="is-guide" x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} />
+        <polyline points={polyline} />
+        {points.map((point) => (
+          <g key={`${point.pointOrder}-${point.messageOrder ?? point.label}`}>
+            <circle cx={point.x} cy={point.y} r="5" />
+            <text x={point.x} y={height - 7} textAnchor="middle">{point.label}</text>
+          </g>
+        ))}
+        <text className="axis-label" x="6" y={padding + 4}>100</text>
+        <text className="axis-label" x="12" y={height - padding + 4}>0</text>
+      </svg>
+      <div className="report-emotion-point-list">
+        {points.map((point) => (
+          <span key={`reason-${point.pointOrder}-${point.messageOrder ?? point.label}`}>
+            <b>{point.score}</b>
+            {point.reason}
+          </span>
+        ))}
+      </div>
+    </section>
   )
 }
 

@@ -3,6 +3,7 @@ package com.mymentalcare.server.application.aichat.port
 import com.mymentalcare.server.application.aichat.request.*
 import com.mymentalcare.server.application.aichat.response.*
 
+import com.mymentalcare.server.domain.aichat.AiChatReportEmotionPoint
 import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatReportType
 import com.mymentalcare.server.domain.aichat.ChatMessage
@@ -16,8 +17,10 @@ data class AiChatReportDraft(
     val summary: String,
     val primaryEmotion: String,
     val emotionIntensity: Int?,
+    val emotionScore: Int?,
     val mainCause: String,
     val emotionalFlow: String,
     val todaySentence: String,
     val songs: List<AiChatReportSong>,
+    val emotionTimeline: List<AiChatReportEmotionPoint> = emptyList(),
 )

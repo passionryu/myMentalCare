@@ -35,7 +35,7 @@ class MindStatisticsServiceTest {
         )
         val reportRepository = FakeAiChatReportRepository(
             reports = mutableListOf(
-                testReport(id = 1L, roomId = 1L, conversationDate = LocalDate.of(2026, 7, 2), primaryEmotion = "편안함"),
+                testReport(id = 1L, roomId = 1L, conversationDate = LocalDate.of(2026, 7, 2), primaryEmotion = "편안함", emotionScore = 72),
             ),
         )
         val service = MindStatisticsService(roomRepository, messageRepository, reportRepository)
@@ -48,7 +48,7 @@ class MindStatisticsServiceTest {
         assertTrue(reportDay.hasConversation)
         assertTrue(reportDay.hasReport)
         assertEquals("편안함", reportDay.primaryEmotion)
-        assertEquals(100, reportDay.emotionIntensity)
+        assertEquals(72, reportDay.emotionIntensity)
     }
 
     @Test
@@ -63,7 +63,7 @@ class MindStatisticsServiceTest {
         )
         val reportRepository = FakeAiChatReportRepository(
             mutableListOf(
-                testReport(id = 10L, roomId = 10L, conversationDate = targetDate, primaryEmotion = "가벼움"),
+                testReport(id = 10L, roomId = 10L, conversationDate = targetDate, primaryEmotion = "가벼움", emotionScore = 68),
             ),
         )
         val service = MindStatisticsService(roomRepository, messageRepository, reportRepository)
@@ -73,7 +73,7 @@ class MindStatisticsServiceTest {
         assertEquals(10L, response.roomId)
         assertEquals(2, response.messageCount)
         assertEquals("가벼움", response.report!!.primaryEmotion)
-        assertEquals(100, response.report!!.emotionIntensity)
+        assertEquals(68, response.report!!.emotionIntensity)
         assertEquals("오늘은 마음이 조금 가벼워졌어", response.messages.first().contentPreview)
     }
 
@@ -144,6 +144,7 @@ class MindStatisticsServiceTest {
         conversationDate: LocalDate,
         primaryEmotion: String,
         emotionIntensity: Int = 6,
+        emotionScore: Int? = null,
     ): AiChatReport {
         return AiChatReport(
             id = id,
@@ -154,6 +155,7 @@ class MindStatisticsServiceTest {
             summary = "오늘의 마음을 정리했습니다.",
             primaryEmotion = primaryEmotion,
             emotionIntensity = emotionIntensity,
+            emotionScore = emotionScore,
             mainCause = "대화",
             emotionalFlow = "편안하게 이어짐",
             todaySentence = "오늘의 마음을 잘 살폈습니다.",

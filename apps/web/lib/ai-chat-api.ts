@@ -89,12 +89,22 @@ export type AiChatReport = {
   summary: string
   primaryEmotion: string
   emotionIntensity?: number | null
+  emotionScore?: number | null
   mainCause: string
   emotionalFlow: string
   todaySentence: string
+  emotionTimeline?: AiChatReportEmotionPoint[]
   songs: AiChatReportSong[]
   saved: boolean
   createdAt?: string | null
+}
+
+export type AiChatReportEmotionPoint = {
+  pointOrder: number
+  messageOrder?: number | null
+  label: string
+  score: number
+  reason: string
 }
 
 export type AiChatReportSong = {

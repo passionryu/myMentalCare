@@ -78,11 +78,13 @@ internal class AiChatReportService(
                 summary = draft.summary,
                 primaryEmotion = draft.primaryEmotion,
                 emotionIntensity = draft.emotionIntensity,
+                emotionScore = draft.emotionScore,
                 mainCause = draft.mainCause,
                 emotionalFlow = draft.emotionalFlow,
                 todaySentence = draft.todaySentence,
                 clientRequestId = request.clientRequestId,
                 songs = draft.songs,
+                emotionTimeline = draft.emotionTimeline,
             )
         )
 

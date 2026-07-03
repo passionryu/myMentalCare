@@ -4,28 +4,26 @@ import com.mymentalcare.server.application.aichat.port.*
 import com.mymentalcare.server.application.aichat.request.*
 import com.mymentalcare.server.application.aichat.response.*
 
-import com.mymentalcare.server.domain.aichat.AiChatReportSong
+import com.mymentalcare.server.domain.aichat.AiChatReportEmotionPoint
 import com.mymentalcare.server.domain.aichat.AiChatReportType
 import com.mymentalcare.server.domain.aichat.ChatMessage
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
-import org.springframework.stereotype.Component
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
+import kotlin.math.roundToInt
 
-@Component
-internal class DefaultAiChatReportGenerator : AiChatReportGenerator {
+class DefaultAiChatReportGenerator : AiChatReportGenerator {
     // 대화가 충분하면 감정과 원인을 조심스럽게 정리하고, 부족하면 판단 유보 리포트를 만든다.
     override fun generateReport(reportType: AiChatReportType, messages: List<ChatMessage>): AiChatReportDraft {
-        val userTexts = messages
-            .filter { it.senderType == ChatMessageSenderType.USER }
-            .map { it.content.trim() }
-            .filter { it.isNotBlank() }
+        val userMessages = messages
+            .filter { it.senderType == ChatMessageSenderType.USER && it.content.isNotBlank() }
+            .sortedBy { it.messageOrder }
+        val userTexts = userMessages.map { it.content.trim() }
 
         if (reportType == AiChatReportType.SHORT) {
             return buildShortReport()
         }
 
         val primaryEmotion = detectPrimaryEmotion(userTexts)
+        val emotionScore = primaryEmotion.intensity.toEmotionScore()
         val mainCause = detectMainCause(userTexts)
         val recentTopics = userTexts.takeLast(3).joinToString(" / ") { it.take(70) }
 
@@ -33,10 +31,12 @@ internal class DefaultAiChatReportGenerator : AiChatReportGenerator {
             summary = "오늘은 ${mainCause}와 관련된 이야기가 주로 오갔습니다. 최근 대화에서는 $recentTopics 같은 흐름이 확인되었습니다.",
             primaryEmotion = primaryEmotion.label,
             emotionIntensity = primaryEmotion.intensity,
+            emotionScore = emotionScore,
             mainCause = mainCause,
             emotionalFlow = "대화 초반의 표현과 최근 메시지를 함께 보면, 마음을 바로 결론내리기보다 오늘의 상태를 정리하려는 흐름이 나타났습니다.",
             todaySentence = "오늘의 마음은 단정하기보다, 말로 꺼낸 만큼만 천천히 정리해도 괜찮습니다.",
-            songs = songsFor(primaryEmotion.label),
+            songs = emptyList(),
+            emotionTimeline = buildFallbackTimeline(userMessages),
         )
     }
 
@@ -45,11 +45,45 @@ internal class DefaultAiChatReportGenerator : AiChatReportGenerator {
             summary = "오늘은 짧게 대화를 시작했지만, 마음 상태나 상황을 파악할 만큼의 내용은 충분히 쌓이지 않았습니다.",
             primaryEmotion = "아직 판단하기 어려움",
             emotionIntensity = null,
+            emotionScore = null,
             mainCause = "확인되지 않음",
             emotionalFlow = "대화량이 적어 마음의 변화 흐름을 정리하기 어렵습니다.",
             todaySentence = "아직 더 말해도 괜찮습니다.",
-            songs = songsFor("짧은 대화"),
+            songs = emptyList(),
+            emotionTimeline = emptyList(),
         )
+    }
+
+    private fun buildFallbackTimeline(userMessages: List<ChatMessage>): List<AiChatReportEmotionPoint> {
+        if (userMessages.isEmpty()) {
+            return emptyList()
+        }
+
+        val sampledMessages = when {
+            userMessages.size <= 5 -> userMessages
+            else -> listOf(
+                userMessages.first(),
+                userMessages[userMessages.lastIndex / 4],
+                userMessages[userMessages.lastIndex / 2],
+                userMessages[(userMessages.lastIndex * 3) / 4],
+                userMessages.last(),
+            ).distinctBy { it.messageOrder }
+        }
+
+        return sampledMessages.mapIndexed { index, message ->
+            val emotion = detectPrimaryEmotion(listOf(message.content))
+            AiChatReportEmotionPoint(
+                pointOrder = index + 1,
+                messageOrder = message.messageOrder,
+                label = when (index) {
+                    0 -> "초반"
+                    sampledMessages.lastIndex -> "마무리"
+                    else -> "중간 ${index}"
+                },
+                score = emotion.intensity.toEmotionScore(),
+                reason = message.content.trim().take(60).ifBlank { "대화 흐름 기준" },
+            )
+        }
     }
 
     private fun detectPrimaryEmotion(userTexts: List<String>): EmotionGuess {
@@ -78,50 +112,6 @@ internal class DefaultAiChatReportGenerator : AiChatReportGenerator {
         }
     }
 
-    private fun songsFor(emotion: String): List<AiChatReportSong> {
-        val songs = when (emotion) {
-            "불안" -> listOf(
-                SongRecommendation("밤편지", "아이유", "조용히 마음을 가라앉히며 하루를 정리하기 좋습니다."),
-                SongRecommendation("위로", "권진아", "불안을 급하게 밀어내기보다 곁에 두고 쉬어가게 합니다."),
-                SongRecommendation("Better Together", "Jack Johnson", "긴장을 낮추는 부드러운 분위기가 있습니다."),
-            )
-            "지침" -> listOf(
-                SongRecommendation("휴식", "옥상달빛", "지친 마음을 과하게 끌어올리지 않고 편하게 둡니다."),
-                SongRecommendation("에필로그", "아이유", "하루를 무리 없이 마무리하는 느낌을 줍니다."),
-                SongRecommendation("Banana Pancakes", "Jack Johnson", "느슨하게 쉬어가고 싶은 상태에 어울립니다."),
-            )
-            "가라앉음" -> listOf(
-                SongRecommendation("한숨", "이하이", "무거운 마음을 혼자만의 것으로 두지 않게 합니다."),
-                SongRecommendation("그대라는 시", "태연", "조용히 감정을 지나가게 하는 분위기가 있습니다."),
-                SongRecommendation("Fix You", "Coldplay", "가라앉은 마음을 천천히 붙잡아주는 곡입니다."),
-            )
-            "답답함" -> listOf(
-                SongRecommendation("가끔 미치도록 네가 안고 싶어질 때가 있어", "가을방학", "답답한 마음의 결을 차분하게 풀어냅니다."),
-                SongRecommendation("Square", "백예린", "막힌 느낌을 조금 부드럽게 환기해줍니다."),
-                SongRecommendation("Lost Stars", "Adam Levine", "복잡한 생각을 정리하는 밤 분위기에 어울립니다."),
-            )
-            else -> listOf(
-                SongRecommendation("주저하는 연인들을 위해", "잔나비", "오늘의 여운을 천천히 정리하기 좋습니다."),
-                SongRecommendation("밤편지", "아이유", "조용한 마무리와 잘 어울립니다."),
-                SongRecommendation("좋은 밤 좋은 꿈", "너드커넥션", "하루를 부드럽게 닫는 분위기가 있습니다."),
-            )
-        }
-
-        return songs.mapIndexed { index, song ->
-            AiChatReportSong(
-                songOrder = index + 1,
-                title = song.title,
-                artist = song.artist,
-                reason = song.reason,
-                youtubeUrl = youtubeSearchUrl(song),
-            )
-        }
-    }
-
-    private fun youtubeSearchUrl(song: SongRecommendation): String {
-        val query = URLEncoder.encode("${song.artist} ${song.title}", StandardCharsets.UTF_8)
-        return "https://www.youtube.com/results?search_query=$query"
-    }
 }
 
 private data class EmotionGuess(
@@ -129,8 +119,6 @@ private data class EmotionGuess(
     val intensity: Int,
 )
 
-private data class SongRecommendation(
-    val title: String,
-    val artist: String,
-    val reason: String,
-)
+private fun Int.toEmotionScore(): Int {
+    return ((coerceIn(0, 5).toDouble() / 5.0) * 100).roundToInt().coerceIn(0, 100)
+}

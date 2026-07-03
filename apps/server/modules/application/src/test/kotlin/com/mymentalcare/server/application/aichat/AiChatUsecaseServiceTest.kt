@@ -371,7 +371,9 @@ class AiChatUsecaseServiceTest {
 
         assertEquals("FULL", response.reportType)
         assertEquals(true, response.saved)
-        assertEquals(3, response.songs.size)
+        assertEquals(80, response.emotionScore)
+        assertEquals(true, response.emotionTimeline.isNotEmpty())
+        assertEquals(0, response.songs.size)
         assertEquals(1, reportRepository.reports.size)
     }
 
