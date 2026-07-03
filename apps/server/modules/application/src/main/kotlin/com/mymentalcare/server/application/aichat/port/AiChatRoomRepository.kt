@@ -11,6 +11,8 @@ interface AiChatRoomRepository {
 
     fun findByMemberId(memberId: Long): List<AiChatRoom>
 
+    fun findByMemberIdAndDateRange(memberId: Long, startDate: LocalDate, endDate: LocalDate): List<AiChatRoom>
+
     fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom?
 
     fun save(room: AiChatRoom): AiChatRoom

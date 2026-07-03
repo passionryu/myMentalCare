@@ -12,5 +12,11 @@ interface JpaAiChatRoomRepository : JpaRepository<AiChatRoomEntity, Long> {
 
     fun findByMemberIdOrderByConversationDateDescIdDesc(memberId: Long): List<AiChatRoomEntity>
 
+    fun findByMemberIdAndConversationDateBetweenOrderByConversationDateAscIdAsc(
+        memberId: Long,
+        startDate: LocalDate,
+        endDate: LocalDate,
+    ): List<AiChatRoomEntity>
+
     fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoomEntity?
 }

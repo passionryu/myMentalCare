@@ -28,6 +28,14 @@ class AiChatReportPersistenceAdapter(
             .map { it.toDomain(readSongs(it.id)) }
     }
 
+    override fun findByMemberIdAndDateRange(memberId: Long, startDate: java.time.LocalDate, endDate: java.time.LocalDate): List<AiChatReport> {
+        return jpaAiChatReportRepository.findByMemberIdAndConversationDateBetweenOrderByConversationDateAscCreatedAtDesc(
+            memberId = memberId,
+            startDate = startDate,
+            endDate = endDate,
+        ).map { it.toDomain(readSongs(it.id)) }
+    }
+
     override fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport? {
         return jpaAiChatReportRepository.findByIdAndMemberId(reportId, memberId)
             ?.let { it.toDomain(readSongs(it.id)) }
