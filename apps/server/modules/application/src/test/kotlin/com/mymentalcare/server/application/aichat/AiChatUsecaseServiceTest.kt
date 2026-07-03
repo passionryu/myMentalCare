@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertNull
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import java.time.LocalDate
+import java.time.LocalDateTime
 
 class AiChatUsecaseServiceTest {
     @Test
@@ -360,6 +361,7 @@ class AiChatUsecaseServiceTest {
                     content = "회사 업무 때문에 불안하고 지친 마음이 계속 남아 있어 ${index + 1}",
                     messageOrder = index + 1,
                     isCrisisDetected = false,
+                    createdAt = LocalDateTime.of(2026, 7, 3, 14, index),
                 )
             )
         }
@@ -373,6 +375,7 @@ class AiChatUsecaseServiceTest {
         assertEquals(true, response.saved)
         assertEquals(80, response.emotionScore)
         assertEquals(true, response.emotionTimeline.isNotEmpty())
+        assertEquals("오후 2:00", response.emotionTimeline.first().timeLabel)
         assertEquals(0, response.songs.size)
         assertEquals(1, reportRepository.reports.size)
     }

@@ -3721,7 +3721,7 @@ h3 {
 
 .report-emotion-chart {
   display: grid;
-  gap: 12px;
+  gap: 16px;
   margin-bottom: 14px;
   border: 1px solid rgba(83, 111, 90, 0.16);
   border-radius: 22px;
@@ -3769,17 +3769,27 @@ h3 {
   stroke-dasharray: 7 7;
 }
 
-.report-emotion-svg polyline {
+.report-emotion-svg .report-emotion-area {
+  fill: url("#report-emotion-fill");
+  stroke: none;
+}
+
+.report-emotion-svg .report-emotion-line {
   fill: none;
-  stroke: var(--sage-dark);
+  stroke: #8a5832;
   stroke-linecap: round;
   stroke-linejoin: round;
   stroke-width: 5;
+  filter: drop-shadow(0 8px 10px rgba(109, 74, 45, 0.18));
+}
+
+.report-emotion-svg polyline {
+  display: none;
 }
 
 .report-emotion-svg circle {
   fill: #fffdf7;
-  stroke: var(--sage-dark);
+  stroke: #8a5832;
   stroke-width: 4;
 }
 
@@ -3796,23 +3806,61 @@ h3 {
 .report-emotion-point-list {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 8px;
+  gap: 10px;
 }
 
-.report-emotion-point-list span {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  border-radius: 14px;
-  background: rgba(231, 240, 229, 0.56);
+.report-emotion-point-card {
+  display: grid;
+  gap: 7px;
+  position: relative;
+  border: 1px solid rgba(125, 86, 50, 0.14);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, rgba(255, 247, 233, 0.92), rgba(242, 224, 199, 0.62)),
+    rgba(255, 253, 247, 0.92);
   color: var(--muted);
-  padding: 9px 11px;
-  font-size: 13px;
-  font-weight: 800;
+  padding: 12px 13px;
   line-height: 1.45;
+  box-shadow: 0 12px 22px rgba(72, 50, 32, 0.07);
 }
 
-.report-emotion-point-list b {
+.report-emotion-point-card::before {
+  content: "";
+  position: absolute;
+  left: 13px;
+  top: 17px;
+  bottom: 17px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, rgba(184, 111, 84, 0.72), rgba(83, 111, 90, 0.34));
+}
+
+.report-emotion-point-card div,
+.report-emotion-point-card strong,
+.report-emotion-point-card p {
+  margin-left: 13px;
+}
+
+.report-emotion-point-card div {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.report-emotion-point-card span {
+  color: #8a5832;
+  font-size: 12px;
+  font-weight: 950;
+}
+
+.report-emotion-point-card strong {
+  color: #23291f;
+  font-size: 14px;
+  font-weight: 950;
+}
+
+.report-emotion-point-card b {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -3822,6 +3870,14 @@ h3 {
   color: #fffdf7;
   padding: 4px 7px;
   font-size: 12px;
+}
+
+.report-emotion-point-card p {
+  margin-top: 0;
+  margin-bottom: 0;
+  color: #5f655d;
+  font-size: 13px;
+  font-weight: 800;
 }
 
 .report-readiness-box {

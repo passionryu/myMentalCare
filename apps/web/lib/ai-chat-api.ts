@@ -103,6 +103,7 @@ export type AiChatReportEmotionPoint = {
   pointOrder: number
   messageOrder?: number | null
   label: string
+  timeLabel?: string | null
   score: number
   reason: string
 }

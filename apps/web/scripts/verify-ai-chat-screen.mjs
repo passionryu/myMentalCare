@@ -8,7 +8,7 @@ const chatApi = readFileSync(resolve(root, 'lib/ai-chat-api.ts'), 'utf8')
 const checkInTemplates = readFileSync(resolve(root, 'lib/check-in-templates.ts'), 'utf8')
 
 const checks = [
-  ['메인 화면 AI 마음 대화 카드 진입 버튼', page.includes('AI 마음대화 시작') && page.includes("router.push('/chat')")],
+  ['메인 화면 AI 마음 대화 진입 버튼', page.includes('AI와 대화하기') && page.includes("router.push('/chat')")],
   ['비로그인 상태 로그인 모달 표시', page.includes("setAuthMode('login')") && page.includes('handleOpenAiChat')],
   ['채팅 화면 경로 구현', chatPage.includes('마음이와 오늘의 대화')],
   ['오늘 대화방 조회 API 사용', chatApi.includes('/api/ai-chat/rooms/today')],
@@ -21,6 +21,9 @@ const checks = [
   ['채팅 화면 체크인 템플릿 쿼리 처리', chatPage.includes("new URLSearchParams(window.location.search).get('checkInTemplate')")],
   ['홈 진입 체크인 모달 자동 표시', chatPage.includes("setModalMode('CHECK_IN_WIZARD')") && chatPage.includes('setSelectedTemplate(pendingTemplate)')],
   ['체크인 템플릿 4종 제공', ['기본 감정형', '대화 시작형', '컨디션 중심형', '하루 회고형'].every((title) => checkInTemplates.includes(title))],
+  ['리포트 타임라인 시간 라벨 타입 제공', chatApi.includes('timeLabel?: string | null')],
+  ['리포트 그래프 시간축 라벨 표시', chatPage.includes('xAxisLabel: point.timeLabel ?? point.label') && chatPage.includes('시간대별 감정 점수 흐름')],
+  ['리포트 감정 흐름 카드형 타임라인 제공', chatPage.includes('report-emotion-point-card') && chatPage.includes('report-emotion-area')],
 ]
 
 const failed = checks.filter(([, passed]) => !passed)

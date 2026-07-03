@@ -12,6 +12,10 @@ import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatSegment
 import com.mymentalcare.server.domain.aichat.ChatMessage
 import org.springframework.stereotype.Component
+import java.time.format.DateTimeFormatter
+import java.util.Locale
+
+private val REPORT_TIME_LABEL_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN)
 
 @Component
 internal class AiChatResponseAssembler(
@@ -36,6 +40,9 @@ internal class AiChatResponseAssembler(
     }
 
     fun toReportResponse(report: AiChatReport): AiChatReportResponse {
+        val messagesByOrder = chatMessageRepository.findByRoomId(report.roomId)
+            .associateBy { it.messageOrder }
+
         return AiChatReportResponse(
             reportId = report.id,
             roomId = report.roomId,
@@ -48,7 +55,7 @@ internal class AiChatResponseAssembler(
             mainCause = report.mainCause,
             emotionalFlow = report.emotionalFlow,
             todaySentence = report.todaySentence,
-            emotionTimeline = report.emotionTimeline.map { it.toResponse() },
+            emotionTimeline = report.emotionTimeline.map { it.toResponse(messagesByOrder) },
             songs = report.songs.map { it.toResponse() },
             saved = true,
             createdAt = report.createdAt,
@@ -139,11 +146,12 @@ internal class AiChatResponseAssembler(
         )
     }
 
-    private fun AiChatReportEmotionPoint.toResponse(): AiChatReportEmotionPointResponse {
+    private fun AiChatReportEmotionPoint.toResponse(messagesByOrder: Map<Int, ChatMessage>): AiChatReportEmotionPointResponse {
         return AiChatReportEmotionPointResponse(
             pointOrder = pointOrder,
             messageOrder = messageOrder,
             label = label,
+            timeLabel = messageOrder?.let { messagesByOrder[it]?.createdAt?.format(REPORT_TIME_LABEL_FORMATTER) },
             score = score,
             reason = reason,
         )
