@@ -8,6 +8,7 @@ import com.mymentalcare.server.application.aichat.port.AiChatReportGenerator
 import com.mymentalcare.server.application.common.extension.logWarn
 import com.mymentalcare.server.bootstrap.config.OpenAiProperties
 import com.mymentalcare.server.domain.aichat.AiChatReportEmotionPoint
+import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatReportType
 import com.mymentalcare.server.domain.aichat.ChatMessage
 import com.mymentalcare.server.domain.aichat.ChatMessageSenderType
@@ -16,6 +17,8 @@ import org.springframework.http.MediaType
 import org.springframework.http.client.JdkClientHttpRequestFactory
 import org.springframework.stereotype.Component
 import org.springframework.web.client.RestClient
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
 import java.net.http.HttpClient
 import kotlin.math.ceil
 
@@ -112,6 +115,13 @@ class OpenAiChatReportGenerator(
               "mainCause": "주요 원인 짧은 문구",
               "emotionalFlow": "감정 변화 그래프를 설명하는 1~3문장",
               "todaySentence": "오늘 마음을 정리하는 한 문장",
+              "songs": [
+                {
+                  "title": "곡 제목",
+                  "artist": "가수명",
+                  "reason": "이 대화에 이 곡을 추천하는 짧은 이유"
+                }
+              ],
               "emotionTimeline": [
                 {
                   "pointOrder": 1,
@@ -128,6 +138,9 @@ class OpenAiChatReportGenerator(
             - 사용자가 직접 말한 내용과 대화 흐름만 근거로 삼고, 말하지 않은 감정/원인을 단정하지 마세요.
             - emotionTimeline은 대화 타임라인을 따라 4~8개 포인트로 구성하세요.
             - messageOrder는 해당 포인트 판단에 가장 가까운 대화의 messageOrder를 사용하세요.
+            - songs는 전체 대화와 현재 마음 상태에 어울리는 1~3곡을 추천하세요.
+            - 가능하면 한국 노래를 우선 포함하고, 유명한 외국 노래도 적절하면 포함하세요.
+            - songs에는 URL을 넣지 마세요. title, artist, reason만 작성하세요.
             - 의료 진단, 치료 판단, 위기 대응 역할을 하지 마세요.
         """.trimIndent()
     }
@@ -147,6 +160,7 @@ class OpenAiChatReportGenerator(
         val json = objectMapper.readTree(responseText.extractJsonObject())
         val emotionScore = json.path("emotionScore").asInt(fallbackDraft.emotionScore ?: 50).coerceIn(0, 100)
         val timeline = parseTimeline(json.path("emotionTimeline"), fallbackDraft.emotionTimeline)
+        val songs = parseSongs(json.path("songs"))
 
         return AiChatReportDraft(
             summary = json.textOrFallback("summary", fallbackDraft.summary),
@@ -156,9 +170,34 @@ class OpenAiChatReportGenerator(
             mainCause = json.textOrFallback("mainCause", fallbackDraft.mainCause),
             emotionalFlow = json.textOrFallback("emotionalFlow", fallbackDraft.emotionalFlow),
             todaySentence = json.textOrFallback("todaySentence", fallbackDraft.todaySentence),
-            songs = fallbackDraft.songs,
+            songs = songs,
             emotionTimeline = timeline.ifEmpty { fallbackDraft.emotionTimeline },
         )
+    }
+
+    private fun parseSongs(songsNode: JsonNode): List<AiChatReportSong> {
+        if (!songsNode.isArray) {
+            return emptyList()
+        }
+
+        return songsNode
+            .take(3)
+            .mapIndexedNotNull { index, node ->
+                val title = node.textOrFallback("title", "", 120).takeIf { it.isNotBlank() }
+                val artist = node.textOrFallback("artist", "", 120).takeIf { it.isNotBlank() }
+                val reason = node.textOrFallback("reason", "", 300).takeIf { it.isNotBlank() }
+                if (title == null || artist == null || reason == null) {
+                    null
+                } else {
+                    AiChatReportSong(
+                        songOrder = index + 1,
+                        title = title,
+                        artist = artist,
+                        reason = reason,
+                        youtubeUrl = youtubeSearchUrl(artist = artist, title = title),
+                    )
+                }
+            }
     }
 
     private fun parseTimeline(timelineNode: JsonNode, fallbackTimeline: List<AiChatReportEmotionPoint>): List<AiChatReportEmotionPoint> {
@@ -211,6 +250,11 @@ class OpenAiChatReportGenerator(
 
         return content.path("text").asText(null)?.takeIf { it.isNotBlank() }
     }
+}
+
+private fun youtubeSearchUrl(artist: String, title: String): String {
+    val query = URLEncoder.encode("$artist $title", StandardCharsets.UTF_8)
+    return "https://www.youtube.com/results?search_query=$query"
 }
 
 private fun JsonNode.textOrFallback(fieldName: String, fallback: String, maxLength: Int = REPORT_FIELD_MAX_LENGTH): String {
