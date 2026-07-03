@@ -199,7 +199,7 @@ export default function StatisticsPage() {
                     <span>대표 감정</span>
                     <strong>{dayDetail.report.primaryEmotion}</strong>
                     <p>{dayDetail.report.todaySentence}</p>
-                    <small>강도 {dayDetail.report.emotionIntensity ?? '-'} · 원인 {dayDetail.report.mainCause}</small>
+                    <small>감정 점수 {dayDetail.report.emotionIntensity ?? '-'}점 · 원인 {dayDetail.report.mainCause}</small>
                   </article>
                 )}
                 <div className="day-message-list">
@@ -278,7 +278,7 @@ function TrendChart({ overview }: { overview: MindStatisticsOverview | null }) {
     .map((point, index) => {
       const x = points.length <= 1 ? 50 : 12 + (index * 76) / (points.length - 1)
       const intensity = point.averageEmotionIntensity ?? 0
-      const y = 86 - Math.max(0, Math.min(10, intensity)) * 7
+      const y = 86 - Math.max(0, Math.min(100, intensity)) * 0.7
       return `${x},${y}`
     })
     .join(' ')
@@ -290,7 +290,7 @@ function TrendChart({ overview }: { overview: MindStatisticsOverview | null }) {
           <polyline points={polylinePoints} fill="none" stroke="currentColor" strokeWidth="3.5" strokeLinecap="round" strokeLinejoin="round" />
           {points.map((point, index) => {
             const x = points.length <= 1 ? 50 : 12 + (index * 76) / (points.length - 1)
-            const y = 86 - Math.max(0, Math.min(10, point.averageEmotionIntensity ?? 0)) * 7
+            const y = 86 - Math.max(0, Math.min(100, point.averageEmotionIntensity ?? 0)) * 0.7
             return <circle key={`${point.weekStartDate}-${point.weekEndDate}`} cx={x} cy={y} r="3.8" />
           })}
         </svg>

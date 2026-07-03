@@ -27,6 +27,8 @@ private val KOREA_ZONE_ID: ZoneId = ZoneId.of("Asia/Seoul")
 private const val MIN_RANGE_WEEKS = 1
 private const val MAX_RANGE_WEEKS = 4
 private const val MESSAGE_PREVIEW_LIMIT = 90
+private const val MAX_RAW_EMOTION_INTENSITY = 5
+private const val MAX_STATISTICS_EMOTION_SCORE = 100
 private const val UNKNOWN_EMOTION_LABEL = "미분류"
 
 @Service
@@ -58,7 +60,7 @@ class MindStatisticsService(
                 hasReport = report != null,
                 messageCount = messageCount,
                 primaryEmotion = report?.primaryEmotion,
-                emotionIntensity = report?.emotionIntensity,
+                emotionIntensity = report?.emotionIntensity?.toStatisticsEmotionScore(),
                 todaySentence = report?.todaySentence,
             )
         }
@@ -154,7 +156,7 @@ class MindStatisticsService(
             val weekStart = startDate.plusWeeks(weekIndex.toLong())
             val weekEnd = minOf(weekStart.plusDays(6), endDate)
             val weekReports = reports.filter { !it.conversationDate.isBefore(weekStart) && !it.conversationDate.isAfter(weekEnd) }
-            val intensities = weekReports.mapNotNull { it.emotionIntensity }
+            val intensities = weekReports.mapNotNull { it.emotionIntensity?.toStatisticsEmotionScore() }
 
             MindStatisticsEmotionTrendResponse(
                 weekStartDate = weekStart,
@@ -183,7 +185,7 @@ class MindStatisticsService(
             reportId = id,
             reportType = reportType.name,
             primaryEmotion = primaryEmotion,
-            emotionIntensity = emotionIntensity,
+            emotionIntensity = emotionIntensity?.toStatisticsEmotionScore(),
             mainCause = mainCause,
             summary = summary,
             emotionalFlow = emotionalFlow,
@@ -200,6 +202,12 @@ class MindStatisticsService(
     // 소수점 값을 화면 표시용 두 자리로 반올림한다.
     private fun Double.roundToTwoDecimals(): Double {
         return BigDecimal.valueOf(this).setScale(2, RoundingMode.HALF_UP).toDouble()
+    }
+
+    // 리포트의 원본 감정 강도 값을 통계 화면에서 쓰는 0~100점으로 변환한다.
+    private fun Int.toStatisticsEmotionScore(): Int {
+        return ((coerceIn(0, MAX_RAW_EMOTION_INTENSITY).toDouble() / MAX_RAW_EMOTION_INTENSITY.toDouble()) * MAX_STATISTICS_EMOTION_SCORE)
+            .toInt()
     }
 
 }

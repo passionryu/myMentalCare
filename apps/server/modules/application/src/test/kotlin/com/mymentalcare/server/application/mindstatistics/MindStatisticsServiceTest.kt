@@ -48,6 +48,7 @@ class MindStatisticsServiceTest {
         assertTrue(reportDay.hasConversation)
         assertTrue(reportDay.hasReport)
         assertEquals("편안함", reportDay.primaryEmotion)
+        assertEquals(100, reportDay.emotionIntensity)
     }
 
     @Test
@@ -72,6 +73,7 @@ class MindStatisticsServiceTest {
         assertEquals(10L, response.roomId)
         assertEquals(2, response.messageCount)
         assertEquals("가벼움", response.report!!.primaryEmotion)
+        assertEquals(100, response.report!!.emotionIntensity)
         assertEquals("오늘은 마음이 조금 가벼워졌어", response.messages.first().contentPreview)
     }
 
@@ -105,6 +107,7 @@ class MindStatisticsServiceTest {
         assertEquals(2, response.totalReports)
         assertEquals(setOf("편안함", "불안"), response.emotionDistribution.map { it.emotion }.toSet())
         assertEquals(4, response.emotionTrend.size)
+        assertTrue(response.emotionTrend.mapNotNull { it.averageEmotionIntensity }.all { it in 0.0..100.0 })
     }
 
     private fun testRoom(id: Long, conversationDate: LocalDate): AiChatRoom {
