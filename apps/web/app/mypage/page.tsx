@@ -462,12 +462,8 @@ export default function MyPage() {
           <header className="mypage-header">
             <div>
               <p className="eyebrow">내 마음 케어 공간</p>
-              <h1 id="mypage-heading">
-                <span className="mypage-heading-default">마이페이지</span>
-                <span className="mypage-heading-current">{activeHeaderCopy.title}</span>
-              </h1>
-              <p className="mypage-heading-default">필요한 관리 항목을 선택해 내 정보와 기록을 확인합니다.</p>
-              <p className="mypage-heading-current">{activeHeaderCopy.description}</p>
+              <h1 id="mypage-heading">{activeHeaderCopy.title}</h1>
+              <p>{activeHeaderCopy.description}</p>
             </div>
           </header>
 
