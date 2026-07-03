@@ -953,19 +953,23 @@ function AiChatReportModal({ report, onClose, onGoHome }: { report: AiChatReport
             <strong>추천 노래</strong>
           </div>
           <div className="report-song-list">
-            {report.songs.map((song) => (
-              <a className="report-song-card" href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.artist}-${song.title}`}>
-                <span>
-                  <strong>{song.title}</strong>
-                  <small>{song.artist}</small>
-                </span>
-                <p>{song.reason}</p>
-                <em>
-                  YouTube에서 듣기
-                  <ExternalLink size={14} aria-hidden="true" />
-                </em>
-              </a>
-            ))}
+            {report.songs.length === 0 ? (
+              <p className="report-song-empty">추천 노래를 만들지 못했습니다. 대화를 조금 더 이어간 뒤 다시 확인해주세요.</p>
+            ) : (
+              report.songs.map((song) => (
+                <a className="report-song-card" href={song.youtubeUrl} target="_blank" rel="noreferrer" key={`${song.artist}-${song.title}`}>
+                  <span>
+                    <strong>{song.title}</strong>
+                    <small>{song.artist}</small>
+                  </span>
+                  <p>{song.reason}</p>
+                  <em>
+                    YouTube에서 듣기
+                    <ExternalLink size={14} aria-hidden="true" />
+                  </em>
+                </a>
+              ))
+            )}
           </div>
         </div>
 

@@ -3975,6 +3975,17 @@ h3 {
   font-weight: 900;
 }
 
+.report-song-empty {
+  margin: 0;
+  border: 1px solid rgba(83, 111, 90, 0.16);
+  border-radius: 18px;
+  background: #fffdf7;
+  color: var(--muted);
+  padding: 15px 16px;
+  line-height: 1.55;
+  font-weight: 800;
+}
+
 .report-footer-actions {
   display: grid;
   margin-top: 18px;
