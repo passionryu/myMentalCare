@@ -5,6 +5,7 @@ const page = readFileSync(resolve('app/page.tsx'), 'utf8')
 const styles = readFileSync(resolve('app/globals.css'), 'utf8')
 const authApi = readFileSync(resolve('lib/auth-api.ts'), 'utf8')
 const themeTone = readFileSync(resolve('lib/theme-tone.ts'), 'utf8')
+const availableThemeOptionValues = [...themeTone.matchAll(/value: '([^']+)'/g)].map((match) => match[1])
 
 const checks = [
   ['메인 서비스 이름 표시', page.includes('Haru Mind')],
@@ -13,8 +14,9 @@ const checks = [
   ['임시 구현 단계 안내 제거', !page.includes('아직은 화면 구현 단계입니다.')],
   ['홈 설정 버튼 제거', !page.includes('설정 열기') && !page.includes('SettingsButton') && !page.includes('settingsOpen')],
   ['데스크톱 서비스 소개 진입 제공', page.includes('서비스 소개') && page.includes("router.push('/service')")],
-  ['따뜻한 화면 배경 5종 제공', ['morning-window', 'breathing-landscape', 'mind-journal', 'chat-bubbles', 'botanical-room'].every((theme) => themeTone.includes(theme))],
-  ['기존 화면 색감 저장값 새 배경으로 전환', themeTone.includes('legacyThemeToneMap') && themeTone.includes("rose: 'chat-bubbles'")],
+  ['화면 배경 선택 옵션 2종 제한', JSON.stringify(availableThemeOptionValues) === JSON.stringify(['breathing-landscape', 'chat-bubbles'])],
+  ['우드톤 기본값 적용', themeTone.includes("DEFAULT_THEME_TONE: ThemeTone = 'chat-bubbles'")],
+  ['기존 화면 색감 저장값 우드톤으로 전환', themeTone.includes('legacyThemeToneMap') && themeTone.includes("wood: 'chat-bubbles'") && themeTone.includes("rose: 'chat-bubbles'")],
   ['화면 배경 선택값 실제 반영', page.includes('data-theme-tone={themeTone}') && page.includes('readStoredThemeTone') && !page.includes('선택값은 아직 화면 색감에 반영하지 않습니다')],
   ['회원가입 모달 진입 버튼', page.includes("setAuthMode('signup')")],
   ['로그인 모달 진입 버튼', page.includes("setAuthMode('login')")],
@@ -45,7 +47,7 @@ const checks = [
   ['홈 배경 레이어가 모달 fixed 위치를 덮어쓰지 않음', styles.includes('.home-page-shell > :not(.modal-backdrop)') && !styles.includes('.home-page-shell > * {')],
   ['메인 카드 hover 스타일', styles.includes('.feature-card:hover') && styles.includes('.care-panel:hover')],
   ['마이페이지 설정 스타일 유지', styles.includes('.toggle-button') && styles.includes('.mypage-theme-grid')],
-  ['화면 배경 테마 스타일', styles.includes(".page-shell[data-theme-tone='breathing-landscape']") && styles.includes(".page-shell[data-theme-tone='botanical-room']") && styles.includes('--theme-visual-layer')],
+  ['화면 배경 테마 스타일', styles.includes(".page-shell[data-theme-tone='breathing-landscape']") && styles.includes(".page-shell[data-theme-tone='chat-bubbles']") && styles.includes('--theme-visual-layer')],
   ['비밀번호 보기 스타일', styles.includes('.password-field') && styles.includes('.password-toggle') && styles.includes('translateY(-50%)')],
   ['모바일 반응형 스타일', styles.includes('@media (max-width: 860px)')],
 ]
