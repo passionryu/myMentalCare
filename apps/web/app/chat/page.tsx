@@ -1012,15 +1012,21 @@ function EmotionTimelineChart({ timeline }: { timeline: NonNullable<AiChatReport
       <svg className="report-emotion-svg" viewBox={`0 0 ${width} ${height}`} role="img" aria-label="감정 점수 0점부터 100점 사이의 변화 그래프">
         <defs>
           <linearGradient id="report-emotion-fill" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0%" stopColor="rgba(184, 111, 84, 0.34)" />
-            <stop offset="100%" stopColor="rgba(184, 111, 84, 0.04)" />
+            <stop offset="0%" stopColor="rgba(214, 151, 89, 0.42)" />
+            <stop offset="58%" stopColor="rgba(235, 196, 139, 0.18)" />
+            <stop offset="100%" stopColor="rgba(255, 253, 247, 0.02)" />
+          </linearGradient>
+          <linearGradient id="report-emotion-line-gradient" x1="0" x2="1" y1="0" y2="0">
+            <stop offset="0%" stopColor="#7b8f68" />
+            <stop offset="48%" stopColor="#c1784a" />
+            <stop offset="100%" stopColor="#8a5832" />
           </linearGradient>
         </defs>
         <line x1={padding} y1={padding} x2={padding} y2={height - padding} />
         <line x1={padding} y1={height - padding} x2={width - padding} y2={height - padding} />
         <line className="is-guide" x1={padding} y1={height / 2} x2={width - padding} y2={height / 2} />
-        <path className="report-emotion-area" d={areaPath} />
-        <path className="report-emotion-line" d={linePath} />
+        <path className="report-emotion-area" d={areaPath} fill="url(#report-emotion-fill)" />
+        <path className="report-emotion-line" d={linePath} stroke="url(#report-emotion-line-gradient)" />
         {points.map((point) => (
           <g key={`${point.pointOrder}-${point.messageOrder ?? point.label}`}>
             <circle cx={point.x} cy={point.y} r="5" />
