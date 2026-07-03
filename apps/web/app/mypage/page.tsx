@@ -72,6 +72,33 @@ const sections: Array<{ id: MyPageSection; label: string; icon: typeof Home }> =
 
 const themes = THEME_OPTIONS
 
+const sectionHeaderCopy: Record<MyPageSection, { title: string; description: string }> = {
+  overview: {
+    title: '마이페이지',
+    description: '필요한 관리 항목을 선택해 내 정보와 기록을 확인합니다.',
+  },
+  profile: {
+    title: '프로필',
+    description: '내 기본 정보를 확인하고 필요한 항목을 수정합니다.',
+  },
+  history: {
+    title: '내 이력',
+    description: '채팅, 리포트, 체크인 기록을 다시 확인합니다.',
+  },
+  settings: {
+    title: '설정',
+    description: '내 공간의 배경과 준비 중인 알림 상태를 확인합니다.',
+  },
+  support: {
+    title: '문의하기',
+    description: '이용 중 불편한 점이나 확인이 필요한 내용을 남깁니다.',
+  },
+  security: {
+    title: '계정 관리',
+    description: '로그인 방식과 계정 보안 설정을 관리합니다.',
+  },
+}
+
 type HistoryItem = {
   title: string
   description: string
@@ -133,6 +160,7 @@ export default function MyPage() {
   const [passwordMessage, setPasswordMessage] = useState('')
   const [isPasswordSaving, setIsPasswordSaving] = useState(false)
   const checkInListRef = useRef<HTMLDivElement>(null)
+  const activeHeaderCopy = sectionHeaderCopy[activeSection]
 
   useEffect(() => {
     const accessToken = localStorage.getItem('myMentalCare.accessToken')
@@ -404,7 +432,7 @@ export default function MyPage() {
 
           <div className="mypage-profile-card">
             <span className="mypage-avatar" aria-hidden="true">
-              {profile?.name?.slice(0, 1) || '마'}
+              <UserRound size={25} strokeWidth={2.2} />
             </span>
             <div>
               <strong>{profile?.name ?? '내 마음'}</strong>
@@ -434,8 +462,8 @@ export default function MyPage() {
           <header className="mypage-header">
             <div>
               <p className="eyebrow">내 마음 케어 공간</p>
-              <h1 id="mypage-heading">마이페이지</h1>
-              <p>필요한 관리 항목을 선택해 내 정보와 기록을 확인합니다.</p>
+              <h1 id="mypage-heading">{activeHeaderCopy.title}</h1>
+              <p>{activeHeaderCopy.description}</p>
             </div>
           </header>
 
@@ -713,52 +741,20 @@ export default function MyPage() {
                 icon={Palette}
               />
               <div className="mypage-settings-list">
-                <div className="mypage-notification-setting is-disabled">
+                <div className="mypage-notification-setting is-disabled mypage-notification-coming-soon">
+                  <span className="mypage-notification-icon" aria-hidden="true">
+                    <Bell size={20} />
+                  </span>
                   <div>
                     <strong>마음 체크 알림</strong>
                     <span>정해진 시간과 요일에 마음 체크를 떠올릴 수 있게 돕는 기능을 준비하고 있습니다.</span>
                   </div>
                   <p className="mypage-setting-message" role="status">{notificationComingSoonMessage}</p>
-                  <div className="mypage-notification-controls">
-                    <div className="mypage-notification-permission">
-                      <span>브라우저 권한: 준비 중</span>
-                      <button className="soft-button" type="button" disabled>
-                        알림 권한 허용하기
-                        <Bell size={16} aria-hidden="true" />
-                      </button>
-                    </div>
-                    <div className="mypage-notification-topline">
-                      <button
-                        className="toggle-button"
-                        type="button"
-                        role="switch"
-                        aria-checked={false}
-                        disabled
-                      >
-                        <span />
-                      </button>
-                      <label>
-                        알림 시간
-                        <input
-                          type="time"
-                          value="21:00"
-                          disabled
-                          readOnly
-                        />
-                      </label>
-                    </div>
-                    <div className="mypage-weekday-grid" aria-label="알림 요일 선택">
-                      {['월', '화', '수', '목', '금', '토', '일'].map((weekday) => (
-                        <button type="button" key={weekday} aria-pressed={false} disabled>
-                          {weekday}
-                        </button>
-                      ))}
-                    </div>
-                    <button className="soft-button" type="button" disabled>
-                      준비 중
-                      <CheckCircle2 size={17} aria-hidden="true" />
-                    </button>
-                  </div>
+                  <ul className="mypage-notification-preview" aria-label="제공 예정 항목">
+                    <li>알림 시간 선택</li>
+                    <li>요일별 반복 설정</li>
+                    <li>브라우저 알림 권한 연결</li>
+                  </ul>
                 </div>
                 <div className="mypage-theme-setting">
                   <div>
