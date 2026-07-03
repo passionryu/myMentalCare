@@ -14,6 +14,8 @@ interface AiChatReportRepository {
 
     fun findByMemberId(memberId: Long): List<AiChatReport>
 
+    fun findByMemberIdAndDateRange(memberId: Long, startDate: java.time.LocalDate, endDate: java.time.LocalDate): List<AiChatReport>
+
     fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport?
 
     fun findByRoomIdAndClientRequestId(roomId: Long, clientRequestId: String): AiChatReport?

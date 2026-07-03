@@ -22,6 +22,14 @@ class AiChatRoomPersistenceAdapter(
             .map { it.toDomain() }
     }
 
+    override fun findByMemberIdAndDateRange(memberId: Long, startDate: LocalDate, endDate: LocalDate): List<AiChatRoom> {
+        return jpaAiChatRoomRepository.findByMemberIdAndConversationDateBetweenOrderByConversationDateAscIdAsc(
+            memberId = memberId,
+            startDate = startDate,
+            endDate = endDate,
+        ).map { it.toDomain() }
+    }
+
     override fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom? {
         return jpaAiChatRoomRepository.findByIdAndMemberId(roomId, memberId)?.toDomain()
     }

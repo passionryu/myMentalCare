@@ -2,13 +2,13 @@
 
 import {
   ArrowRight,
+  BarChart3,
   BookOpen,
   CheckCircle2,
   Eye,
   EyeOff,
   HeartHandshake,
   Home,
-  MessageCircle,
   Sparkles,
   UserRound,
   X,
@@ -109,6 +109,15 @@ export default function Page() {
     router.push('/chat')
   }
 
+  const handleOpenStatistics = () => {
+    if (!isAuthenticated) {
+      setAuthMode('login')
+      return
+    }
+
+    router.push('/statistics')
+  }
+
   const handleStartCheckIn = (template: CheckInTemplateDefinition) => {
     if (!isAuthenticated) {
       setAuthMode('login')
@@ -176,6 +185,16 @@ export default function Page() {
                 <ArrowRight size={18} aria-hidden="true" />
               </button>
             </div>
+            <button className="statistics-entry-card" type="button" onClick={handleOpenStatistics}>
+              <span className="statistics-entry-icon" aria-hidden="true">
+                <BarChart3 size={21} />
+              </span>
+              <span>
+                <strong>내 통계 보기</strong>
+                <small>마음 달력과 감정 흐름을 한눈에 확인합니다.</small>
+              </span>
+              <ArrowRight size={18} aria-hidden="true" />
+            </button>
           </div>
 
         </div>
@@ -245,9 +264,9 @@ export default function Page() {
           <Home size={18} aria-hidden="true" />
           <span>홈</span>
         </button>
-        <button className="mobile-tab-button" type="button" onClick={handleOpenAiChat}>
-          <MessageCircle size={18} aria-hidden="true" />
-          <span>대화</span>
+        <button className="mobile-tab-button" type="button" onClick={handleOpenStatistics}>
+          <BarChart3 size={18} aria-hidden="true" />
+          <span>통계</span>
         </button>
         <button className="mobile-tab-button" type="button" onClick={() => router.push('/service')}>
           <BookOpen size={18} aria-hidden="true" />

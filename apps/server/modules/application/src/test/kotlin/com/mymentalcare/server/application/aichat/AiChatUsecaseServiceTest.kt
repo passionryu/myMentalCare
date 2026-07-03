@@ -621,6 +621,14 @@ class AiChatUsecaseServiceTest {
             return rooms.filter { it.memberId == memberId }.sortedWith(compareByDescending<AiChatRoom> { it.conversationDate }.thenByDescending { it.id })
         }
 
+        override fun findByMemberIdAndDateRange(memberId: Long, startDate: LocalDate, endDate: LocalDate): List<AiChatRoom> {
+            return rooms.filter {
+                it.memberId == memberId &&
+                    !it.conversationDate.isBefore(startDate) &&
+                    !it.conversationDate.isAfter(endDate)
+            }.sortedWith(compareBy<AiChatRoom> { it.conversationDate }.thenBy { it.id })
+        }
+
         override fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoom? {
             return rooms.firstOrNull { it.id == roomId && it.memberId == memberId }
         }
@@ -707,6 +715,10 @@ class AiChatUsecaseServiceTest {
             return messages.filter { it.roomId == roomId }.sortedBy { it.messageOrder }
         }
 
+        override fun findByRoomIds(roomIds: List<Long>): List<ChatMessage> {
+            return messages.filter { it.roomId in roomIds }.sortedWith(compareBy<ChatMessage> { it.roomId }.thenBy { it.messageOrder })
+        }
+
         override fun findBySegmentId(segmentId: Long): List<ChatMessage> {
             return messages.filter { it.segmentId == segmentId }.sortedBy { it.messageOrder }
         }
@@ -747,6 +759,14 @@ class AiChatUsecaseServiceTest {
 
         override fun findByMemberId(memberId: Long): List<AiChatReport> {
             return reports.filter { it.memberId == memberId }.sortedByDescending { it.createdAt ?: java.time.LocalDateTime.MIN }
+        }
+
+        override fun findByMemberIdAndDateRange(memberId: Long, startDate: LocalDate, endDate: LocalDate): List<AiChatReport> {
+            return reports.filter {
+                it.memberId == memberId &&
+                    !it.conversationDate.isBefore(startDate) &&
+                    !it.conversationDate.isAfter(endDate)
+            }.sortedWith(compareBy<AiChatReport> { it.conversationDate }.thenByDescending { it.createdAt ?: java.time.LocalDateTime.MIN })
         }
 
         override fun findByIdAndMemberId(reportId: Long, memberId: Long): AiChatReport? {
