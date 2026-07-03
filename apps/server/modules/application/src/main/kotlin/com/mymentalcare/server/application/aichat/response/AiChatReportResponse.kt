@@ -36,6 +36,7 @@ data class AiChatReportEmotionPointResponse(
     val pointOrder: Int,
     val messageOrder: Int?,
     val label: String,
+    val timeLabel: String?,
     val score: Int,
     val reason: String,
 )

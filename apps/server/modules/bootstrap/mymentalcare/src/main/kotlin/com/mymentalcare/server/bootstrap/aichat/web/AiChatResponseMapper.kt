@@ -128,6 +128,7 @@ private fun com.mymentalcare.server.application.aichat.response.AiChatReportEmot
         pointOrder = pointOrder,
         messageOrder = messageOrder,
         label = label,
+        timeLabel = timeLabel,
         score = score,
         reason = reason,
     )
