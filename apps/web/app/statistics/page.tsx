@@ -53,14 +53,28 @@ export default function StatisticsPage() {
   useEffect(() => {
     setIsLoading(true)
     setErrorMessage('')
+    setCalendar(null)
+    setOverview(null)
 
-    Promise.all([readMindStatisticsCalendar(month), readMindStatisticsOverview(4)])
-      .then(([calendarResponse, overviewResponse]) => {
-        setCalendar(calendarResponse)
-        setOverview(overviewResponse)
-      })
-      .catch((error) => {
-        setErrorMessage(error instanceof LoginApiError ? error.message : '마음 통계를 불러오지 못했습니다.')
+    Promise.allSettled([readMindStatisticsCalendar(month), readMindStatisticsOverview(4)])
+      .then(([calendarResult, overviewResult]) => {
+        const failureMessages: string[] = []
+
+        if (calendarResult.status === 'fulfilled') {
+          setCalendar(calendarResult.value)
+        } else {
+          failureMessages.push(calendarResult.reason instanceof LoginApiError ? calendarResult.reason.message : '마음 달력을 불러오지 못했습니다.')
+        }
+
+        if (overviewResult.status === 'fulfilled') {
+          setOverview(overviewResult.value)
+        } else {
+          failureMessages.push(overviewResult.reason instanceof LoginApiError ? overviewResult.reason.message : '감정 통계를 불러오지 못했습니다.')
+        }
+
+        if (failureMessages.length > 0) {
+          setErrorMessage([...new Set(failureMessages)].join(' '))
+        }
       })
       .finally(() => setIsLoading(false))
   }, [month])
@@ -71,6 +85,7 @@ export default function StatisticsPage() {
     readMindStatisticsDayDetail(selectedDate)
       .then(setDayDetail)
       .catch((error) => {
+        setDayDetail(null)
         setErrorMessage(error instanceof LoginApiError ? error.message : '선택한 날짜의 마음 기록을 불러오지 못했습니다.')
       })
       .finally(() => setIsDayLoading(false))
@@ -85,7 +100,11 @@ export default function StatisticsPage() {
     return `${year}년 ${Number(monthValue)}월`
   }, [month])
 
-  const calendarCells = useMemo(() => buildCalendarCells(calendar?.days ?? [], month), [calendar?.days, month])
+  const calendarDays = useMemo(() => {
+    return calendar?.days.length ? calendar.days : buildEmptyCalendarDays(month)
+  }, [calendar?.days, month])
+
+  const calendarCells = useMemo(() => buildCalendarCells(calendarDays, month), [calendarDays, month])
 
   const handleMoveMonth = (direction: -1 | 1) => {
     const [year, monthValue] = month.split('-').map(Number)
@@ -163,7 +182,9 @@ export default function StatisticsPage() {
                     onClick={() => setSelectedDate(cell.date)}
                   >
                     <strong>{Number(cell.date.slice(-2))}</strong>
-                    {cell.primaryEmotion && <span>{cell.primaryEmotion}</span>}
+                    {(cell.primaryEmotion || cell.hasConversation) && (
+                      <span>{cell.primaryEmotion ?? `대화 ${cell.messageCount}개`}</span>
+                    )}
                   </button>
                 ) : (
                   <span className="calendar-day is-empty" key={`empty-${index}`} aria-hidden="true" />
@@ -313,6 +334,24 @@ function buildCalendarCells(days: MindStatisticsCalendarDay[], month: string) {
   const firstDate = new Date(year, monthValue - 1, 1)
   const emptyCellCount = firstDate.getDay()
   return [...Array.from({ length: emptyCellCount }, () => null), ...days]
+}
+
+function buildEmptyCalendarDays(month: string): MindStatisticsCalendarDay[] {
+  const [year, monthValue] = month.split('-').map(Number)
+  const lastDate = new Date(year, monthValue, 0).getDate()
+
+  return Array.from({ length: lastDate }, (_, index) => {
+    const date = `${month}-${String(index + 1).padStart(2, '0')}`
+    return {
+      date,
+      hasConversation: false,
+      hasReport: false,
+      messageCount: 0,
+      primaryEmotion: null,
+      emotionIntensity: null,
+      todaySentence: null,
+    }
+  })
 }
 
 function toYearMonth(date: Date) {
