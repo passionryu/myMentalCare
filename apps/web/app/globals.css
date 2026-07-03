@@ -3719,6 +3719,111 @@ h3 {
   font-weight: 800;
 }
 
+.report-emotion-chart {
+  display: grid;
+  gap: 12px;
+  margin-bottom: 14px;
+  border: 1px solid rgba(83, 111, 90, 0.16);
+  border-radius: 22px;
+  background:
+    linear-gradient(180deg, rgba(255, 253, 247, 0.98), rgba(255, 250, 241, 0.92)),
+    #fffdf7;
+  padding: 16px;
+  box-shadow: 0 16px 36px rgba(56, 43, 28, 0.08);
+}
+
+.report-emotion-chart-heading {
+  display: grid;
+  gap: 4px;
+}
+
+.report-emotion-chart-heading span {
+  color: var(--sage-dark);
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.report-emotion-chart-heading strong {
+  color: #1f271f;
+  font-size: 18px;
+  line-height: 1.35;
+}
+
+.report-emotion-svg {
+  width: 100%;
+  height: auto;
+  min-height: 150px;
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(231, 240, 229, 0.34), rgba(255, 253, 247, 0.78)),
+    #fffdf7;
+}
+
+.report-emotion-svg line {
+  stroke: rgba(83, 111, 90, 0.26);
+  stroke-width: 2;
+}
+
+.report-emotion-svg line.is-guide {
+  stroke: rgba(184, 111, 84, 0.2);
+  stroke-dasharray: 7 7;
+}
+
+.report-emotion-svg polyline {
+  fill: none;
+  stroke: var(--sage-dark);
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  stroke-width: 5;
+}
+
+.report-emotion-svg circle {
+  fill: #fffdf7;
+  stroke: var(--sage-dark);
+  stroke-width: 4;
+}
+
+.report-emotion-svg text {
+  fill: var(--muted);
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.report-emotion-svg .axis-label {
+  fill: var(--sage-dark);
+}
+
+.report-emotion-point-list {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.report-emotion-point-list span {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border-radius: 14px;
+  background: rgba(231, 240, 229, 0.56);
+  color: var(--muted);
+  padding: 9px 11px;
+  font-size: 13px;
+  font-weight: 800;
+  line-height: 1.45;
+}
+
+.report-emotion-point-list b {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 34px;
+  border-radius: 999px;
+  background: var(--sage-dark);
+  color: #fffdf7;
+  padding: 4px 7px;
+  font-size: 12px;
+}
+
 .report-readiness-box {
   display: flex;
   flex-wrap: wrap;
@@ -4543,6 +4648,7 @@ h3 {
 
   .report-section-grid,
   .report-highlight-card,
+  .report-emotion-point-list,
   .modal-actions.split {
     grid-template-columns: 1fr;
   }

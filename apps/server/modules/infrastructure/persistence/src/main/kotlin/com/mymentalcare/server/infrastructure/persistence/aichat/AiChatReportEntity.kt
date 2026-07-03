@@ -1,6 +1,7 @@
 package com.mymentalcare.server.infrastructure.persistence.aichat
 
 import com.mymentalcare.server.domain.aichat.AiChatReport
+import com.mymentalcare.server.domain.aichat.AiChatReportEmotionPoint
 import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatReportType
 import jakarta.persistence.Column
@@ -43,6 +44,9 @@ class AiChatReportEntity(
     @Column(name = "emotion_intensity")
     val emotionIntensity: Int?,
 
+    @Column(name = "emotion_score")
+    val emotionScore: Int?,
+
     @Column(name = "main_cause", nullable = false, length = 120)
     val mainCause: String,
 
@@ -58,7 +62,10 @@ class AiChatReportEntity(
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
 ) {
-    fun toDomain(songs: List<AiChatReportSong>): AiChatReport {
+    fun toDomain(
+        songs: List<AiChatReportSong>,
+        emotionTimeline: List<AiChatReportEmotionPoint>,
+    ): AiChatReport {
         return AiChatReport(
             id = id,
             roomId = roomId,
@@ -68,12 +75,52 @@ class AiChatReportEntity(
             summary = summary,
             primaryEmotion = primaryEmotion,
             emotionIntensity = emotionIntensity,
+            emotionScore = emotionScore,
             mainCause = mainCause,
             emotionalFlow = emotionalFlow,
             todaySentence = todaySentence,
             clientRequestId = clientRequestId,
             songs = songs,
+            emotionTimeline = emotionTimeline,
             createdAt = createdAt,
+        )
+    }
+}
+
+@Entity
+@Table(name = "ai_chat_report_emotion_points")
+class AiChatReportEmotionPointEntity(
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    val id: Long = 0,
+
+    @Column(name = "report_id", nullable = false)
+    val reportId: Long,
+
+    @Column(name = "point_order", nullable = false)
+    val pointOrder: Int,
+
+    @Column(name = "message_order")
+    val messageOrder: Int?,
+
+    @Column(name = "label", nullable = false, length = 80)
+    val label: String,
+
+    @Column(name = "score", nullable = false)
+    val score: Int,
+
+    @Column(name = "reason", nullable = false, length = 240)
+    val reason: String,
+) {
+    fun toDomain(): AiChatReportEmotionPoint {
+        return AiChatReportEmotionPoint(
+            id = id,
+            reportId = reportId,
+            pointOrder = pointOrder,
+            messageOrder = messageOrder,
+            label = label,
+            score = score,
+            reason = reason,
         )
     }
 }
@@ -126,11 +173,24 @@ fun AiChatReport.toEntity(): AiChatReportEntity {
         summary = summary,
         primaryEmotion = primaryEmotion,
         emotionIntensity = emotionIntensity,
+        emotionScore = emotionScore,
         mainCause = mainCause,
         emotionalFlow = emotionalFlow,
         todaySentence = todaySentence,
         clientRequestId = clientRequestId,
         createdAt = createdAt ?: LocalDateTime.now(),
+    )
+}
+
+fun AiChatReportEmotionPoint.toEntity(reportId: Long): AiChatReportEmotionPointEntity {
+    return AiChatReportEmotionPointEntity(
+        id = id,
+        reportId = reportId,
+        pointOrder = pointOrder,
+        messageOrder = messageOrder,
+        label = label,
+        score = score.coerceIn(0, 100),
+        reason = reason,
     )
 }
 

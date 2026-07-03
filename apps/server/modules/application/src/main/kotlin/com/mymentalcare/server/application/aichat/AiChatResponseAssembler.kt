@@ -6,6 +6,7 @@ import com.mymentalcare.server.application.aichat.response.*
 
 import com.mymentalcare.server.domain.aichat.AiChatCheckIn
 import com.mymentalcare.server.domain.aichat.AiChatReport
+import com.mymentalcare.server.domain.aichat.AiChatReportEmotionPoint
 import com.mymentalcare.server.domain.aichat.AiChatReportSong
 import com.mymentalcare.server.domain.aichat.AiChatRoom
 import com.mymentalcare.server.domain.aichat.AiChatSegment
@@ -43,9 +44,11 @@ internal class AiChatResponseAssembler(
             summary = report.summary,
             primaryEmotion = report.primaryEmotion,
             emotionIntensity = report.emotionIntensity,
+            emotionScore = report.emotionScore,
             mainCause = report.mainCause,
             emotionalFlow = report.emotionalFlow,
             todaySentence = report.todaySentence,
+            emotionTimeline = report.emotionTimeline.map { it.toResponse() },
             songs = report.songs.map { it.toResponse() },
             saved = true,
             createdAt = report.createdAt,
@@ -133,6 +136,16 @@ internal class AiChatResponseAssembler(
             checkInId = id,
             templateType = templateType.name,
             summaryText = summaryText,
+        )
+    }
+
+    private fun AiChatReportEmotionPoint.toResponse(): AiChatReportEmotionPointResponse {
+        return AiChatReportEmotionPointResponse(
+            pointOrder = pointOrder,
+            messageOrder = messageOrder,
+            label = label,
+            score = score,
+            reason = reason,
         )
     }
 

@@ -60,7 +60,7 @@ class MindStatisticsService(
                 hasReport = report != null,
                 messageCount = messageCount,
                 primaryEmotion = report?.primaryEmotion,
-                emotionIntensity = report?.emotionIntensity?.toStatisticsEmotionScore(),
+                emotionIntensity = report?.statisticsEmotionScore(),
                 todaySentence = report?.todaySentence,
             )
         }
@@ -156,7 +156,7 @@ class MindStatisticsService(
             val weekStart = startDate.plusWeeks(weekIndex.toLong())
             val weekEnd = minOf(weekStart.plusDays(6), endDate)
             val weekReports = reports.filter { !it.conversationDate.isBefore(weekStart) && !it.conversationDate.isAfter(weekEnd) }
-            val intensities = weekReports.mapNotNull { it.emotionIntensity?.toStatisticsEmotionScore() }
+            val intensities = weekReports.mapNotNull { it.statisticsEmotionScore() }
 
             MindStatisticsEmotionTrendResponse(
                 weekStartDate = weekStart,
@@ -185,7 +185,7 @@ class MindStatisticsService(
             reportId = id,
             reportType = reportType.name,
             primaryEmotion = primaryEmotion,
-            emotionIntensity = emotionIntensity?.toStatisticsEmotionScore(),
+            emotionIntensity = statisticsEmotionScore(),
             mainCause = mainCause,
             summary = summary,
             emotionalFlow = emotionalFlow,
@@ -208,6 +208,12 @@ class MindStatisticsService(
     private fun Int.toStatisticsEmotionScore(): Int {
         return ((coerceIn(0, MAX_RAW_EMOTION_INTENSITY).toDouble() / MAX_RAW_EMOTION_INTENSITY.toDouble()) * MAX_STATISTICS_EMOTION_SCORE)
             .toInt()
+    }
+
+    // 새 리포트의 0~100 감정 점수를 우선 사용하고, 과거 리포트는 기존 강도를 환산한다.
+    private fun AiChatReport.statisticsEmotionScore(): Int? {
+        return emotionScore?.coerceIn(0, MAX_STATISTICS_EMOTION_SCORE)
+            ?: emotionIntensity?.toStatisticsEmotionScore()
     }
 
 }

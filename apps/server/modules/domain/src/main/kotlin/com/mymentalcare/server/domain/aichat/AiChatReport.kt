@@ -12,12 +12,24 @@ data class AiChatReport(
     val summary: String,
     val primaryEmotion: String,
     val emotionIntensity: Int?,
+    val emotionScore: Int? = null,
     val mainCause: String,
     val emotionalFlow: String,
     val todaySentence: String,
     val clientRequestId: String?,
     val songs: List<AiChatReportSong>,
+    val emotionTimeline: List<AiChatReportEmotionPoint> = emptyList(),
     val createdAt: LocalDateTime? = null,
+)
+
+data class AiChatReportEmotionPoint(
+    val id: Long = 0,
+    val reportId: Long = 0,
+    val pointOrder: Int,
+    val messageOrder: Int?,
+    val label: String,
+    val score: Int,
+    val reason: String,
 )
 
 data class AiChatReportSong(

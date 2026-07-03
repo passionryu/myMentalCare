@@ -112,12 +112,24 @@ fun ApplicationAiChatReportResponse.toBootstrapResponse(): AiChatReportResponse 
         summary = summary,
         primaryEmotion = primaryEmotion,
         emotionIntensity = emotionIntensity,
+        emotionScore = emotionScore,
         mainCause = mainCause,
         emotionalFlow = emotionalFlow,
         todaySentence = todaySentence,
+        emotionTimeline = emotionTimeline.map { it.toBootstrapResponse() },
         songs = songs.map { it.toBootstrapResponse() },
         saved = saved,
         createdAt = createdAt,
+    )
+}
+
+private fun com.mymentalcare.server.application.aichat.response.AiChatReportEmotionPointResponse.toBootstrapResponse(): com.mymentalcare.server.bootstrap.aichat.web.response.AiChatReportEmotionPointResponse {
+    return com.mymentalcare.server.bootstrap.aichat.web.response.AiChatReportEmotionPointResponse(
+        pointOrder = pointOrder,
+        messageOrder = messageOrder,
+        label = label,
+        score = score,
+        reason = reason,
     )
 }
 
