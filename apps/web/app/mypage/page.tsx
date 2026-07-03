@@ -975,7 +975,14 @@ function ReportDialog({ report, onClose }: { report: AiChatReport; onClose: () =
           </section>
           <section>
             <strong>주요 감정</strong>
-            <p>{report.primaryEmotion}{report.emotionIntensity ? ` · 강도 ${report.emotionIntensity}/5` : ''}</p>
+            <p>
+              {report.primaryEmotion}
+              {typeof report.emotionScore === 'number'
+                ? ` · 점수 ${report.emotionScore}/100`
+                : report.emotionIntensity
+                  ? ` · 강도 ${report.emotionIntensity}/5`
+                  : ''}
+            </p>
           </section>
           <section>
             <strong>마음 흐름</strong>

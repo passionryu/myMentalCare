@@ -22,12 +22,22 @@ data class AiChatReportResponse(
     val summary: String,
     val primaryEmotion: String,
     val emotionIntensity: Int?,
+    val emotionScore: Int?,
     val mainCause: String,
     val emotionalFlow: String,
     val todaySentence: String,
+    val emotionTimeline: List<AiChatReportEmotionPointResponse>,
     val songs: List<AiChatReportSongResponse>,
     val saved: Boolean,
     val createdAt: LocalDateTime?,
+)
+
+data class AiChatReportEmotionPointResponse(
+    val pointOrder: Int,
+    val messageOrder: Int?,
+    val label: String,
+    val score: Int,
+    val reason: String,
 )
 
 data class AiChatReportSongResponse(
