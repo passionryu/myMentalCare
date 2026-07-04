@@ -193,7 +193,9 @@ export default function Page() {
                 <strong>내 통계 보기</strong>
                 <small>마음 달력과 감정 흐름을 한눈에 확인합니다.</small>
               </span>
-              <ArrowRight size={18} aria-hidden="true" />
+              <span className="statistics-entry-arrow" aria-hidden="true">
+                <ArrowRight size={18} />
+              </span>
             </button>
           </div>
 
@@ -203,7 +205,7 @@ export default function Page() {
       <section className="prompt-section" aria-labelledby="prompt-heading">
         <div className="section-heading">
           <p className="eyebrow">체크인으로 시작하기</p>
-          <h2 id="prompt-heading">Check In으로 시작하기</h2>
+          <h2 className="simple-start-title" id="prompt-heading">Simple Start</h2>
           <p>짧게 상태를 고르고, 같은 흐름에서 AI 마음대화를 시작합니다.</p>
         </div>
         <div className="prompt-grid">

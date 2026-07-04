@@ -82,15 +82,22 @@ class SecurityConfigurationTest {
     }
 
     @Test
-    fun `localhost web origin can send cors preflight request`() {
-        mockMvc.perform(
-            options("/api/members/signup")
-                .header("Origin", "http://localhost:3000")
-                .header("Access-Control-Request-Method", HttpMethod.POST.name())
-                .header("Access-Control-Request-Headers", "content-type"),
-        )
-            .andExpect(status().isOk)
-            .andExpect(header().string("Access-Control-Allow-Origin", "http://localhost:3000"))
+    fun `local development web origins can send cors preflight request`() {
+        listOf(
+            "http://localhost:3000",
+            "http://127.0.0.1:3000",
+            "http://10.0.2.2:3000",
+            "http://192.168.1.112:3000",
+        ).forEach { origin ->
+            mockMvc.perform(
+                options("/api/members/signup")
+                    .header("Origin", origin)
+                    .header("Access-Control-Request-Method", HttpMethod.POST.name())
+                    .header("Access-Control-Request-Headers", "content-type"),
+            )
+                .andExpect(status().isOk)
+                .andExpect(header().string("Access-Control-Allow-Origin", origin))
+        }
     }
 
     private fun expiredAccessToken(): String {

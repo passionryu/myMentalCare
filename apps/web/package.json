@@ -3,7 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "test:ai-chat": "node scripts/verify-ai-chat-screen.mjs",
     "test:mind-statistics": "node scripts/verify-mind-statistics-screen.mjs",
