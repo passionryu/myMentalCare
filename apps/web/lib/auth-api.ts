@@ -83,7 +83,20 @@ export class LoginApiError extends Error {
   }
 }
 
-const apiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_TARGET_API_BASE_URL ?? 'http://localhost:3001'
+function resolveApiBaseUrl() {
+  const configuredApiBaseUrl = process.env.NEXT_PUBLIC_API_BASE_URL ?? process.env.NEXT_PUBLIC_TARGET_API_BASE_URL
+  if (configuredApiBaseUrl) {
+    return configuredApiBaseUrl
+  }
+
+  if (typeof window !== 'undefined') {
+    return `${window.location.protocol}//${window.location.hostname}:3001`
+  }
+
+  return 'http://localhost:3001'
+}
+
+const apiBaseUrl = resolveApiBaseUrl()
 const accessTokenKey = 'myMentalCare.accessToken'
 const refreshTokenKey = 'myMentalCare.refreshToken'
 let tokenReissueRequest: { refreshToken: string; promise: Promise<LoginResponse> } | null = null
