@@ -4841,6 +4841,26 @@ h3 {
   }
 }
 
+@media (min-width: 641px) and (max-width: 860px) {
+  .page-shell {
+    padding-bottom: 48px;
+    scroll-padding-bottom: 48px;
+  }
+
+  .home-page-shell .prompt-section {
+    padding-bottom: 72px;
+  }
+
+  .service-page-frame,
+  .statistics-page-shell {
+    padding-bottom: 48px;
+  }
+
+  .mobile-bottom-nav {
+    display: none;
+  }
+}
+
 @media (max-width: 420px) {
   .prompt-grid {
     grid-template-columns: 1fr;

@@ -21,6 +21,7 @@ const checks = [
   ['모바일 앱형 하단 네비게이션 제공', page.includes('mobile-bottom-nav') && page.includes('모바일 주요 메뉴')],
   ['모바일 체크인 카드 스타일 제공', styles.includes('.checkin-prompt-card')],
   ['모바일 하단 네비게이션 중앙 정렬', styles.includes('.mobile-bottom-nav') && styles.includes('left: 50%') && styles.includes('translateX(-50%)') && styles.includes('width: min(430px, calc(100vw - 32px))')],
+  ['태블릿 폭에서는 하단 네비게이션 숨김', styles.includes('@media (min-width: 641px) and (max-width: 860px)') && styles.includes('.mobile-bottom-nav') && styles.includes('display: none')],
   ['모바일 상단 네비게이션 앱바 스타일 제공', styles.includes('position: sticky') && styles.includes('.top-nav .profile-button')],
 ]
 
