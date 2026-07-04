@@ -344,6 +344,15 @@ export default function AiChatPage() {
                   <small>리포트 만들기</small>
                 </span>
               </button>
+              <button className="chat-action-button is-home-action" type="button" onClick={() => router.push('/')}>
+                <span className="chat-action-icon">
+                  <Home size={19} aria-hidden="true" />
+                </span>
+                <span className="chat-action-copy">
+                  <strong>홈</strong>
+                  <small>처음 화면</small>
+                </span>
+              </button>
             </div>
           )}
 

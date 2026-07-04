@@ -3116,6 +3116,10 @@ h3 {
   color: #684833;
 }
 
+.chat-action-button.is-home-action {
+  display: none;
+}
+
 .chat-messages {
   display: grid;
   align-content: start;
@@ -4696,6 +4700,16 @@ h3 {
     backdrop-filter: blur(18px);
   }
 
+  .home-page-shell .mobile-bottom-nav {
+    position: fixed;
+    right: auto;
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    left: 50%;
+    z-index: 18;
+    display: grid;
+    transform: translateX(-50%);
+  }
+
   .care-panel,
   .conversation-preview,
   .example-card,
@@ -4710,13 +4724,37 @@ h3 {
 
   .chat-page-shell {
     min-height: 100svh;
-    padding: 18px 18px calc(18px + env(safe-area-inset-bottom, 0px));
+    padding: 18px 18px calc(206px + env(safe-area-inset-bottom, 0px));
+    scroll-padding-bottom: calc(206px + env(safe-area-inset-bottom, 0px));
+  }
+
+  .chat-layout {
+    gap: 18px;
+  }
+
+  .chat-header {
+    gap: 14px;
+  }
+
+  .chat-header .soft-button {
+    justify-self: stretch;
+    min-height: 48px;
+  }
+
+  .chat-header h1 {
+    font-size: clamp(42px, 12vw, 56px);
+    line-height: 1.05;
+  }
+
+  .chat-panel {
+    gap: 16px;
+    padding: 18px;
   }
 
   .chat-messages {
     gap: 18px;
     max-height: 58vh;
-    padding: 14px;
+    padding: 14px 14px 220px;
   }
 
   .chat-message-row {
@@ -4762,11 +4800,41 @@ h3 {
   }
 
   .chat-input-row {
-    grid-template-columns: 1fr;
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    bottom: calc(14px + env(safe-area-inset-bottom, 0px));
+    left: max(14px, env(safe-area-inset-left, 0px));
+    z-index: 17;
+    grid-template-columns: minmax(0, 1fr) 54px;
+    gap: 8px;
+    align-items: stretch;
+    width: auto;
+    max-width: 640px;
+    margin: 0 auto;
+    border: 1px solid rgba(83, 111, 90, 0.18);
+    border-radius: 24px;
+    background: rgba(255, 253, 247, 0.94);
+    box-shadow: 0 18px 52px rgba(56, 43, 28, 0.18);
+    padding: 8px;
+    backdrop-filter: blur(18px);
   }
 
   .chat-action-strip {
-    grid-template-columns: 1fr;
+    position: fixed;
+    right: max(14px, env(safe-area-inset-right, 0px));
+    bottom: calc(124px + env(safe-area-inset-bottom, 0px));
+    left: max(14px, env(safe-area-inset-left, 0px));
+    z-index: 16;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 6px;
+    width: auto;
+    max-width: 640px;
+    margin: 0 auto;
+    border-radius: 26px;
+    background: rgba(255, 253, 247, 0.92);
+    box-shadow: 0 18px 52px rgba(56, 43, 28, 0.16);
+    padding: 8px;
+    backdrop-filter: blur(18px);
   }
 
   .conversation-choice-grid,
@@ -4822,8 +4890,67 @@ h3 {
     margin-bottom: 16px;
   }
 
+  .chat-action-button,
   .chat-action-strip button {
     width: 100%;
+  }
+
+  .chat-action-button {
+    justify-content: center;
+    display: grid;
+    justify-items: center;
+    gap: 5px;
+    min-height: 62px;
+    border-radius: 18px;
+    padding: 8px 5px;
+    text-align: center;
+    box-shadow: none;
+  }
+
+  .chat-action-button:hover:not(:disabled) {
+    transform: none;
+  }
+
+  .chat-action-button.is-home-action {
+    display: grid;
+  }
+
+  .chat-action-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 12px;
+  }
+
+  .chat-action-copy {
+    justify-items: center;
+    gap: 0;
+  }
+
+  .chat-action-copy strong {
+    font-size: 11px;
+    line-height: 1.2;
+    white-space: nowrap;
+  }
+
+  .chat-action-copy small {
+    display: none;
+  }
+
+  .chat-input-row textarea {
+    min-height: 52px;
+    max-height: 112px;
+    border-radius: 18px;
+    padding: 13px 14px;
+    resize: none;
+  }
+
+  .chat-input-row .primary-button {
+    width: 54px;
+    min-width: 54px;
+    min-height: 52px;
+    border-radius: 18px;
+    padding: 0;
+    font-size: 0;
   }
 
   .chat-segment-divider {
@@ -4843,21 +4970,21 @@ h3 {
 
 @media (min-width: 641px) and (max-width: 860px) {
   .page-shell {
-    padding-bottom: 48px;
-    scroll-padding-bottom: 48px;
+    padding-bottom: var(--mobile-bottom-nav-offset);
+    scroll-padding-bottom: var(--mobile-bottom-nav-offset);
   }
 
   .home-page-shell .prompt-section {
-    padding-bottom: 72px;
+    padding-bottom: 124px;
   }
 
   .service-page-frame,
   .statistics-page-shell {
-    padding-bottom: 48px;
+    padding-bottom: var(--mobile-bottom-nav-offset);
   }
 
   .mobile-bottom-nav {
-    display: none;
+    display: grid;
   }
 }
 
