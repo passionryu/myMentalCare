@@ -9,6 +9,8 @@ interface JpaAiChatReportRepository : JpaRepository<AiChatReportEntity, Long> {
 
     fun countByMemberId(memberId: Long): Int
 
+    fun countByConversationDate(conversationDate: java.time.LocalDate): Long
+
     fun findByMemberIdOrderByCreatedAtDesc(memberId: Long): List<AiChatReportEntity>
 
     fun findByMemberIdAndConversationDateBetweenOrderByConversationDateAscCreatedAtDesc(
