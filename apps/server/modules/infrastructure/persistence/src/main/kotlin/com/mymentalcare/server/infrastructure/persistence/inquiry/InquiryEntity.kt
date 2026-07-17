@@ -32,8 +32,20 @@ class InquiryEntity(
     @Column(name = "status", nullable = false, length = 30)
     val status: InquiryStatus,
 
+    @Column(name = "admin_memo", columnDefinition = "TEXT")
+    val adminMemo: String? = null,
+
+    @Column(name = "handled_by_member_id")
+    val handledByMemberId: Long? = null,
+
+    @Column(name = "handled_at")
+    val handledAt: LocalDateTime? = null,
+
     @Column(name = "created_at", nullable = false)
     val createdAt: LocalDateTime = LocalDateTime.now(),
+
+    @Column(name = "updated_at", nullable = false)
+    val updatedAt: LocalDateTime = LocalDateTime.now(),
 ) {
     fun toDomain(): Inquiry {
         return Inquiry(
@@ -42,7 +54,11 @@ class InquiryEntity(
             category = category,
             content = content,
             status = status,
+            adminMemo = adminMemo,
+            handledByMemberId = handledByMemberId,
+            handledAt = handledAt,
             createdAt = createdAt,
+            updatedAt = updatedAt,
         )
     }
 }
@@ -54,6 +70,10 @@ fun Inquiry.toEntity(): InquiryEntity {
         category = category,
         content = content,
         status = status,
+        adminMemo = adminMemo,
+        handledByMemberId = handledByMemberId,
+        handledAt = handledAt,
         createdAt = createdAt ?: LocalDateTime.now(),
+        updatedAt = updatedAt ?: LocalDateTime.now(),
     )
 }
