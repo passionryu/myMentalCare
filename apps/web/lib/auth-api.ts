@@ -109,7 +109,7 @@ function readStoredRefreshToken(): string | null {
   return localStorage.getItem(refreshTokenKey)
 }
 
-function storeLoginTokens(tokens: LoginResponse) {
+export function storeLoginTokens(tokens: LoginResponse) {
   localStorage.setItem(accessTokenKey, tokens.accessToken)
   localStorage.setItem(refreshTokenKey, tokens.refreshToken)
 }
