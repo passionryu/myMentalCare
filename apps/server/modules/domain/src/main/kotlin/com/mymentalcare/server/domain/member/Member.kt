@@ -13,6 +13,7 @@ data class Member(
 
 enum class MemberStatus {
     ACTIVE,
+    SUSPENDED,
     WITHDRAWN,
 }
 
