@@ -7103,6 +7103,21 @@ h3 {
   color: #7a5526;
 }
 
+.admin-status-badge.status-received {
+  background: rgba(220, 235, 240, 0.92);
+  color: #33515a;
+}
+
+.admin-status-badge.status-in-progress {
+  background: rgba(255, 241, 201, 0.9);
+  color: #7a5526;
+}
+
+.admin-status-badge.status-done {
+  background: rgba(231, 240, 229, 0.92);
+  color: var(--sage-dark);
+}
+
 .admin-status-badge.status-withdrawn {
   background: rgba(230, 230, 224, 0.95);
   color: var(--muted);
@@ -7177,6 +7192,32 @@ h3 {
   color: var(--muted);
   font-size: 13px;
   line-height: 1.5;
+}
+
+.admin-inquiry-content {
+  display: grid;
+  gap: 8px;
+  border: 1px solid rgba(83, 111, 90, 0.12);
+  border-radius: 18px;
+  background: rgba(255, 253, 247, 0.78);
+  padding: 14px;
+}
+
+.admin-inquiry-content strong,
+.admin-inquiry-content p {
+  margin: 0;
+}
+
+.admin-inquiry-content p {
+  color: var(--muted);
+  line-height: 1.65;
+  white-space: pre-wrap;
+}
+
+.admin-inline-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
 }
 
 @media (max-width: 1100px) {

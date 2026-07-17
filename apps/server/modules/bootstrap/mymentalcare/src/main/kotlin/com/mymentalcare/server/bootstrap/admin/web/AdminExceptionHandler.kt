@@ -1,6 +1,8 @@
 package com.mymentalcare.server.bootstrap.admin.web
 
 import com.mymentalcare.server.application.admin.AdminAccessDeniedException
+import com.mymentalcare.server.application.admin.AdminInquiryInvalidRequestException
+import com.mymentalcare.server.application.admin.AdminInquiryNotFoundException
 import com.mymentalcare.server.application.admin.AdminMemberInvalidStatusException
 import com.mymentalcare.server.application.admin.AdminMemberNotFoundException
 import com.mymentalcare.server.bootstrap.common.web.ApiErrorResponse
@@ -27,5 +29,17 @@ class AdminExceptionHandler {
     fun handleAdminMemberInvalidStatus(exception: AdminMemberInvalidStatusException): ResponseEntity<ApiErrorResponse> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiErrorResponse(code = "INVALID_STATUS", message = exception.message ?: "변경할 수 없는 회원 상태입니다."))
+    }
+
+    @ExceptionHandler(AdminInquiryNotFoundException::class)
+    fun handleAdminInquiryNotFound(exception: AdminInquiryNotFoundException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+            .body(ApiErrorResponse(code = "INQUIRY_NOT_FOUND", message = exception.message ?: "문의를 찾을 수 없습니다."))
+    }
+
+    @ExceptionHandler(AdminInquiryInvalidRequestException::class)
+    fun handleAdminInquiryInvalidRequest(exception: AdminInquiryInvalidRequestException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiErrorResponse(code = "INVALID_INQUIRY_REQUEST", message = exception.message ?: "문의 처리 요청이 올바르지 않습니다."))
     }
 }

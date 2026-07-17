@@ -8,5 +8,9 @@ data class Inquiry(
     val category: String,
     val content: String,
     val status: InquiryStatus,
+    val adminMemo: String? = null,
+    val handledByMemberId: Long? = null,
+    val handledAt: LocalDateTime? = null,
     val createdAt: LocalDateTime? = null,
+    val updatedAt: LocalDateTime? = null,
 )
