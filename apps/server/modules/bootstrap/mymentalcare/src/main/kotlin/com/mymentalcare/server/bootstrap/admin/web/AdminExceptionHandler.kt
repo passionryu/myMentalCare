@@ -6,6 +6,7 @@ import com.mymentalcare.server.application.admin.AdminInquiryNotFoundException
 import com.mymentalcare.server.application.admin.AdminChatRoomNotFoundException
 import com.mymentalcare.server.application.admin.AdminMemberInvalidStatusException
 import com.mymentalcare.server.application.admin.AdminMemberNotFoundException
+import com.mymentalcare.server.application.admin.AdminIncidentInvalidRequestException
 import com.mymentalcare.server.application.admin.AdminReportNotFoundException
 import com.mymentalcare.server.application.admin.AdminSensitiveAccessReasonRequiredException
 import com.mymentalcare.server.bootstrap.common.web.ApiErrorResponse
@@ -62,5 +63,11 @@ class AdminExceptionHandler {
     fun handleAdminSensitiveAccessReasonRequired(exception: AdminSensitiveAccessReasonRequiredException): ResponseEntity<ApiErrorResponse> {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST)
             .body(ApiErrorResponse(code = "REASON_REQUIRED", message = exception.message ?: "조회 사유가 필요합니다."))
+    }
+
+    @ExceptionHandler(AdminIncidentInvalidRequestException::class)
+    fun handleAdminIncidentInvalidRequest(exception: AdminIncidentInvalidRequestException): ResponseEntity<ApiErrorResponse> {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+            .body(ApiErrorResponse(code = "INVALID_INCIDENT_REQUEST", message = exception.message ?: "장애 기록 요청이 올바르지 않습니다."))
     }
 }
