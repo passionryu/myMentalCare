@@ -6714,6 +6714,174 @@ h3 {
   font-size: clamp(26px, 3vw, 38px);
 }
 
+.admin-panel-heading-row,
+.admin-filter-bar,
+.admin-pagination {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.admin-panel-heading-row {
+  justify-content: space-between;
+}
+
+.admin-soft-button,
+.admin-primary-button,
+.admin-pagination button {
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 999px;
+  padding: 0 16px;
+  font-weight: 900;
+}
+
+.admin-soft-button,
+.admin-pagination button {
+  border: 1px solid rgba(83, 111, 90, 0.18);
+  background: rgba(255, 250, 241, 0.9);
+  color: var(--sage-dark);
+}
+
+.admin-primary-button {
+  border: 1px solid var(--sage-dark);
+  background: var(--sage-dark);
+  color: #fffaf1;
+}
+
+.admin-soft-button svg,
+.admin-primary-button svg {
+  width: 18px;
+  height: 18px;
+}
+
+.admin-filter-bar {
+  flex-wrap: wrap;
+  border: 1px solid rgba(83, 111, 90, 0.12);
+  border-radius: 22px;
+  background: rgba(255, 250, 241, 0.68);
+  padding: 14px;
+}
+
+.admin-filter-bar label {
+  min-width: 180px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 850;
+}
+
+.admin-filter-bar select,
+.admin-filter-bar input {
+  height: 44px;
+  border: 1px solid rgba(83, 111, 90, 0.18);
+  border-radius: 14px;
+  background: rgba(255, 253, 247, 0.94);
+  color: var(--foreground);
+  padding: 0 12px;
+}
+
+.admin-state-message,
+.admin-empty-state {
+  border-radius: 20px;
+  background: rgba(220, 235, 240, 0.52);
+  color: var(--muted);
+  padding: 16px;
+}
+
+.admin-state-message {
+  margin: 0;
+  font-weight: 800;
+}
+
+.admin-empty-state {
+  display: grid;
+  justify-items: center;
+  gap: 8px;
+  text-align: center;
+}
+
+.admin-empty-state svg {
+  width: 34px;
+  height: 34px;
+  color: var(--sage-dark);
+}
+
+.admin-empty-state strong,
+.admin-empty-state p {
+  margin: 0;
+}
+
+.admin-audit-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-audit-item {
+  display: grid;
+  gap: 10px;
+  border: 1px solid rgba(83, 111, 90, 0.14);
+  border-radius: 20px;
+  background: rgba(255, 253, 247, 0.86);
+  padding: 16px;
+}
+
+.admin-audit-item > div:first-child {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.admin-audit-item span,
+.admin-audit-item p,
+.admin-audit-item dt {
+  color: var(--muted);
+}
+
+.admin-audit-item p {
+  margin: 0;
+  line-height: 1.55;
+}
+
+.admin-audit-item dl {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin: 0;
+}
+
+.admin-audit-item dl div {
+  display: grid;
+  gap: 4px;
+  border-radius: 16px;
+  background: rgba(220, 235, 240, 0.42);
+  padding: 10px;
+}
+
+.admin-audit-item dt,
+.admin-audit-item dd {
+  margin: 0;
+}
+
+.admin-audit-item dd {
+  overflow-wrap: anywhere;
+  font-weight: 850;
+}
+
+.admin-pagination {
+  justify-content: center;
+}
+
+.admin-pagination button:disabled,
+.admin-soft-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+}
+
 @media (max-width: 1100px) {
   .admin-shell {
     grid-template-columns: 1fr;
@@ -6768,5 +6936,22 @@ h3 {
 
   .admin-navigation a span {
     display: inline;
+  }
+
+  .admin-panel-heading-row,
+  .admin-filter-bar,
+  .admin-pagination,
+  .admin-audit-item > div:first-child {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-filter-bar label,
+  .admin-filter-bar button {
+    width: 100%;
+  }
+
+  .admin-audit-item dl {
+    grid-template-columns: 1fr;
   }
 }
