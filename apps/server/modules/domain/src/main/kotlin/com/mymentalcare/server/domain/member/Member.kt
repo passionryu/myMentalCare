@@ -8,9 +8,15 @@ data class Member(
     val name: String,
     val phone: String?,
     val status: MemberStatus = MemberStatus.ACTIVE,
+    val role: MemberRole = MemberRole.USER,
 )
 
 enum class MemberStatus {
     ACTIVE,
     WITHDRAWN,
+}
+
+enum class MemberRole {
+    USER,
+    ADMIN,
 }
