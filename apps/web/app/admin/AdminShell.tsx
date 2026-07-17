@@ -15,7 +15,7 @@ const adminNavigation = [
   { href: '/admin', label: '대시보드', icon: BarChart3 },
   { href: '/admin/users', label: '회원 관리', icon: UsersRound },
   { href: '/admin/inquiries', label: '문의 관리', icon: Inbox },
-  { href: '/admin/conversations', label: '대화/리포트', icon: MessageSquareText },
+  { href: '/admin/reports', label: '대화/리포트', icon: MessageSquareText },
   { href: '/admin/logs', label: '감사/장애 로그', icon: FileText },
 ]
 
