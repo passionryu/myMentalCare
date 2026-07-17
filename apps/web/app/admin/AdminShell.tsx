@@ -30,6 +30,7 @@ function isActiveNavigation(pathname: string, href: string) {
 export default function AdminShell({ children }: AdminShellProps) {
   const router = useRouter()
   const pathname = usePathname()
+  const isLoginPage = pathname === '/admin/login'
   const [profile, setProfile] = useState<AdminProfileResponse | null>(null)
   const [status, setStatus] = useState<'loading' | 'ready' | 'blocked'>('loading')
   const [message, setMessage] = useState('')
@@ -39,6 +40,10 @@ export default function AdminShell({ children }: AdminShellProps) {
   }, [pathname])
 
   useEffect(() => {
+    if (isLoginPage) {
+      return
+    }
+
     readAdminProfile()
       .then((nextProfile) => {
         setProfile(nextProfile)
@@ -49,11 +54,15 @@ export default function AdminShell({ children }: AdminShellProps) {
         setStatus('blocked')
         setMessage(error instanceof LoginApiError ? error.message : '관리자 권한을 확인하지 못했습니다.')
       })
-  }, [])
+  }, [isLoginPage])
 
   function handleLogout() {
     clearLoginTokens()
-    router.replace('/')
+    router.replace('/admin/login')
+  }
+
+  if (isLoginPage) {
+    return <>{children}</>
   }
 
   if (status === 'loading') {
@@ -75,8 +84,8 @@ export default function AdminShell({ children }: AdminShellProps) {
           <h1>관리자 접근이 필요합니다</h1>
           <p>{message}</p>
           <div className="admin-gate-actions">
+            <Link href="/admin/login">관리자 로그인</Link>
             <Link href="/">홈으로</Link>
-            <Link href="/mypage">마이페이지</Link>
           </div>
         </section>
       </main>
