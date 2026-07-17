@@ -11,4 +11,5 @@ enum class AdminAuditLogAction {
     AI_CHAT_HISTORY_VIEW,
     AI_CHAT_REPORT_VIEW,
     SYSTEM_LOG_VIEW,
+    SYSTEM_INCIDENT_CREATE,
 }
