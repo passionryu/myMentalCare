@@ -19,4 +19,6 @@ interface JpaAiChatRoomRepository : JpaRepository<AiChatRoomEntity, Long> {
     ): List<AiChatRoomEntity>
 
     fun findByIdAndMemberId(roomId: Long, memberId: Long): AiChatRoomEntity?
+
+    fun countByConversationDate(conversationDate: LocalDate): Long
 }
