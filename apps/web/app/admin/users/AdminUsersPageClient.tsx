@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminDetailModal from '../AdminDetailModal'
 import {
   AdminMemberDetail,
   AdminMemberPageResponse,
@@ -68,6 +69,7 @@ export default function AdminUsersPageClient() {
   function loadMemberDetail(memberId: number) {
     setIsDetailLoading(true)
     setMessage('')
+    setSelectedMember(null)
 
     readAdminMember(memberId)
       .then((member) => {
@@ -81,6 +83,12 @@ export default function AdminUsersPageClient() {
       .finally(() => {
         setIsDetailLoading(false)
       })
+  }
+
+  function closeMemberModal() {
+    setSelectedMember(null)
+    setIsDetailLoading(false)
+    setReason('')
   }
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -169,7 +177,17 @@ export default function AdminUsersPageClient() {
               </thead>
               <tbody>
                 {membersPage?.members.map((member) => (
-                  <tr key={member.id} onClick={() => loadMemberDetail(member.id)}>
+                  <tr
+                    key={member.id}
+                    tabIndex={0}
+                    onClick={() => loadMemberDetail(member.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        loadMemberDetail(member.id)
+                      }
+                    }}
+                  >
                     <td>{member.id}</td>
                     <td>{member.name}</td>
                     <td>{member.loginId}</td>
@@ -204,73 +222,72 @@ export default function AdminUsersPageClient() {
         )}
       </article>
 
-      <aside className="admin-panel admin-detail-panel">
-        <span className="admin-eyebrow">Detail</span>
-        <h2>회원 상세</h2>
-        {isDetailLoading && <p className="admin-state-message">회원 상세를 불러오는 중입니다.</p>}
-        {!selectedMember && !isDetailLoading && <p className="admin-state-message">목록에서 회원을 선택하세요.</p>}
-        {selectedMember && (
-          <>
-            <dl className="admin-detail-list">
-              <div>
-                <dt>회원 ID</dt>
-                <dd>{selectedMember.id}</dd>
-              </div>
-              <div>
-                <dt>이름</dt>
-                <dd>{selectedMember.name}</dd>
-              </div>
-              <div>
-                <dt>로그인 ID</dt>
-                <dd>{selectedMember.loginId}</dd>
-              </div>
-              <div>
-                <dt>이메일</dt>
-                <dd>{selectedMember.email ?? '-'}</dd>
-              </div>
-              <div>
-                <dt>전화번호</dt>
-                <dd>{selectedMember.phone ?? '-'}</dd>
-              </div>
-              <div>
-                <dt>권한</dt>
-                <dd>{selectedMember.role}</dd>
-              </div>
-              <div>
-                <dt>상태</dt>
-                <dd>
-                  <span className={`admin-status-badge status-${selectedMember.status.toLowerCase()}`}>
-                    {statusLabels[selectedMember.status]}
-                  </span>
-                </dd>
-              </div>
-              <div>
-                <dt>수정일</dt>
-                <dd>{formatDate(selectedMember.updatedAt)}</dd>
-              </div>
-            </dl>
+      {(isDetailLoading || selectedMember) && (
+        <AdminDetailModal eyebrow="Detail" title="회원 상세" onClose={closeMemberModal}>
+          {isDetailLoading && <p className="admin-state-message">회원 상세를 불러오는 중입니다.</p>}
+          {selectedMember && (
+            <>
+              <dl className="admin-detail-list">
+                <div>
+                  <dt>회원 ID</dt>
+                  <dd>{selectedMember.id}</dd>
+                </div>
+                <div>
+                  <dt>이름</dt>
+                  <dd>{selectedMember.name}</dd>
+                </div>
+                <div>
+                  <dt>로그인 ID</dt>
+                  <dd>{selectedMember.loginId}</dd>
+                </div>
+                <div>
+                  <dt>이메일</dt>
+                  <dd>{selectedMember.email ?? '-'}</dd>
+                </div>
+                <div>
+                  <dt>전화번호</dt>
+                  <dd>{selectedMember.phone ?? '-'}</dd>
+                </div>
+                <div>
+                  <dt>권한</dt>
+                  <dd>{selectedMember.role}</dd>
+                </div>
+                <div>
+                  <dt>상태</dt>
+                  <dd>
+                    <span className={`admin-status-badge status-${selectedMember.status.toLowerCase()}`}>
+                      {statusLabels[selectedMember.status]}
+                    </span>
+                  </dd>
+                </div>
+                <div>
+                  <dt>수정일</dt>
+                  <dd>{formatDate(selectedMember.updatedAt)}</dd>
+                </div>
+              </dl>
 
-            <form className="admin-status-form" onSubmit={handleStatusChange}>
-              <label>
-                변경 상태
-                <select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as AdminMemberStatus)} disabled={!canChangeStatus}>
-                  <option value="ACTIVE">활성</option>
-                  <option value="SUSPENDED">정지</option>
-                  <option value="WITHDRAWN">탈퇴</option>
-                </select>
-              </label>
-              <label>
-                변경 사유
-                <textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="운영 기록에 남길 사유를 입력하세요." />
-              </label>
-              <button type="submit" className="admin-primary-button" disabled={!canChangeStatus || isSaving}>
-                {isSaving ? '변경 중' : '상태 변경'}
-              </button>
-              {!canChangeStatus && <p>관리자 계정 또는 탈퇴 회원은 상태를 변경할 수 없습니다.</p>}
-            </form>
-          </>
-        )}
-      </aside>
+              <form className="admin-status-form" onSubmit={handleStatusChange}>
+                <label>
+                  변경 상태
+                  <select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as AdminMemberStatus)} disabled={!canChangeStatus}>
+                    <option value="ACTIVE">활성</option>
+                    <option value="SUSPENDED">정지</option>
+                    <option value="WITHDRAWN">탈퇴</option>
+                  </select>
+                </label>
+                <label>
+                  변경 사유
+                  <textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="운영 기록에 남길 사유를 입력하세요." />
+                </label>
+                <button type="submit" className="admin-primary-button" disabled={!canChangeStatus || isSaving}>
+                  {isSaving ? '변경 중' : '상태 변경'}
+                </button>
+                {!canChangeStatus && <p>관리자 계정 또는 탈퇴 회원은 상태를 변경할 수 없습니다.</p>}
+              </form>
+            </>
+          )}
+        </AdminDetailModal>
+      )}
     </section>
   )
 }
