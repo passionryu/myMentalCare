@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminDetailModal from '../AdminDetailModal'
 import {
   AdminInquiryDetail,
   AdminInquiryPageResponse,
@@ -69,6 +70,7 @@ export default function AdminInquiriesPageClient() {
   function loadInquiryDetail(inquiryId: number) {
     setIsDetailLoading(true)
     setMessage('')
+    setSelectedInquiry(null)
 
     readAdminInquiry(inquiryId)
       .then((inquiry) => {
@@ -82,6 +84,12 @@ export default function AdminInquiriesPageClient() {
       .finally(() => {
         setIsDetailLoading(false)
       })
+  }
+
+  function closeInquiryModal() {
+    setSelectedInquiry(null)
+    setIsDetailLoading(false)
+    setAdminMemo('')
   }
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -187,7 +195,17 @@ export default function AdminInquiriesPageClient() {
               </thead>
               <tbody>
                 {inquiriesPage?.inquiries.map((inquiry) => (
-                  <tr key={inquiry.id} onClick={() => loadInquiryDetail(inquiry.id)}>
+                  <tr
+                    key={inquiry.id}
+                    tabIndex={0}
+                    onClick={() => loadInquiryDetail(inquiry.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        loadInquiryDetail(inquiry.id)
+                      }
+                    }}
+                  >
                     <td>{inquiry.id}</td>
                     <td>{inquiry.memberId}</td>
                     <td>{inquiry.category}</td>
@@ -223,66 +241,65 @@ export default function AdminInquiriesPageClient() {
         )}
       </article>
 
-      <aside className="admin-panel admin-detail-panel">
-        <span className="admin-eyebrow">Detail</span>
-        <h2>문의 상세</h2>
-        {isDetailLoading && <p className="admin-state-message">문의 상세를 불러오는 중입니다.</p>}
-        {!selectedInquiry && !isDetailLoading && <p className="admin-state-message">목록에서 문의를 선택하세요.</p>}
-        {selectedInquiry && (
-          <>
-            <dl className="admin-detail-list">
-              <div>
-                <dt>문의 ID</dt>
-                <dd>{selectedInquiry.id}</dd>
-              </div>
-              <div>
-                <dt>회원 ID</dt>
-                <dd>{selectedInquiry.memberId}</dd>
-              </div>
-              <div>
-                <dt>분류</dt>
-                <dd>{selectedInquiry.category}</dd>
-              </div>
-              <div>
-                <dt>상태</dt>
-                <dd>
-                  <span className={`admin-status-badge status-${selectedInquiry.status.toLowerCase().replace('_', '-')}`}>
-                    {statusLabels[selectedInquiry.status]}
-                  </span>
-                </dd>
-              </div>
-            </dl>
+      {(isDetailLoading || selectedInquiry) && (
+        <AdminDetailModal eyebrow="Detail" title="문의 상세" onClose={closeInquiryModal}>
+          {isDetailLoading && <p className="admin-state-message">문의 상세를 불러오는 중입니다.</p>}
+          {selectedInquiry && (
+            <>
+              <dl className="admin-detail-list">
+                <div>
+                  <dt>문의 ID</dt>
+                  <dd>{selectedInquiry.id}</dd>
+                </div>
+                <div>
+                  <dt>회원 ID</dt>
+                  <dd>{selectedInquiry.memberId}</dd>
+                </div>
+                <div>
+                  <dt>분류</dt>
+                  <dd>{selectedInquiry.category}</dd>
+                </div>
+                <div>
+                  <dt>상태</dt>
+                  <dd>
+                    <span className={`admin-status-badge status-${selectedInquiry.status.toLowerCase().replace('_', '-')}`}>
+                      {statusLabels[selectedInquiry.status]}
+                    </span>
+                  </dd>
+                </div>
+              </dl>
 
-            <section className="admin-inquiry-content">
-              <strong>문의 내용</strong>
-              <p>{selectedInquiry.content}</p>
-            </section>
+              <section className="admin-inquiry-content">
+                <strong>문의 내용</strong>
+                <p>{selectedInquiry.content}</p>
+              </section>
 
-            <form className="admin-status-form" onSubmit={handleStatusChange}>
-              <label>
-                처리 상태
-                <select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as AdminInquiryStatus)}>
-                  <option value="RECEIVED">접수</option>
-                  <option value="IN_PROGRESS">처리 중</option>
-                  <option value="DONE">완료</option>
-                </select>
-              </label>
-              <label>
-                운영 메모
-                <textarea value={adminMemo} onChange={(event) => setAdminMemo(event.target.value)} placeholder="처리 내용과 판단 근거를 기록하세요." />
-              </label>
-              <div className="admin-inline-actions">
-                <button type="submit" className="admin-primary-button" disabled={isSaving}>
-                  {isSaving ? '저장 중' : '상태 저장'}
-                </button>
-                <button type="button" className="admin-soft-button" onClick={handleMemoSave} disabled={isSaving}>
-                  메모만 저장
-                </button>
-              </div>
-            </form>
-          </>
-        )}
-      </aside>
+              <form className="admin-status-form" onSubmit={handleStatusChange}>
+                <label>
+                  처리 상태
+                  <select value={nextStatus} onChange={(event) => setNextStatus(event.target.value as AdminInquiryStatus)}>
+                    <option value="RECEIVED">접수</option>
+                    <option value="IN_PROGRESS">처리 중</option>
+                    <option value="DONE">완료</option>
+                  </select>
+                </label>
+                <label>
+                  운영 메모
+                  <textarea value={adminMemo} onChange={(event) => setAdminMemo(event.target.value)} placeholder="처리 내용과 판단 근거를 기록하세요." />
+                </label>
+                <div className="admin-inline-actions">
+                  <button type="submit" className="admin-primary-button" disabled={isSaving}>
+                    {isSaving ? '저장 중' : '상태 저장'}
+                  </button>
+                  <button type="button" className="admin-soft-button" onClick={handleMemoSave} disabled={isSaving}>
+                    메모만 저장
+                  </button>
+                </div>
+              </form>
+            </>
+          )}
+        </AdminDetailModal>
+      )}
     </section>
   )
 }

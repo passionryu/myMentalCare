@@ -1,6 +1,7 @@
 'use client'
 
 import { FormEvent, useEffect, useState } from 'react'
+import AdminDetailModal from '../AdminDetailModal'
 import {
   AdminChatMessage,
   AdminReportDetail,
@@ -59,6 +60,7 @@ export default function AdminReportsPageClient() {
   function loadReportDetail(reportId: number) {
     setIsDetailLoading(true)
     setMessage('')
+    setSelectedReport(null)
     setMessages([])
     setReason('')
 
@@ -72,6 +74,14 @@ export default function AdminReportsPageClient() {
       .finally(() => {
         setIsDetailLoading(false)
       })
+  }
+
+  function closeReportModal() {
+    setSelectedReport(null)
+    setIsDetailLoading(false)
+    setIsMessagesLoading(false)
+    setMessages([])
+    setReason('')
   }
 
   function handleSearch(event: FormEvent<HTMLFormElement>) {
@@ -145,7 +155,17 @@ export default function AdminReportsPageClient() {
               </thead>
               <tbody>
                 {reportsPage?.reports.map((report) => (
-                  <tr key={report.id} onClick={() => loadReportDetail(report.id)}>
+                  <tr
+                    key={report.id}
+                    tabIndex={0}
+                    onClick={() => loadReportDetail(report.id)}
+                    onKeyDown={(event) => {
+                      if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault()
+                        loadReportDetail(report.id)
+                      }
+                    }}
+                  >
                     <td>{report.id}</td>
                     <td>{report.memberId}</td>
                     <td>{report.conversationDate}</td>
@@ -178,77 +198,75 @@ export default function AdminReportsPageClient() {
         )}
       </article>
 
-      <aside className="admin-panel admin-detail-panel">
-        <span className="admin-eyebrow">Sensitive</span>
-        <h2>리포트 상세</h2>
-        {isDetailLoading && <p className="admin-state-message">리포트 상세를 불러오는 중입니다.</p>}
-        {!selectedReport && !isDetailLoading && <p className="admin-state-message">목록에서 리포트를 선택하세요.</p>}
+      {(isDetailLoading || selectedReport) && (
+        <AdminDetailModal eyebrow="Sensitive" title="리포트 상세" onClose={closeReportModal} size="wide">
+          {isDetailLoading && <p className="admin-state-message">리포트 상세를 불러오는 중입니다.</p>}
+          {selectedReport && (
+            <>
+              <dl className="admin-detail-list">
+                <div>
+                  <dt>리포트 ID</dt>
+                  <dd>{selectedReport.id}</dd>
+                </div>
+                <div>
+                  <dt>회원 ID</dt>
+                  <dd>{selectedReport.memberId}</dd>
+                </div>
+                <div>
+                  <dt>대화방 ID</dt>
+                  <dd>{selectedReport.roomId}</dd>
+                </div>
+                <div>
+                  <dt>생성일</dt>
+                  <dd>{formatDate(selectedReport.createdAt)}</dd>
+                </div>
+                <div>
+                  <dt>주요 감정</dt>
+                  <dd>{selectedReport.primaryEmotion}</dd>
+                </div>
+                <div>
+                  <dt>감정 점수</dt>
+                  <dd>{selectedReport.emotionScore ?? '-'}</dd>
+                </div>
+              </dl>
 
-        {selectedReport && (
-          <>
-            <dl className="admin-detail-list">
-              <div>
-                <dt>리포트 ID</dt>
-                <dd>{selectedReport.id}</dd>
-              </div>
-              <div>
-                <dt>회원 ID</dt>
-                <dd>{selectedReport.memberId}</dd>
-              </div>
-              <div>
-                <dt>대화방 ID</dt>
-                <dd>{selectedReport.roomId}</dd>
-              </div>
-              <div>
-                <dt>생성일</dt>
-                <dd>{formatDate(selectedReport.createdAt)}</dd>
-              </div>
-              <div>
-                <dt>주요 감정</dt>
-                <dd>{selectedReport.primaryEmotion}</dd>
-              </div>
-              <div>
-                <dt>감정 점수</dt>
-                <dd>{selectedReport.emotionScore ?? '-'}</dd>
-              </div>
-            </dl>
+              <section className="admin-inquiry-content">
+                <strong>오늘 마음 요약</strong>
+                <p>{selectedReport.summary}</p>
+              </section>
+              <section className="admin-inquiry-content">
+                <strong>마음 흐름</strong>
+                <p>{selectedReport.emotionalFlow}</p>
+              </section>
+              <section className="admin-inquiry-content">
+                <strong>추천곡</strong>
+                <p>{selectedReport.songs.map((song) => `${song.title} - ${song.artist}`).join('\n') || '추천곡 없음'}</p>
+              </section>
 
-            <section className="admin-inquiry-content">
-              <strong>오늘 마음 요약</strong>
-              <p>{selectedReport.summary}</p>
-            </section>
-            <section className="admin-inquiry-content">
-              <strong>마음 흐름</strong>
-              <p>{selectedReport.emotionalFlow}</p>
-            </section>
-            <section className="admin-inquiry-content">
-              <strong>추천곡</strong>
-              <p>{selectedReport.songs.map((song) => `${song.title} - ${song.artist}`).join('\n') || '추천곡 없음'}</p>
-            </section>
+              <form className="admin-status-form" onSubmit={handleMessagesLoad}>
+                <label>
+                  원문 대화 조회 사유
+                  <textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="원문 대화 조회 사유를 구체적으로 입력하세요." />
+                </label>
+                <button type="submit" className="admin-primary-button" disabled={isMessagesLoading}>
+                  {isMessagesLoading ? '불러오는 중' : '원문 대화 조회'}
+                </button>
+              </form>
 
-            <form className="admin-status-form" onSubmit={handleMessagesLoad}>
-              <label>
-                원문 대화 조회 사유
-                <textarea value={reason} onChange={(event) => setReason(event.target.value)} placeholder="원문 대화 조회 사유를 구체적으로 입력하세요." />
-              </label>
-              <button type="submit" className="admin-primary-button" disabled={isMessagesLoading}>
-                {isMessagesLoading ? '불러오는 중' : '원문 대화 조회'}
-              </button>
-            </form>
-
-            {messages.length > 0 && (
-              <div className="admin-message-list">
-                {messages.map((chatMessage) => (
-                  <section className={`admin-message-item sender-${chatMessage.senderType.toLowerCase()}`} key={chatMessage.id}>
-                    <strong>{chatMessage.senderType}</strong>
-                    <p>{chatMessage.content}</p>
-                  </section>
-                ))}
-              </div>
-            )}
-          </>
-        )}
-      </aside>
+              {messages.length > 0 && (
+                <div className="admin-message-list">
+                  {messages.map((chatMessage) => (
+                    <section className={`admin-message-item sender-${chatMessage.senderType.toLowerCase()}`} key={chatMessage.id}>
+                      <strong>{chatMessage.senderType}</strong>
+                      <p>{chatMessage.content}</p>
+                    </section>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+        </AdminDetailModal>
+      )}
     </section>
   )
 }
